@@ -5,7 +5,8 @@ thing. Log a bug here **before** reporting back to the user for the part it occu
 
 | Date | Symptom | Root cause | Fix | Files affected | Phase/Part |
 |---|---|---|---|---|---|
-| — | *(none yet — implementation has not started)* | | | | |
+| 2026-09-29 | `boto3` S3 calls to B2 (`head_bucket`/`list_objects_v2`) failed with `InvalidAccessKeyId: Malformed Access Key Id` (403), repeatedly, across multiple regenerated secrets | The credential in use was the **Master Application Key**, whose `keyID` always equals the 12-char Account ID. This is valid for B2's native API (confirmed via direct `b2_authorize_account` call — succeeded every time) but is rejected by B2's S3-compatible gateway, which requires a real non-master Application Key's longer (~25-char) `keyID`. Compounded by an earlier, separate mistake: the `BUCKET-ID` env var holds B2's internal bucket ID (hex), not the bucket *name* the S3 API's `Bucket=` parameter needs. | Created a genuine non-master Application Key scoped to the bucket (25-char keyID, 31-char secret) via B2 console → App Keys → "Add a New Application Key" (not "reset master key"); used the real bucket name (`satilliate-images`, from the console) instead of `BUCKET-ID`'s value. | `.env` (user-side), no repo code | Phase 0, Part 0.4 |
+| — | *(none else yet)* | | | | |
 
 ## Known plan-level risks to watch for (not bugs yet, but flagged in `plan.md` as likely failure points)
 
