@@ -1,0 +1,65 @@
+# Secrets — never commit
+.env
+.env.*
+*.pem
+*.key
+
+# Data (Tier 1/2 live only on the Studio; raw data lives in B2)
+data/
+
+# Model artifacts, predictions, logs — regenerable, not source
+models/
+predictions/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Studio / shell / IDE environment files — the repo root doubles as $HOME on this
+# Lightning Studio, so these are noise, not project source
+.bashrc
+.cache/
+.claude/
+.claude.json
+.condarc
+.config/
+.cursor-server
+.docker
+.gitconfig
+.hushlogin
+.idea/
+.ipython/
+.jupyter
+.lightning_studio/
+.lightningignore
+.local
+.nvm
+.oh-my-zsh
+.profile
+.ssh/
+.sudo_as_admin_successful
+.vimrc
+.vscode/
+.vscode-server
+.windsurf-server
+.zcompdump
+.zshrc
