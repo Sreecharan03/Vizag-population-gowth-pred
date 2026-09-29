@@ -82,4 +82,6 @@ Fill in as ADRs and irreversible design choices get made (e.g., Phase 3 Part 3.0
 
 | Decision | Phase/Part | Date | Notes |
 |---|---|---|---|
-| — | — | — | None locked in yet; implementation has not started |
+| `validation.py` avoids hard dependency on geopandas/rasterio/pyproj | Phase 0, Part 0.3 | 2026-09-29 | Those aren't installed until Part 0.4. `assert_crs` duck-types any CRS-like object (string, int, or one exposing `to_epsg()`/`to_string()`) instead of importing `pyproj.CRS` directly, so shared assertions work before and after the geospatial stack lands. |
+| `assert_nodata_consistent` checks both directions | Phase 0, Part 0.3 | 2026-09-29 | Not just "no sentinel where valid" but also "sentinel present everywhere flagged nodata" — matches Phase 3's "nodata stays nodata, never read as 0 reflectance" and Phase 4's "empty cell → NaN, never coerced to 0" concerns from `plan.md`. |
+| Credential redaction lives in Part 0.4, not the Part 0.3 logger | Phase 0, Part 0.3/0.4 | 2026-09-29 | `plan.md` places the redaction edge case and its test (`test_logger_redacts_credential_patterns`) under Parts 0.4–0.5, and no secret flows through logging yet — deferred rather than scope-creeping into 0.3. Must not be forgotten when 0.4 is implemented. |

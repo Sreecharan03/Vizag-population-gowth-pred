@@ -8,7 +8,7 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 
 | Phase | Title | Status | Parts done | Phase Gate confirmed? |
 |---|---|---|---|---|
-| 0 | Project scaffolding & environment | In progress | 2/5 | No |
+| 0 | Project scaffolding & environment | In progress | 3/5 | No |
 | 1 | Study boundary & configuration | Not started | 0/2 | No |
 | 2 | B2 inventory, reconciliation & acquisition | Not started | 0/6 | No |
 | 3 | Advanced Sentinel-2 preprocessing | Not started | 0/8 | No |
@@ -24,10 +24,15 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 ## Current position (detail)
 
 - **Current phase:** Phase 0, in progress.
-- **Current part:** Part 0.2 (`configs/paths.yaml` + `resolve_path()`) complete. Part 0.3
-  (`src/utils/logging.py` + `validation.py`) is next — not yet proposed/approved.
-- **Blocking on user input?** Not for Part 0.3. Parts 0.4–0.5 and Phase 2 will still need B2 credentials,
-  bucket name, and the Studio storage budget — see [`open_questions.md`](open_questions.md).
+- **Current part:** Part 0.3 (`src/utils/logging.py` + `validation.py`) complete. Part 0.4 (Lightning
+  Studio environment & tooling — installing the full geospatial stack, B2 credentials) is next — not yet
+  proposed/approved.
+- **Blocking on user input?** Not yet, but Part 0.4 will need B2 endpoint/bucket/credentials and the
+  Studio storage budget — see [`open_questions.md`](open_questions.md).
+- **Plan gap flagged:** `plan.md`'s Phase 0 "Test cases" list doesn't name any test for `validation.py`
+  (only logging's test is named), even though `validation.py` is an explicit Part 0.3 deliverable reused by
+  every later phase. Wrote 18 tests for it anyway rather than leaving shared assertions untested — see
+  `changelog.md`. Not treated as a plan deviation requiring a stop, since it's purely additive.
 
 ## Per-part log
 
@@ -39,3 +44,4 @@ detail (what broke, what was decided) belongs in [`changelog.md`](changelog.md) 
 |---|---|---|---|
 | 0.1 | 2026-09-29 | N/A (no tests specified for this part; verified by `git status` clean + `pyproject.toml` valid) | Repo init: `pyproject.toml` (Python 3.11–3.12, Part-0.1 core libs pinned), `.gitignore` (secrets, data/, models/, predictions/, logs/, Studio env noise), `git init` + GitHub remote (`origin`) wired via a repo-scoped SSH deploy key. |
 | 0.2 | 2026-09-29 | 10/10 passing (`pytest tests/`) | `configs/paths.yaml` (every path from `plan.md` Section 1) + `src/utils/io.py`: `find_repo_root()` (cwd-independent), `load_config()`, `resolve_path()`, `ConfigError`, and `find_duplicate_paths()` for the "two keys, one path" edge case (warns, doesn't fail). Added `tests/unit/test_io.py` and the Phase-0-mandated `tests/unit/test_no_hardcoded_paths.py` lint test (includes a self-check that the detector isn't vacuous). Installed `pytest`+`pyyaml`; added `pyyaml` to `pyproject.toml`. |
+| 0.3 | 2026-09-29 | 32/32 passing (`pytest tests/`) | `src/utils/logging.py`: `get_run_logger(phase, run_timestamp=...)` → append-safe `logs/<phase>_<timestamp>.log`. `src/utils/validation.py`: `assert_crs`, `assert_bounds_within`, `assert_no_nan`, `assert_nodata_consistent` (two-directional — catches both "nodata not masked" and "valid pixel misread as nodata"), all raising `ValidationError`. Refined `test_no_hardcoded_paths` to exempt only the literal *argument inside* a `resolve_path(...)` call (was about to false-positive on `resolve_path("logs")` since the dotted key and the path happen to be spelled the same). Credential-redaction in the logger is deliberately deferred to Part 0.4 (that's where `plan.md` places its edge case/test, and no secret ever flows through logging yet). |
