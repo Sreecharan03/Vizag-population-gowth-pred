@@ -20,6 +20,7 @@ dependencies = [
     "osmnx>=1.9,<2.0",
     "pysal>=24.1,<25.0",
     "matplotlib>=3.8,<4.0",
+    "pyyaml>=6.0,<7.0",
 ]
 
 [project.optional-dependencies]

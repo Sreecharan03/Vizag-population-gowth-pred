@@ -1,0 +1,41 @@
+# Single source of truth for every directory/file path in the repo.
+# Every module resolves paths through src/utils/io.py:resolve_path("dotted.key"),
+# never as a literal string — enforced by tests/unit/test_no_hardcoded_paths.py.
+# All paths below are relative to the repo root (detected via the marker file
+# in src/utils/io.py, never via the process's current working directory).
+
+configs:
+  boundary: configs/boundary.yaml
+  temporal: configs/temporal.yaml
+  grid: configs/grid.yaml
+  label: configs/label.yaml
+  model: configs/model.yaml
+  paths: configs/paths.yaml
+  storage: configs/storage.yaml
+  b2: configs/b2.yaml
+  data_requirements: configs/data_requirements.yaml
+
+data:
+  root: data
+  manifests: data/manifests
+  staging: data/staging
+  raw_small: data/raw_small
+  boundaries: data/boundaries
+  processed: data/processed
+  derived: data/derived
+  external_validation: data/external_validation
+
+src:
+  root: src
+
+tests:
+  root: tests
+  unit: tests/unit
+  integration: tests/integration
+  fixtures: tests/fixtures
+
+notebooks: notebooks
+models: models
+predictions: predictions
+results: results
+logs: logs

@@ -61,7 +61,7 @@ Checked by `tests/unit/test_no_hardcoded_paths.py`.
 
 | Config | Purpose | Status |
 |---|---|---|
-| `configs/paths.yaml` | Single source of truth for all directory paths | Not created (Part 0.2) |
+| `configs/paths.yaml` | Single source of truth for all directory paths | **Created (Part 0.2)** |
 | `configs/storage.yaml` | Studio budget, staging cap, eviction rules (no secrets) | Not created (Part 0.4); `budget_gb` must come from user |
 | `configs/b2.yaml` | B2 endpoint, bucket, prefixes (no secrets) | Not created (Part 0.4); values must come from user |
 | `configs/boundary.yaml` | Study area source, CRS (`EPSG:32644`), buffer distance | Not created (Part 1.1) |

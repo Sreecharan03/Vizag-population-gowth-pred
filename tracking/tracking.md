@@ -14,9 +14,9 @@ in this directory are the *dynamic* record of what has actually happened. If the
 |---|---|
 | Last updated | 2026-09-29 |
 | Studio | Lightning AI Studio, workspace `/teamspace/studios/this_studio` |
-| Repo initialized (Phase 0)? | **Part 0.1 done** — `pyproject.toml`, `.gitignore` created; `src/`, `configs/`, `tests/` not yet created (Parts 0.2+) |
-| Current phase | Phase 0 — Project scaffolding & environment (in progress, 1/5 parts) |
-| Current part | Part 0.1 complete. Next action is to **PROPOSE Part 0.2** (`configs/paths.yaml` + `resolve_path()`) and wait for explicit "yes" |
+| Repo initialized (Phase 0)? | **Parts 0.1–0.2 done** — `pyproject.toml`, `.gitignore`, `configs/paths.yaml`, `src/utils/io.py` (config loader + `resolve_path()`), `tests/unit/{test_io,test_no_hardcoded_paths}.py` (10/10 passing) |
+| Current phase | Phase 0 — Project scaffolding & environment (in progress, 2/5 parts) |
+| Current part | Part 0.2 complete. Next action is to **PROPOSE Part 0.3** (`src/utils/logging.py` + `validation.py`) and wait for explicit "yes" |
 | Git repo? | Initialized (`main` branch), remote `origin` = `git@github.com:Sreecharan03/Vizag-population-gowth-pred.git`, pushed via a repo-scoped SSH deploy key (see `handoff.md` §1a if it needs recreating on a new Studio) |
 | B2 / storage config confirmed? | No — see [`open_questions.md`](open_questions.md) |
 | Standing rules added this session | (1) All Vizag geo/boundary data must come from verified sources (OSM, official govt, etc.) — never estimated. (2) Routine git commit+push no longer needs per-instance approval. Both also saved as persistent memories. |
