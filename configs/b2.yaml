@@ -13,15 +13,17 @@
 endpoint_url: https://s3.us-east-005.backblazeb2.com
 bucket: satilliate-images
 
-# Confirmed during Part 0.4 (2026-09-29): this bucket already contains a
-# "vizag-geoai/" prefix with existing processed outputs from prior work
-# (boundaries, 2018 masked Sentinel-2 scene stacks) — see
-# tracking/changelog.md. The prefixes below are intentionally left null:
-# Phase 2 Part 2.1's full inventory must map the real prefix layout (where
-# raw data actually lives, vs these already-processed outputs) before this
-# is filled in — do not guess it.
+# Mapped from Phase 2 Part 2.1's real full-bucket inventory (2026-10-10,
+# results/phase2/inventory_report.md): 1,474 objects, 205.85 GB, all under
+# a "vizag-geoai/" root.
 prefixes:
-  raw_sentinel2: null
-  raw_other: null
+  raw_sentinel2: vizag-geoai/data/raw/sentinel2/      # 280 .SAFE.zip archives, 182.82 GB, confirmed (Assumption A1/A4)
+  raw_other: vizag-geoai/data/raw/                     # e.g. WorldPop rasters already live at raw/worldpop/ within this
+  # The prefixes below are intentionally still null: this bucket already has
+  # a "vizag-geoai/data/processed/sentinel2/" prefix with LEGACY processed
+  # outputs from prior work (840 per-scene derivatives + 346 mosaics — not
+  # produced by this codebase's Phase 3, which doesn't exist yet). Whether
+  # our own Tier 3 backup reuses that prefix or uses a new one is a Phase 3
+  # Part 3.0 design decision, not decided yet — do not guess it here.
   processed_backup: null
   manifests_backup: null

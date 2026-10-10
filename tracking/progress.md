@@ -9,7 +9,7 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 | Phase | Title | Status | Parts done | Phase Gate confirmed? |
 |---|---|---|---|---|
 | 0 | Project scaffolding & environment | Gate pending | 5/5 | No |
-| 1 | Study boundary & configuration | In progress | 1/2 | No |
+| 1 | Study boundary & configuration | In progress | 1/2 | Boundary visual confirmed by user 2026-10-10 (`phase1_boundary_check.png`); formal gate requires Part 1.2 too |
 | 2 | B2 inventory, reconciliation & acquisition | In progress (started ahead of Phase 1, by user's call) | 1/6 | No |
 | 3 | Advanced Sentinel-2 preprocessing | Not started | 0/8 | No |
 | 4 | Grid construction & feature aggregation | Not started | 0/4 | No |
@@ -23,12 +23,11 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 
 ## Current position (detail)
 
-- **Current phase:** Phase 0 implementation complete (Gate still pending explicit user walk-through).
-  Phase 2 Part 2.1 done (started ahead of Phase 1, by user's explicit choice). **Phase 1 Part 1.1
-  (boundary) also done.** 121/121 tests passing.
-- **Next:** Phase 1 Part 1.2 (`temporal.yaml`, `grid.yaml`, `label.yaml`) — not yet proposed/approved.
-  Then the Phase 1 Gate: `results/phase1_boundary_check.png` is already generated, waiting on the user's
-  visual sign-off before Phase 2 resumes at Part 2.2.
+- **Current phase:** Phase 0 implementation complete. Phase 2 Part 2.1 done (out of order, ahead of Phase 1,
+  by user's explicit choice). Phase 1 Part 1.1 (boundary) done **and visually confirmed by the user on
+  2026-10-10** (`results/phase1_boundary_check.png` — "yes"). 121/121 tests passing.
+- **Next:** Phase 1 Part 1.2 (`temporal.yaml`, `grid.yaml`, `label.yaml`) — proposed to the user, not yet
+  approved. Once done, Phase 1 as a whole is gate-complete and Phase 2 resumes at Part 2.2.
 - **Plan gap flagged:** `plan.md`'s Phase 0 "Test cases" list doesn't name any test for `validation.py`
   (only logging's test is named), even though `validation.py` is an explicit Part 0.3 deliverable reused by
   every later phase. Wrote 18 tests for it anyway rather than leaving shared assertions untested — see

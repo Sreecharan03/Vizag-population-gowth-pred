@@ -79,7 +79,7 @@ Checked by `tests/unit/test_no_hardcoded_paths.py`.
 |---|---|---|
 | `configs/paths.yaml` | Single source of truth for all directory paths | **Created (Part 0.2)** |
 | `configs/storage.yaml` | Studio budget, staging cap, eviction rules (no secrets) | **Created (Part 0.4)** — everything filled in except `budget_gb` (`null`, still waiting on the user) |
-| `configs/b2.yaml` | B2 endpoint, bucket, prefixes (no secrets) | **Created (Part 0.4)** — endpoint + bucket confirmed; prefixes left `null` pending Phase 2 Part 2.1's inventory |
+| `configs/b2.yaml` | B2 endpoint, bucket, prefixes (no secrets) | **Created (Part 0.4), prefixes filled in (Part 2.1, 2026-10-10)** — endpoint, bucket, `raw_sentinel2`/`raw_other` all confirmed from the real inventory; `processed_backup`/`manifests_backup` deliberately still `null`, pending a Phase 3 Part 3.0 design decision |
 | `configs/boundary.yaml` | Study area source, CRS (`EPSG:32644`), buffer distance | Not created (Part 1.1) |
 | `configs/temporal.yaml` | Epochs, transition pairs, holdout split | Not created (Part 1.2) |
 | `configs/grid.yaml` | Grid cell size (500 m), exclusions | Not created (Part 1.2) |

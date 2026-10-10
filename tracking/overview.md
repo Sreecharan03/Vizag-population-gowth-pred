@@ -26,9 +26,10 @@ Sentinel-2 time series (2018–2024/25)
 
 ## Non-negotiable constraints
 
-- **~190 GB of Sentinel-2 data is already downloaded** (expected total ~225 GB). It must never be
-  re-downloaded from Copernicus. See [`architecture.md`](architecture.md) for the storage-tier design that
-  enforces this.
+- **Sentinel-2 raw data is already downloaded and confirmed in B2** — 280 `.SAFE.zip` archives, 182.82 GB,
+  covering all 4 planned epochs (2018/2020/2022/2024), confirmed by Phase 2 Part 2.1's real inventory
+  (2026-10-10; was only an unverified ~190 GB estimate before that). It must never be re-downloaded from
+  Copernicus. See [`architecture.md`](architecture.md) for the storage-tier design that enforces this.
 - **Backblaze B2 is the permanent source of truth.** Nothing is ever deleted from B2. The Lightning Studio
   disk is scratch + a capped working set only.
 - **One-part-at-a-time workflow.** Every unit of implementation ("part," the smallest item under a phase's

@@ -17,10 +17,10 @@ credentials, bucket names, storage limits, and similar values must be stated exp
 
 | Needed for | What's needed | Status |
 |---|---|---|
-| `configs/b2.yaml` (Part 0.4) | B2 endpoint URL, bucket name, prefixes | Endpoint + bucket confirmed (see A2 above). Prefix taxonomy (raw vs processed vs backup) still needs Phase 2 Part 2.1's inventory. |
+| `configs/b2.yaml` (Part 0.4) | B2 endpoint URL, bucket name, prefixes | **Resolved (2026-10-10).** Endpoint + bucket confirmed. `raw_sentinel2`/`raw_other` prefixes now filled in from Part 2.1's real inventory. `processed_backup`/`manifests_backup` deliberately still `null` — a Phase 3 Part 3.0 design decision (reuse the bucket's existing legacy `processed/` prefix or use a new one), not yet made. |
 | B2 credentials | Actual `.env` var names (not the plan's placeholder `B2_KEY_ID`/`B2_APP_KEY`): `Backbaze-keyID`, `Backbaze-applicationKey`, plus `BUCKET-ID` (holds the B2 bucket ID, not name — unused; real bucket name `satilliate-images` is hardcoded in code/config instead) and `Backbaze-keyName` (unused, informational only). `.env` is gitignored — confirmed never committed. | **Resolved and working** |
-| `configs/storage.yaml` (Part 0.4) | Real Lightning storage plan cap (`budget_gb`) | **Still needed — blocking Part 0.4 completion** |
-| `configs/boundary.yaml` (Part 1.1) | GVMC boundary source: shapefile or official URL | **Resolved (2026-10-10).** Fetched fresh from OpenStreetMap Nominatim (relation 17493324) and written to `configs/boundary.yaml` + `data/boundaries/`. Cross-checked against the B2 file Part 2.1 found: exact match (IoU = 1.0), confirming that file's provenance was legitimate too. Still pending: the user's visual sign-off on `results/phase1_boundary_check.png` (the Phase 1 Gate). |
+| `configs/storage.yaml` (Part 0.4) | Real Lightning storage plan cap (`budget_gb`) | **Resolved (2026-10-10).** User set 150 GB max. |
+| `configs/boundary.yaml` (Part 1.1) | GVMC boundary source: shapefile or official URL | **Resolved (2026-10-10).** Fetched fresh from OpenStreetMap Nominatim (relation 17493324) and written to `configs/boundary.yaml` + `data/boundaries/`. Cross-checked against the B2 file Part 2.1 found: exact match (IoU = 1.0), confirming that file's provenance was legitimate too. **User visually confirmed `results/phase1_boundary_check.png` on 2026-10-10** ("yes"). |
 
 ## How to resolve these
 
