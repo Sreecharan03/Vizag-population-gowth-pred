@@ -14,9 +14,9 @@ in this directory are the *dynamic* record of what has actually happened. If the
 |---|---|
 | Last updated | 2026-10-10 |
 | Studio | Lightning AI Studio, workspace `/teamspace/studios/this_studio` |
-| Repo initialized (Phase 0)? | **Parts 0.1–0.4 done** — repo init, path resolution, logging+validation, full geospatial stack installed & verified, B2 connectivity confirmed, env/secret checks + log redaction built, storage budget confirmed. 48/48 tests passing |
-| Current phase | Phase 0 — Project scaffolding & environment (4/5 parts complete) |
-| Current part | Part 0.4 complete. Next action is to **PROPOSE Part 0.5** (storage layer: `src/storage/backends.py`/`manifest.py`/`guard.py`/`evict.py`) and wait for explicit "yes" |
+| Repo initialized (Phase 0)? | **All 5 parts done** — repo init, path resolution, logging+validation, geospatial stack + B2 connectivity, and the full storage layer (backends/manifest/guard/evict). 78/78 tests passing |
+| Current phase | Phase 0 — Project scaffolding & environment — **implementation complete, Phase Gate pending** |
+| Current part | Part 0.5 complete (the last part of Phase 0). Next action is to walk the user through `plan.md`'s Phase 0 Gate checklist and get explicit sign-off before starting **Phase 1**. Flag before Phase 1 starts: the Part 0.4 discovery (boundary files already in B2) means Phase 2's inventory may be worth doing before/alongside Phase 1, not strictly after — this needs the user's call, not a unilateral reorder. |
 | Git repo? | Initialized (`main` branch), remote `origin` = `git@github.com:Sreecharan03/Vizag-population-gowth-pred.git`, pushed via a repo-scoped SSH deploy key (see `handoff.md` §1a if it needs recreating on a new Studio) |
 | B2 / storage config confirmed? | **Yes, both.** Bucket `satilliate-images`, endpoint `https://s3.us-east-005.backblazeb2.com`, read scope verified. Studio budget: **150 GB max**, everything beyond that stays in B2 only (user, 2026-10-10). |
 | ⚠️ Major finding (2026-09-29) | B2 bucket already contains a `vizag-geoai/` prefix with **existing processed outputs** from prior work (boundary GeoJSONs, 2018 masked Sentinel-2 scene stacks) — survived even though the local codebase was deleted. **Do not blindly rebuild Phase 1/3 from scratch** — Phase 2 Part 2.1's inventory must map what's there first. Full detail in `changelog.md` and `open_questions.md`. |

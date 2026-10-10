@@ -31,10 +31,26 @@ every heavy operation; secrets only via env vars, never in `configs/`.
 
 ## Backend abstraction
 
-`src/storage/backends.py` (Phase 0 Part 0.5) — one interface (`list`, `stat`, `open_range`, `download`,
-`upload`, `exists`) with three implementations: `B2Backend` (S3-compatible), `LocalBackend`, `FakeBackend`
-(in-memory, byte/request counters). All acquisition/preprocessing code depends only on the interface; tests
-use `FakeBackend` exclusively — nothing in `tests/` may require real B2 credentials.
+`src/storage/backends.py` (Phase 0 Part 0.5, **built**) — one interface (`list`, `stat`, `open_range`,
+`download`, `upload`, `exists`) with three implementations: `B2Backend` (S3-compatible, maps `ClientError`
+codes to `AuthFailedError`/`ReadOnlyKeyError`), `LocalBackend`, `FakeBackend` (in-memory, byte/request
+counters). **No backend exposes any delete method** — enforced structurally (`dir()` check) and by a static
+AST scan of all of `src/` for `delete_object`/`delete_objects`/`delete_bucket` calls. Tests use
+`FakeBackend` exclusively; `B2Backend`'s error-mapping is tested by injecting a fake boto3 client (still no
+real network/credentials needed) — manually verified once against the real bucket, not as an automated
+test, per the plan's "tests never touch real B2" rule.
+
+`src/storage/manifest.py` (**built**) — `Manifest`/`ManifestRecord`/`ManifestState`, the full state machine
+from Section 1A.6, atomic writes (temp file + `os.replace`, so a crash mid-write can never corrupt the
+real file), a portable file lock (`O_CREAT|O_EXCL`, works across processes and threads), and
+`cleanup_stale_part_files()` for crash recovery.
+
+`src/storage/guard.py` (**built**) — `check_budget(projected_bytes)` against `configs/storage.yaml`'s
+150 GB cap; refuses (never deletes anything to "make room") if the budget is `null` or would be exceeded.
+
+`src/storage/evict.py` (**built**) — `safe_evict()`, the only sanctioned local-delete path. Refuses and
+writes nothing to the ledger unless both the B2 copy is verified and the derivative is validated; only a
+successful eviction gets a ledger entry.
 
 ## Target repo layout
 

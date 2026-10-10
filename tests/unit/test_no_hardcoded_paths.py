@@ -36,6 +36,11 @@ def _iter_src_python_files():
 def _looks_like_project_path_literal(value: object) -> bool:
     if not isinstance(value, str):
         return False
+    if " " in value or "\n" in value:
+        # A real path literal never contains whitespace; this excludes prose
+        # (docstrings, error messages) that merely mentions a path, e.g.
+        # "configs/storage.yaml's budget_gb is not set".
+        return False
     if value.startswith("/"):
         return True
     return any(value == d or value.startswith(f"{d}/") for d in _PROJECT_TOP_DIRS)
@@ -110,3 +115,12 @@ def test_path_literal_detector_actually_detects_violations():
     assert not _looks_like_project_path_literal("https://example.com/data")
     assert not _looks_like_project_path_literal("hello")
     assert not _looks_like_project_path_literal(42)
+
+
+def test_path_literal_detector_excludes_prose_mentioning_a_path():
+    # Regression: an error message/docstring that starts with a project top
+    # dir but is prose (contains whitespace) must not be flagged — only a
+    # standalone path literal should be. Caught for real in Part 0.5's
+    # src/storage/guard.py error messages.
+    assert not _looks_like_project_path_literal("configs/storage.yaml's budget_gb is not set")
+    assert not _looks_like_project_path_literal("data/staging is nearly full")
