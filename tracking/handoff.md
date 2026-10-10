@@ -38,8 +38,8 @@ Do not fall back to embedding a token in the remote URL or committing any key ma
   This does **not** cover destructive git operations (force-push, history rewrite, branch deletion) or
   anything that would stage `.env` or `data/` — those still require explicit confirmation.
 
-- **Never re-download the raw Sentinel-2 data.** ~190 GB is reportedly already downloaded; B2 is the
-  source of truth once Assumption A1 is confirmed (see `open_questions.md`).
+- **Never re-download the raw Sentinel-2 data.** Confirmed in B2: 280 `.SAFE.zip` scenes, 182.82 GB,
+  all 4 planned epochs, integrity-audited OK (Phase 2 Parts 2.1/2.3). B2 is the permanent source of truth.
 - **Never guess a config value, credential, bucket name, or storage limit.** If it's marked unconfirmed in
   `open_questions.md`, stop and ask the user.
 - **Follow the one-part-at-a-time loop** from `plan.md` Section 0 exactly:
@@ -63,6 +63,11 @@ Do not fall back to embedding a token in the remote URL or committing any key ma
 - Add a one-line entry to [`changelog.md`](changelog.md).
 - If you locked in an architectural decision (e.g., an ADR), record it in
   [`architecture.md`](architecture.md)'s decisions log.
+- If a phase completed or its real status changed materially, update `../README.md`'s status table too —
+  it's a human-facing summary and goes stale fast otherwise.
+- **Before every `git add`/commit, run the real secret-scan** (`src.utils.secrets.scan_files_for_leaked_secrets`
+  against every staged file, with `get_known_secret_values()` loaded from `.env` via `load_dotenv`) — this
+  has caught nothing so far, but it's cheap insurance and is now standard practice, not optional.
 
 Treat "update the tracking files" as an implicit last step of every REPORT in the plan's workflow loop —
 this is what makes the next session's handoff free of manual re-explanation.

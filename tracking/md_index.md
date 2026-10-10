@@ -15,7 +15,7 @@ markdown file is added, moved, or removed anywhere in the repo — not just unde
 | `tracking/open_questions.md` | Unconfirmed assumptions and values only the user can supply | Anyone about to touch B2, storage config, or the boundary |
 | `tracking/md_index.md` (this file) | Index of every markdown file in the repo | Anyone looking for a doc |
 | `tracking/handoff.md` | Step-by-step instructions for a new/cold LLM session picking up the project | A brand-new session, read right after `tracking.md` |
-| `README.md` | *(not yet created — Phase 0/11)* Short human-facing project summary | Humans / new contributors |
+| `README.md` | **Created (2026-10-10, ahead of Phase 3).** Human-facing project summary, current phase status, repo layout, setup/test instructions. Not yet the "polished" Phase 11 Part 11.3 version (that comes with final results/figures) — update it whenever a phase completes, don't let it go stale. | Humans / new contributors |
 | `results/phase2/inventory_report.md` | **Created (Phase 2 Part 2.1, 2026-10-10)** — real B2 inventory: 1,474 objects, 205.85 GB, confirms the raw archive's existence/location/format (A1/A4), lists incomplete mosaic products | Anyone planning Phase 2 Part 2.2+ or Phase 3 |
 | `results/phase2/missing_report.md` | **Created (Phase 2 Part 2.2, 2026-10-10)** — only `T44QQE` strictly required by the current buffer; zero Sentinel-2 gaps; DEM/WorldCover/OSM confirmed missing (at the time) | Anyone planning Phase 2 Part 2.4+ |
 | `results/phase2/integrity_report.md` | **Created (Phase 2 Part 2.3, 2026-10-10)** — 86/86 required raw scenes verified complete via cheap zip-central-directory reads | Anyone starting Phase 3 preprocessing |
