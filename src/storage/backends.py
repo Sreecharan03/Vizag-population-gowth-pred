@@ -26,6 +26,47 @@ class ObjectInfo:
     etag: str | None = None
 
 
+class RangeReadFile:
+    """A minimal seekable/readable file-like object backed by a storage
+    backend's open_range(), so code expecting a file object (e.g.
+    Python's zipfile, or anything using byte-range access) can read just
+    the part of a remote object it actually needs — e.g. a zip's central
+    directory — without downloading the whole thing. Shared by Phase 2
+    Part 2.3's integrity audit and Phase 3 Part 3.0's read-strategy work.
+    """
+
+    def __init__(self, backend, key: str, size: int):
+        self._backend = backend
+        self._key = key
+        self._size = size
+        self._pos = 0
+
+    def seek(self, offset: int, whence: int = 0) -> int:
+        if whence == 0:
+            self._pos = offset
+        elif whence == 1:
+            self._pos += offset
+        elif whence == 2:
+            self._pos = self._size + offset
+        else:
+            raise ValueError(f"invalid whence: {whence}")
+        return self._pos
+
+    def tell(self) -> int:
+        return self._pos
+
+    def read(self, n: int = -1) -> bytes:
+        if n is None or n < 0:
+            n = self._size - self._pos
+        n = max(0, min(n, self._size - self._pos))
+        data = self._backend.open_range(self._key, self._pos, n)
+        self._pos += len(data)
+        return data
+
+    def seekable(self) -> bool:
+        return True
+
+
 class LocalBackend:
     """A plain local-filesystem backend rooted at `root`."""
 

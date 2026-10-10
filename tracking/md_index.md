@@ -22,7 +22,8 @@ markdown file is added, moved, or removed anywhere in the repo — not just unde
 | `results/phase2/fetch_report.md` | **Created (Phase 2 Part 2.4, 2026-10-10)** — DEM/WorldCover/OSM fetch results: 9/9 files verified OK, uploaded to B2 | Anyone using these small datasets in Phase 4 |
 | `results/phase2/part_2_5_resume_status.md` | **Created (Phase 2 Part 2.5, 2026-10-10)** — confirms zero Sentinel-2 items remain to fetch | Reference only |
 | `results/phase2/part_2_6_backup_status.md` | **Created (Phase 2 Part 2.6, 2026-10-10)** — manifest backup confirmation + resume-drill summary | Reference only |
-| `docs/decisions/ADR-001-read-strategy.md` | *(not yet created — Phase 3 Part 3.0)* Records the chosen Sentinel-2 read strategy | Anyone touching `src/preprocessing/` |
+| `docs/decisions/ADR-001-read-strategy.md` | **Created (Phase 3 Part 3.0, 2026-10-10).** Records the chosen Sentinel-2 read strategy (direct remote windowed reads). **Status: Proposed, pending user approval** — not yet Accepted | Anyone touching `src/preprocessing/`; **user must approve before Part 3.1** |
+| `results/phase3/read_benchmark.md` | **Created (Phase 3 Part 3.0, 2026-10-10).** Real measurements backing ADR-001: wall time, bytes transferred, request count, peak staging disk for both strategies | Reference for ADR-001's rationale |
 | `results/final_report.md` | *(not yet created — Phase 11)* Final write-up assembled from metrics/figures/SHAP plots | Humans, final deliverable |
 
 *(As phases progress, add a row for any new `.md` file — e.g. future ADRs, or any prose report a phase

@@ -39,3 +39,7 @@ models: models
 predictions: predictions
 results: results
 logs: logs
+
+docs:
+  root: docs
+  decisions: docs/decisions

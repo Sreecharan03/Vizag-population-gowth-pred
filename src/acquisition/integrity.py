@@ -19,6 +19,7 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+from src.storage.backends import RangeReadFile
 from src.utils.io import resolve_path
 
 REQUIRED_BAND_CODES = ("B02", "B03", "B04", "B08", "B11", "B12")
@@ -28,42 +29,15 @@ DEFAULT_MIN_SCENE_BYTES = 20 * 1024 * 1024  # 20 MB — far below any real full 
 DEFAULT_MAX_SCENE_BYTES = 3 * 1024 * 1024 * 1024  # 3 GB — generous upper bound
 
 
-class _RangeReadFile:
-    """A minimal seekable/readable file-like object backed by a storage
-    backend's open_range(), so zipfile can read just the central directory
-    (near the end of the file) without downloading the archive content.
+def list_zip_contents(backend, key: str, size_bytes: int) -> list[str]:
+    """Returns every internal filename in a remote .SAFE.zip, reading only
+    the central directory (cheap, no content download). Raises
+    zipfile.BadZipFile if the archive is corrupt — callers that need to
+    tolerate that should catch it (see check_zip_band_completeness).
     """
-
-    def __init__(self, backend, key: str, size: int):
-        self._backend = backend
-        self._key = key
-        self._size = size
-        self._pos = 0
-
-    def seek(self, offset: int, whence: int = 0) -> int:
-        if whence == 0:
-            self._pos = offset
-        elif whence == 1:
-            self._pos += offset
-        elif whence == 2:
-            self._pos = self._size + offset
-        else:
-            raise ValueError(f"invalid whence: {whence}")
-        return self._pos
-
-    def tell(self) -> int:
-        return self._pos
-
-    def read(self, n: int = -1) -> bytes:
-        if n is None or n < 0:
-            n = self._size - self._pos
-        n = max(0, min(n, self._size - self._pos))
-        data = self._backend.open_range(self._key, self._pos, n)
-        self._pos += len(data)
-        return data
-
-    def seekable(self) -> bool:
-        return True
+    range_file = RangeReadFile(backend, key, size_bytes)
+    with zipfile.ZipFile(range_file) as zf:
+        return zf.namelist()
 
 
 def check_zip_band_completeness(backend, key: str, size_bytes: int) -> dict[str, Any]:
@@ -72,9 +46,7 @@ def check_zip_band_completeness(backend, key: str, size_bytes: int) -> dict[str,
     returns status="CORRUPT" instead, so a batch audit can continue.
     """
     try:
-        range_file = _RangeReadFile(backend, key, size_bytes)
-        with zipfile.ZipFile(range_file) as zf:
-            names = zf.namelist()
+        names = list_zip_contents(backend, key, size_bytes)
     except zipfile.BadZipFile as e:
         return {
             "status": "CORRUPT",

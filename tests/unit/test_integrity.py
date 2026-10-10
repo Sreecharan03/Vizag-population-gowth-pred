@@ -9,6 +9,7 @@ from src.acquisition.integrity import (
     audit_scene,
     check_size_sanity,
     check_zip_band_completeness,
+    list_zip_contents,
     run_integrity_audit,
 )
 from src.storage.backends import FakeBackend
@@ -114,6 +115,27 @@ def test_check_zip_band_completeness_corrupt_zip():
     result = check_zip_band_completeness(backend, "corrupt.zip", len(garbage))
     assert result["status"] == "CORRUPT"
     assert set(result["missing_bands"]) == set(_ALL_BANDS) | {"SCL"}
+
+
+def test_list_zip_contents_returns_all_names():
+    backend = FakeBackend()
+    data = _build_fake_safe_zip()
+    backend.seed("fake.zip", data)
+
+    names = list_zip_contents(backend, "fake.zip", len(data))
+    assert any(n.endswith("MTD_MSIL2A.xml") for n in names)
+    assert any("_B02_" in n for n in names)
+
+
+def test_list_zip_contents_raises_on_corrupt_zip():
+    import pytest
+
+    backend = FakeBackend()
+    garbage = b"not a zip" * 100
+    backend.seed("corrupt.zip", garbage)
+
+    with pytest.raises(zipfile.BadZipFile):
+        list_zip_contents(backend, "corrupt.zip", len(garbage))
 
 
 def test_check_zip_band_completeness_reads_only_central_directory_not_full_content():
