@@ -41,7 +41,11 @@ def _looks_like_project_path_literal(value: object) -> bool:
         # (docstrings, error messages) that merely mentions a path, e.g.
         # "configs/storage.yaml's budget_gb is not set".
         return False
-    if value.startswith("/"):
+    if len(value) <= 1:
+        # Excludes bare separator characters like "/" used in str.split("/") —
+        # not a path on their own.
+        return False
+    if value.startswith("/") and value != "//":
         return True
     return any(value == d or value.startswith(f"{d}/") for d in _PROJECT_TOP_DIRS)
 
@@ -124,3 +128,11 @@ def test_path_literal_detector_excludes_prose_mentioning_a_path():
     # src/storage/guard.py error messages.
     assert not _looks_like_project_path_literal("configs/storage.yaml's budget_gb is not set")
     assert not _looks_like_project_path_literal("data/staging is nearly full")
+
+
+def test_path_literal_detector_excludes_bare_separator_characters():
+    # Regression: str.split("/") or rsplit("/", 1) use the literal "/" as a
+    # delimiter, not a path — caught for real in Part 2.1's product_id.py.
+    assert not _looks_like_project_path_literal("/")
+    assert not _looks_like_project_path_literal("")
+    assert _looks_like_project_path_literal("/etc/passwd")  # still catches real absolute paths

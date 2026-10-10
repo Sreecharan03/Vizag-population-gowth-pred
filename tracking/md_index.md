@@ -16,6 +16,7 @@ markdown file is added, moved, or removed anywhere in the repo — not just unde
 | `tracking/md_index.md` (this file) | Index of every markdown file in the repo | Anyone looking for a doc |
 | `tracking/handoff.md` | Step-by-step instructions for a new/cold LLM session picking up the project | A brand-new session, read right after `tracking.md` |
 | `README.md` | *(not yet created — Phase 0/11)* Short human-facing project summary | Humans / new contributors |
+| `results/phase2/inventory_report.md` | **Created (Phase 2 Part 2.1, 2026-10-10)** — real B2 inventory: 1,474 objects, 205.85 GB, confirms the raw archive's existence/location/format (A1/A4), lists incomplete mosaic products | Anyone planning Phase 2 Part 2.2+ or Phase 3 |
 | `docs/decisions/ADR-001-read-strategy.md` | *(not yet created — Phase 3 Part 3.0)* Records the chosen Sentinel-2 read strategy | Anyone touching `src/preprocessing/` |
 | `results/final_report.md` | *(not yet created — Phase 11)* Final write-up assembled from metrics/figures/SHAP plots | Humans, final deliverable |
 
