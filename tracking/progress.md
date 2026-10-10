@@ -10,7 +10,7 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 |---|---|---|---|---|
 | 0 | Project scaffolding & environment | Gate pending | 5/5 | No |
 | 1 | Study boundary & configuration | Complete | 2/2 | **Yes** — boundary visual confirmed by user 2026-10-10 (`phase1_boundary_check.png`); Part 1.2 configs are plain config files with no separate visual gate per plan.md |
-| 2 | B2 inventory, reconciliation & acquisition | Gate pending | 6/6 | No — A5 (B2 pricing) still unconfirmed, see below |
+| 2 | B2 inventory, reconciliation & acquisition | Complete | 6/6 | **Yes** — A1–A5 all confirmed 2026-10-10; nothing deleted/overwritten anywhere throughout |
 | 3 | Advanced Sentinel-2 preprocessing | Not started | 0/8 | No |
 | 4 | Grid construction & feature aggregation | Not started | 0/4 | No |
 | 5 | Label generation | Not started | 0/3 | No |
@@ -23,14 +23,11 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 
 ## Current position (detail)
 
-- **Current phase:** Phase 0 complete. **Phase 1 fully complete and gate-confirmed.** **Phase 2:
-  all 6 parts implemented** (2.1 out of order, ahead of Phase 1, by user's choice). 196/196 tests passing.
-- **Phase 2 Gate status — one open item:** `plan.md`'s Phase 2 Gate requires the user to confirm
-  Assumptions A1–A5. A1–A4 are confirmed (see `open_questions.md`). **A5 (B2 egress/transaction pricing
-  for this account) is still unconfirmed** — this is the one thing standing between "all parts done" and
-  a fully satisfied Phase 2 Gate. Should be raised with the user explicitly, not silently skipped.
-- **Next:** Phase 3 (advanced Sentinel-2 preprocessing) — not yet proposed/approved. Phase 2's Gate
-  should be explicitly addressed (at least the A5 question) before or alongside starting Phase 3.
+- **Current phase:** Phase 0 complete. **Phase 1 fully complete and gate-confirmed. Phase 2 fully
+  complete and gate-confirmed** (all 6 parts; A1–A5 all confirmed 2026-10-10 — A5 confirmed last: user is
+  on a paid B2 plan and has accepted the pricing). 196/196 tests passing.
+- **Next:** Phase 3 (advanced Sentinel-2 preprocessing) — not yet proposed/approved. This is the first
+  phase that actually reads/processes imagery content, starting with Part 3.0's read-strategy benchmark.
 - **Plan gap flagged:** `plan.md`'s Phase 0 "Test cases" list doesn't name any test for `validation.py`
   (only logging's test is named), even though `validation.py` is an explicit Part 0.3 deliverable reused by
   every later phase. Wrote 18 tests for it anyway rather than leaving shared assertions untested — see

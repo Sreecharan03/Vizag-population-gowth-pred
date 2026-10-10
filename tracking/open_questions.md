@@ -11,7 +11,7 @@ credentials, bucket names, storage limits, and similar values must be stated exp
 | A2 | B2 bucket exposes an S3-compatible endpoint; app key has ≥read scope | **Confirmed** | Endpoint `https://s3.us-east-005.backblazeb2.com`, bucket `satilliate-images`. Read scope verified via `list_objects_v2` and a real full-bucket inventory run. Write scope not yet tested. Must use a genuine non-master Application Key (25-char keyID) — the master key's ID (=account ID, 12 chars) is rejected by the S3-compatible gateway even though valid for B2's native API. |
 | A3 | User-provided Lightning storage cap → `studio.budget_gb` | **Confirmed** | **150 GB** max on the Studio; everything beyond that must stay in Backblaze B2 only (Tier 0, not counted against this budget) — matches the plan's own tier design. Set 2026-10-10. |
 | A4 | Stored Sentinel-2 format: unzipped `.SAFE` vs `.zip` | **Confirmed: zipped** | Raw archives are whole zipped `.SAFE.zip` files (not unzipped `.SAFE` folders, not bare `.zip`) — decides the Phase 3 Part 3.0 read-strategy benchmark (ADR-001): extract-to-staging vs GDAL `/vsizip/` direct read. |
-| A5 | B2 egress/transaction pricing checked by user for their account | **Unconfirmed** | — |
+| A5 | B2 egress/transaction pricing checked by user for their account | **Confirmed** | User is on a paid B2 plan and has accepted the pricing (2026-10-10). No dollar figures recorded — just confirmed it's checked and accepted, not a blocker. |
 
 ## Other pending user inputs
 
