@@ -1,0 +1,14 @@
+# Built-up growth label thresholds (plan.md Phase 1 Part 1.2 / Phase 5).
+#
+# A cell is labeled "grew" if its built-fraction increased by at least the
+# primary threshold between t1 and t2. All three values are
+# sensitivity-tested in Phase 5 Part 5.3; primary_threshold_pct is what
+# single-threshold phases (6 onward) use once that sensitivity run
+# confirms (or revises) it as the right choice — not assumed final here.
+sensitivity_thresholds_pct: [5, 10, 20]
+primary_threshold_pct: 10
+
+# A cell already this built-up at t1 is excluded from the positive-label
+# candidate pool entirely (it can't meaningfully "grow" further) — plan.md
+# Phase 5 edge case. Separate from the growth threshold itself.
+already_built_exclusion_pct: 90

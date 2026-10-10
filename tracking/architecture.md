@@ -81,9 +81,9 @@ Checked by `tests/unit/test_no_hardcoded_paths.py`.
 | `configs/storage.yaml` | Studio budget, staging cap, eviction rules (no secrets) | **Created (Part 0.4)** — everything filled in except `budget_gb` (`null`, still waiting on the user) |
 | `configs/b2.yaml` | B2 endpoint, bucket, prefixes (no secrets) | **Created (Part 0.4), prefixes filled in (Part 2.1, 2026-10-10)** — endpoint, bucket, `raw_sentinel2`/`raw_other` all confirmed from the real inventory; `processed_backup`/`manifests_backup` deliberately still `null`, pending a Phase 3 Part 3.0 design decision |
 | `configs/boundary.yaml` | Study area source, CRS (`EPSG:32644`), buffer distance | Not created (Part 1.1) |
-| `configs/temporal.yaml` | Epochs, transition pairs, holdout split | Not created (Part 1.2) |
-| `configs/grid.yaml` | Grid cell size (500 m), exclusions | Not created (Part 1.2) |
-| `configs/label.yaml` | Growth threshold values (5/10/20%, primary 10%) | Not created (Part 1.2) |
+| `configs/temporal.yaml` | Epochs, transition pairs, holdout split | **Created (Part 1.2)** — epochs `[2018,2020,2022,2024]` confirmed against the real B2 inventory, not assumed |
+| `configs/grid.yaml` | Grid cell size (500 m), exclusions | **Created (Part 1.2)** |
+| `configs/label.yaml` | Growth threshold values (5/10/20%, primary 10%) | **Created (Part 1.2)** |
 | `configs/model.yaml` | Model hyperparameters per experiment | Not created (Phase 8) |
 | `configs/data_requirements.yaml` | What data each epoch/source needs | Not created (Part 2.2) |
 

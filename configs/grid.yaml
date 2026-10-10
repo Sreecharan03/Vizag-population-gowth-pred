@@ -1,0 +1,19 @@
+# Analysis grid cell size (plan.md Phase 1 Part 1.2).
+#
+# Rationale for 500 m: coarse enough to be robust to per-pixel Sentinel-2
+# classification noise (10 m native resolution) and to keep the feature
+# table / model tractable, while still resolving neighborhood/block-scale
+# urban growth patterns that matter for infrastructure planning — finer
+# than municipal ward scale, coarser than individual buildings. This is
+# also a common resolution in comparable urban growth modeling studies.
+# Not derived from the data itself; a design choice to revisit only if
+# Phase 4's feature summary shows it's clearly too coarse/fine.
+cell_size_m: 500
+
+# Grid cells to exclude entirely from construction (not just flagged) —
+# e.g. open ocean far beyond any plausible coastal buffer. Per plan.md
+# Phase 4's edge case, a cell overlapping water/protected land is instead
+# tagged "undevelopable" and KEPT, not excluded — this list is only for
+# genuinely out-of-scope area, and is empty until Phase 4 shows a concrete
+# need for it.
+exclusions: []

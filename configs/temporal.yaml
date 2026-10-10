@@ -1,0 +1,32 @@
+# Epochs and temporal split design (plan.md Phase 1 Part 1.2 / Phase 6 Part 6.2).
+#
+# Confirmed against Phase 2 Part 2.1's real B2 inventory (2026-10-10,
+# results/phase2/inventory_report.md): the raw Sentinel-2 archive (280
+# scenes, 182.82 GB) exists for exactly these 4 years — 2018: 68 scenes,
+# 2020: 72, 2022: 70, 2024: 70. Not estimated; matches what's actually
+# downloaded.
+epochs: [2018, 2020, 2022, 2024]
+
+# Dry-season acquisition window (month-day, inclusive) used by Phase 3's
+# scene triage to prefer cloud-free scenes per epoch. Vizag's dry season
+# runs roughly December-March. Placeholder pending Phase 3 Part 3.1's
+# actual scene-date-spread review — confirm/adjust then, not assumed final.
+dry_season_window:
+  start_month_day: "12-01"
+  end_month_day: "03-31"
+
+# Transition pairs used to build growth labels (Phase 5) and train models
+# (Phase 6 Part 6.2): train on 2018->2020 and 2020->2022.
+training_transition_pairs:
+  - [2018, 2020]
+  - [2020, 2022]
+
+# Held out entirely from training — tests generalization to the most
+# recent observed transition (Phase 6 Part 6.2).
+temporal_holdout_pair: [2022, 2024]
+
+# 2030 prediction (Phase 10 Part 10.1) extrapolates from 2024 features —
+# a 6-year horizon beyond the last observed epoch, longer than any single
+# training transition (2 years). Phase 10 attaches this caveat to the
+# output raster's metadata, not just here.
+prediction_target_year: 2030
