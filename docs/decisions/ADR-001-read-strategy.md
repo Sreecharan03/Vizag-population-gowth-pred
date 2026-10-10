@@ -37,7 +37,7 @@ transferred either way; that is not this project's access pattern for raw scenes
 
 ## Status
 
-**Proposed — pending explicit user approval**, per plan.md's Part 3.0 requirement ("User approves the
-strategy before anything else runs"). Will be marked Accepted once confirmed.
+**Accepted — 2026-10-10.** User explicitly approved strategy (b) ("yes, use this approach"). This is the
+read strategy for the remainder of Phase 3's band extraction.
 
 See `results/phase3/read_benchmark.md` for the measurements this decision is based on.

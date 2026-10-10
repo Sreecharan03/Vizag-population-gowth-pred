@@ -15,17 +15,16 @@ open. Start at [`tracking/tracking.md`](tracking/tracking.md).
 | 0 — Project scaffolding & environment | ✅ Complete |
 | 1 — Study boundary & configuration | ✅ Complete, gate-confirmed |
 | 2 — B2 inventory, reconciliation & acquisition | ✅ Complete, gate-confirmed |
-| 3 — Advanced Sentinel-2 preprocessing | 🔄 In progress — Part 3.0 done, awaiting approval of the read-strategy decision (see below) before continuing |
+| 3 — Advanced Sentinel-2 preprocessing | 🔄 In progress — Part 3.0 (read-strategy benchmark) done, ADR-001 Accepted |
 | 4–11 | Not started |
 
 **211/211 tests passing.** See [`tracking/progress.md`](tracking/progress.md) for the full phase/part
 breakdown.
 
-**Open decision:** [`docs/decisions/ADR-001-read-strategy.md`](docs/decisions/ADR-001-read-strategy.md)
-recommends reading Sentinel-2 bands via direct remote windowed reads rather than downloading whole scenes
-(2.8x faster, 98.5% less data transferred, zero staging disk — see
-[`results/phase3/read_benchmark.md`](results/phase3/read_benchmark.md)). Marked **Proposed**, not yet
-Accepted — needs explicit sign-off before Phase 3 continues.
+**Read strategy locked in:** [`docs/decisions/ADR-001-read-strategy.md`](docs/decisions/ADR-001-read-strategy.md)
+— Sentinel-2 bands are read via direct remote windowed reads rather than downloading whole scenes (2.8x
+faster, 98.5% less data transferred, zero staging disk — see
+[`results/phase3/read_benchmark.md`](results/phase3/read_benchmark.md)).
 
 ### What's confirmed about the data so far
 

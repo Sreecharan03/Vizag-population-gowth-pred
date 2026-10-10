@@ -6,6 +6,7 @@ in the code/tests themselves, and status belongs in [`progress.md`](progress.md)
 
 | Date | Entry |
 |---|---|
+| 2026-10-10 | **User approved ADR-001's read strategy** ("yes, use this approach") — strategy (b), direct remote windowed reads via `/vsizip/vsis3/`, is now the locked-in approach for Phase 3's band extraction. `docs/decisions/ADR-001-read-strategy.md` marked Accepted. **Part 3.1 (scene catalogue & epoch feasibility) is next.** |
 | 2026-10-10 | **Phase 3 started: Part 3.0 (read-strategy benchmark) implemented and run for real.** Compared fetch-to-staging vs. direct remote windowed read (`/vsizip/vsis3/`) on 2 real scenes — strategy (b) won decisively: 2.8x faster, 98.5% less data transferred, zero staging disk. Refactored Part 2.3's private zip-range-reader into a shared `RangeReadFile` (`src/storage/backends.py`). `docs/decisions/ADR-001-read-strategy.md` written but marked **"Proposed — pending explicit user approval"**, not Accepted — plan.md requires the user to approve the read strategy before any other Phase 3 work starts. 211/211 tests passing (15 new). |
 | 2026-10-10 | Created `README.md` (didn't exist before) — human-facing status summary. Synced `tracking/handoff.md` (fixed a stale A1 reference, added the secret-scan-before-commit and README-sync practices to the standard checklist). |
 | 2026-10-10 | User confirmed Assumption A5 (B2 pricing): on a paid plan, pricing accepted. **This closes out Phase 2's Gate completely — all of A1–A5 confirmed, Phase 2 is fully done.** Next up: Phase 3. |
