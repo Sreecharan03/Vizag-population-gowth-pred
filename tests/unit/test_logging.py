@@ -51,3 +51,21 @@ def test_empty_phase_name_rejected():
 
     with pytest.raises(ValueError):
         get_run_logger("")
+
+
+def test_logger_redacts_credential_patterns(monkeypatch):
+    monkeypatch.setenv("TEST_FAKE_SECRET_KEY", "topsecretvalue123456")
+
+    ts = "redaction_test_ts"
+    logger = get_run_logger("phase0_redaction_test", run_timestamp=ts)
+    log_path = resolve_path("logs") / f"phase0_redaction_test_{ts}.log"
+
+    logger.info("using credential topsecretvalue123456 to connect")
+    for handler in logger.handlers:
+        handler.flush()
+
+    contents = log_path.read_text()
+    assert "topsecretvalue123456" not in contents
+    assert "***REDACTED***" in contents
+
+    log_path.unlink()

@@ -1,0 +1,31 @@
+# Studio storage budget and staging rules (Section 1A). NO secrets here.
+#
+# budget_gb is intentionally null: the user has not yet provided the real
+# Lightning Studio plan cap. Per plan.md's own edge-case rule ("Budget
+# config left as null | Any heavy operation refuses to run and tells the
+# user which value to set"), this is left null rather than guessed. The
+# storage guard (src/storage/guard.py, Part 0.5) must refuse to run any
+# heavy operation while this is null.
+#
+# Workspace facts confirmed during Part 0.4 (2026-10-10): df -h showed
+# 774G total / 719G available on /teamspace/studios/this_studio at that
+# time — informational only, NOT a substitute for the user's actual plan
+# cap (available disk can include space this project shouldn't consume).
+studio:
+  workspace_root: /teamspace/studios/this_studio
+  budget_gb: null  # USER MUST SET — Lightning plan limit minus a safety margin
+  warn_at_pct: 70
+  hard_stop_at_pct: 90
+
+staging:
+  path: data/staging
+  max_gb: 20
+  max_concurrent_units: 2
+
+tier2:
+  target_max_gb: null  # set after Part 1.1 (area) and Part 3.2 (scene count)
+
+eviction:
+  require_b2_verified: true
+  require_derivative_validated: true
+  ledger: data/manifests/eviction_ledger.jsonl

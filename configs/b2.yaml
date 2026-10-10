@@ -1,0 +1,27 @@
+# Backblaze B2 connection config. NO secrets in this file — credentials come
+# only from env vars (Lightning Studio secrets, or a local gitignored .env):
+# Backbaze-keyID, Backbaze-applicationKey (see src/utils/env_check.py).
+#
+# NOTE on naming: plan.md's Section 1A.5 skeleton used placeholder names
+# (B2_KEY_ID/B2_APP_KEY); this project's actual .env uses the names above
+# instead — documented here and in tracking/open_questions.md so it isn't
+# lost. BUCKET-ID and Backbaze-keyName also exist in .env but are unused by
+# this project: BUCKET-ID holds B2's internal bucket ID (not the S3 API's
+# required bucket *name*, which is set directly below instead), and
+# Backbaze-keyName is just an informational label.
+
+endpoint_url: https://s3.us-east-005.backblazeb2.com
+bucket: satilliate-images
+
+# Confirmed during Part 0.4 (2026-09-29): this bucket already contains a
+# "vizag-geoai/" prefix with existing processed outputs from prior work
+# (boundaries, 2018 masked Sentinel-2 scene stacks) — see
+# tracking/changelog.md. The prefixes below are intentionally left null:
+# Phase 2 Part 2.1's full inventory must map the real prefix layout (where
+# raw data actually lives, vs these already-processed outputs) before this
+# is filled in — do not guess it.
+prefixes:
+  raw_sentinel2: null
+  raw_other: null
+  processed_backup: null
+  manifests_backup: null

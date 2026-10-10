@@ -11,8 +11,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from src.utils.io import resolve_path
+from src.utils.secrets import redact
 
 _LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+
+
+class _RedactingFilter(logging.Filter):
+    """Redacts known credential-like env var values from every log message
+    before it's written, so a secret accidentally interpolated into a log
+    call never ends up on disk.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.msg = redact(record.getMessage())
+        record.args = ()
+        return True
 
 
 def _utc_timestamp() -> str:
@@ -49,5 +62,8 @@ def get_run_logger(phase: str, *, run_timestamp: str | None = None) -> logging.L
         handler = logging.FileHandler(log_path, mode="a")
         handler.setFormatter(logging.Formatter(_LOG_FORMAT))
         logger.addHandler(handler)
+
+    if not any(isinstance(f, _RedactingFilter) for f in logger.filters):
+        logger.addFilter(_RedactingFilter())
 
     return logger
