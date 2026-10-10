@@ -74,9 +74,15 @@ def _resolve_path_argument_ids(tree: ast.AST) -> set[int]:
 
 def _non_path_usage_ids(tree: ast.AST) -> set[int]:
     """IDs of Constant nodes used in a way that structurally can't be a
-    path construction: a dict key (e.g. {"results": ...}), or the operand
-    of an `in`/`not in` membership test (e.g. "/IMG_DATA/" in some_string).
-    Both are common, legitimate uses of a string that happens to collide
+    local project path construction:
+    - a dict key (e.g. {"results": ...})
+    - the operand of an `in`/`not in` membership test (e.g. "/IMG_DATA/" in s)
+    - a literal fragment inside an f-string (e.g. f"{a}/map/{b}") — these
+      build arbitrary strings (often remote object-storage keys, as in
+      Part 2.4's worldcover.py), not standalone path literals passed to
+      open()/Path(); a real hardcoded path is always a complete, standalone
+      string constant, never an f-string fragment.
+    All are common, legitimate uses of a string that happens to collide
     with a project top-dir name or start with "/".
     """
     exempt_ids: set[int] = set()
@@ -91,6 +97,10 @@ def _non_path_usage_ids(tree: ast.AST) -> set[int]:
                 for operand in operands:
                     if isinstance(operand, ast.Constant):
                         exempt_ids.add(id(operand))
+        elif isinstance(node, ast.JoinedStr):
+            for value in node.values:
+                if isinstance(value, ast.Constant):
+                    exempt_ids.add(id(value))
     return exempt_ids
 
 
@@ -186,6 +196,32 @@ def test_non_path_usage_exemption_is_not_a_loophole_for_real_hardcoded_paths():
     # A literal used as a dict VALUE (not key) or outside a membership test
     # must still be caught.
     source = "def f():\n    bad = {'key': 'data/staging'}\n"
+    tree = ast.parse(source)
+    exempt_ids = _non_path_usage_ids(tree)
+    flagged = [
+        node.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant) and id(node) not in exempt_ids and _looks_like_project_path_literal(node.value)
+    ]
+    assert flagged == ["data/staging"]
+
+
+def test_non_path_usage_ids_exempts_fstring_fragments():
+    # Regression: f"{a}/map/{b}" — "/map/" is a literal fragment of an
+    # f-string building an arbitrary (often remote) string, not a
+    # standalone path literal — caught for real in Part 2.4's
+    # sources/worldcover.py key-building code.
+    source = "def f(a, b):\n    return f'{a}/map/{b}'\n"
+    tree = ast.parse(source)
+    exempt_ids = _non_path_usage_ids(tree)
+    joined = next(n for n in ast.walk(tree) if isinstance(n, ast.JoinedStr))
+    fragment = next(v for v in joined.values if isinstance(v, ast.Constant))
+    assert id(fragment) in exempt_ids
+
+
+def test_fstring_exemption_is_not_a_loophole_for_a_standalone_literal():
+    # A real hardcoded path sitting next to an f-string must still be caught.
+    source = "def f(a):\n    ok = f'{a}/map/'\n    bad = 'data/staging'\n"
     tree = ast.parse(source)
     exempt_ids = _non_path_usage_ids(tree)
     flagged = [

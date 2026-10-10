@@ -28,6 +28,10 @@ dist/
 # Jupyter
 .ipynb_checkpoints/
 
+# osmnx's default HTTP response cache (created at repo root when fetching
+# OSM data, e.g. Phase 2 Part 2.4) — regenerable, not source
+cache/
+
 # OS / editor
 .DS_Store
 .idea/
