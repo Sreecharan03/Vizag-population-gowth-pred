@@ -14,11 +14,11 @@ in this directory are the *dynamic* record of what has actually happened. If the
 |---|---|
 | Last updated | 2026-10-10 |
 | Studio | Lightning AI Studio, workspace `/teamspace/studios/this_studio` |
-| Repo initialized (Phase 0)? | **Parts 0.1–0.4 essentially done** (0.4 blocked on one field) — repo init, path resolution, logging+validation, full geospatial stack installed & verified, B2 connectivity confirmed, env/secret checks + log redaction built. 48/48 tests passing |
-| Current phase | Phase 0 — Project scaffolding & environment (4/5 parts, Part 0.4 blocked on one input) |
-| Current part | Part 0.4, blocked on one input: **Studio storage budget (`budget_gb`)** in `configs/storage.yaml` — asked three times across sessions, not yet answered. Everything else in 0.4 is done. Part 0.5 (storage layer: `backends.py`/`manifest.py`/`guard.py`/`evict.py`) is next once this arrives. |
+| Repo initialized (Phase 0)? | **Parts 0.1–0.4 done** — repo init, path resolution, logging+validation, full geospatial stack installed & verified, B2 connectivity confirmed, env/secret checks + log redaction built, storage budget confirmed. 48/48 tests passing |
+| Current phase | Phase 0 — Project scaffolding & environment (4/5 parts complete) |
+| Current part | Part 0.4 complete. Next action is to **PROPOSE Part 0.5** (storage layer: `src/storage/backends.py`/`manifest.py`/`guard.py`/`evict.py`) and wait for explicit "yes" |
 | Git repo? | Initialized (`main` branch), remote `origin` = `git@github.com:Sreecharan03/Vizag-population-gowth-pred.git`, pushed via a repo-scoped SSH deploy key (see `handoff.md` §1a if it needs recreating on a new Studio) |
-| B2 / storage config confirmed? | **B2: yes.** Bucket `satilliate-images`, endpoint `https://s3.us-east-005.backblazeb2.com`, read scope verified with a non-master Application Key, `configs/b2.yaml` written. **Storage budget: still no.** See [`open_questions.md`](open_questions.md). |
+| B2 / storage config confirmed? | **Yes, both.** Bucket `satilliate-images`, endpoint `https://s3.us-east-005.backblazeb2.com`, read scope verified. Studio budget: **150 GB max**, everything beyond that stays in B2 only (user, 2026-10-10). |
 | ⚠️ Major finding (2026-09-29) | B2 bucket already contains a `vizag-geoai/` prefix with **existing processed outputs** from prior work (boundary GeoJSONs, 2018 masked Sentinel-2 scene stacks) — survived even though the local codebase was deleted. **Do not blindly rebuild Phase 1/3 from scratch** — Phase 2 Part 2.1's inventory must map what's there first. Full detail in `changelog.md` and `open_questions.md`. |
 | Standing rules (persistent memory) | (1) All Vizag geo/boundary data must come from verified sources (OSM, official govt, etc.) — never estimated. (2) Routine git commit+push no longer needs per-instance approval. |
 

@@ -9,7 +9,7 @@ credentials, bucket names, storage limits, and similar values must be stated exp
 |---|---|---|---|
 | A1 | The ~190 GB is already in a B2 bucket (not just a local/external drive) | **Confirmed, and more** | Bucket `satilliate-images` contains not just raw data but existing `vizag-geoai/` processed outputs (boundaries, 2018 masked scene stacks) — see changelog 2026-09-29. Full inventory still needed (Phase 2 Part 2.1), not just this 10-key sample. |
 | A2 | B2 bucket exposes an S3-compatible endpoint; app key has ≥read scope | **Confirmed** | Endpoint `https://s3.us-east-005.backblazeb2.com`, bucket `satilliate-images`. Read scope verified via `list_objects_v2`. Write scope not yet tested. Must use a genuine non-master Application Key (25-char keyID) — the master key's ID (=account ID, 12 chars) is rejected by the S3-compatible gateway even though valid for B2's native API. |
-| A3 | User-provided Lightning storage cap → `studio.budget_gb` | **Still unconfirmed** | Needed to finish Part 0.4 / write `configs/storage.yaml`. |
+| A3 | User-provided Lightning storage cap → `studio.budget_gb` | **Confirmed** | **150 GB** max on the Studio; everything beyond that must stay in Backblaze B2 only (Tier 0, not counted against this budget) — matches the plan's own tier design. Set 2026-10-10. |
 | A4 | Stored Sentinel-2 format: unzipped `.SAFE` vs `.zip` | **Partially contradicted** | Sample keys aren't raw `.SAFE`/`.zip` at all — they're already-processed per-scene products (`..._refl.tif`, `..._scl.tif`, `..._qa.json`). Where the actual raw archive lives (same bucket, different prefix?) is still unknown — Phase 2 Part 2.1 must map this. |
 | A5 | B2 egress/transaction pricing checked by user for their account | **Unconfirmed** | — |
 
