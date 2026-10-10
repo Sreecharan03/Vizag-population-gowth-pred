@@ -72,11 +72,33 @@ def _resolve_path_argument_ids(tree: ast.AST) -> set[int]:
     return allowed_ids
 
 
+def _non_path_usage_ids(tree: ast.AST) -> set[int]:
+    """IDs of Constant nodes used in a way that structurally can't be a
+    path construction: a dict key (e.g. {"results": ...}), or the operand
+    of an `in`/`not in` membership test (e.g. "/IMG_DATA/" in some_string).
+    Both are common, legitimate uses of a string that happens to collide
+    with a project top-dir name or start with "/".
+    """
+    exempt_ids: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Dict):
+            for key in node.keys:
+                if isinstance(key, ast.Constant):
+                    exempt_ids.add(id(key))
+        elif isinstance(node, ast.Compare):
+            operands = [node.left, *node.comparators]
+            if any(isinstance(op, (ast.In, ast.NotIn)) for op in node.ops):
+                for operand in operands:
+                    if isinstance(operand, ast.Constant):
+                        exempt_ids.add(id(operand))
+    return exempt_ids
+
+
 def test_no_hardcoded_paths():
     offenders = []
     for path, rel in _iter_src_python_files():
         tree = ast.parse(path.read_text(), filename=str(path))
-        exempt_ids = _resolve_path_argument_ids(tree)
+        exempt_ids = _resolve_path_argument_ids(tree) | _non_path_usage_ids(tree)
         for node in ast.walk(tree):
             if not isinstance(node, ast.Constant) or id(node) in exempt_ids:
                 continue
@@ -136,3 +158,39 @@ def test_path_literal_detector_excludes_bare_separator_characters():
     assert not _looks_like_project_path_literal("/")
     assert not _looks_like_project_path_literal("")
     assert _looks_like_project_path_literal("/etc/passwd")  # still catches real absolute paths
+
+
+def test_non_path_usage_ids_exempts_dict_keys():
+    # Regression: {"results": results} in a return dict — "results" here is
+    # a dict key/label, not a path — caught for real in Part 2.3's
+    # integrity.py (run_integrity_audit's return value).
+    source = "def f():\n    return {'results': 1, 'other': 2}\n"
+    tree = ast.parse(source)
+    exempt_ids = _non_path_usage_ids(tree)
+    dict_node = next(n for n in ast.walk(tree) if isinstance(n, ast.Dict))
+    assert all(id(k) in exempt_ids for k in dict_node.keys)
+
+
+def test_non_path_usage_ids_exempts_membership_test_operands():
+    # Regression: "/IMG_DATA/" in some_string — a substring containment
+    # check, not a path construction — caught for real in Part 2.3's
+    # integrity.py (check_zip_band_completeness).
+    source = "def f(n):\n    return '/IMG_DATA/' in n\n"
+    tree = ast.parse(source)
+    exempt_ids = _non_path_usage_ids(tree)
+    compare_node = next(n for n in ast.walk(tree) if isinstance(n, ast.Compare))
+    assert id(compare_node.left) in exempt_ids
+
+
+def test_non_path_usage_exemption_is_not_a_loophole_for_real_hardcoded_paths():
+    # A literal used as a dict VALUE (not key) or outside a membership test
+    # must still be caught.
+    source = "def f():\n    bad = {'key': 'data/staging'}\n"
+    tree = ast.parse(source)
+    exempt_ids = _non_path_usage_ids(tree)
+    flagged = [
+        node.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant) and id(node) not in exempt_ids and _looks_like_project_path_literal(node.value)
+    ]
+    assert flagged == ["data/staging"]

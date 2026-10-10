@@ -23,6 +23,7 @@ from src.utils.env_check import AuthFailedError, NoCredentialsError, ReadOnlyKey
 class ObjectInfo:
     key: str
     size_bytes: int
+    etag: str | None = None
 
 
 class LocalBackend:
@@ -200,7 +201,10 @@ class B2Backend:
             resp = self._client.head_object(Bucket=self.bucket, Key=key)
         except Exception as e:
             raise self._map_client_error(e, f"stat'ing {key}") from e
-        return ObjectInfo(key=key, size_bytes=resp["ContentLength"])
+        etag = resp.get("ETag")
+        if etag:
+            etag = etag.strip('"')
+        return ObjectInfo(key=key, size_bytes=resp["ContentLength"], etag=etag)
 
     def open_range(self, key: str, start: int, length: int) -> bytes:
         end = start + length - 1
