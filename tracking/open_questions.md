@@ -20,7 +20,7 @@ credentials, bucket names, storage limits, and similar values must be stated exp
 | `configs/b2.yaml` (Part 0.4) | B2 endpoint URL, bucket name, prefixes | Endpoint + bucket confirmed (see A2 above). Prefix taxonomy (raw vs processed vs backup) still needs Phase 2 Part 2.1's inventory. |
 | B2 credentials | Actual `.env` var names (not the plan's placeholder `B2_KEY_ID`/`B2_APP_KEY`): `Backbaze-keyID`, `Backbaze-applicationKey`, plus `BUCKET-ID` (holds the B2 bucket ID, not name — unused; real bucket name `satilliate-images` is hardcoded in code/config instead) and `Backbaze-keyName` (unused, informational only). `.env` is gitignored — confirmed never committed. | **Resolved and working** |
 | `configs/storage.yaml` (Part 0.4) | Real Lightning storage plan cap (`budget_gb`) | **Still needed — blocking Part 0.4 completion** |
-| `configs/boundary.yaml` (Part 1.1) | GVMC boundary source: shapefile or official URL | Confirmed existing: `gvmc_boundary.geojson` + buffered version in B2 under `vizag-geoai/data/boundaries/` (full inventory, 2026-10-10). Still needs a trust/provenance check (was it built from a verified source? see `handoff.md`'s geodata rule) before reuse in Phase 1 Part 1.1 — provenance isn't recorded anywhere yet. |
+| `configs/boundary.yaml` (Part 1.1) | GVMC boundary source: shapefile or official URL | **Resolved (2026-10-10).** Fetched fresh from OpenStreetMap Nominatim (relation 17493324) and written to `configs/boundary.yaml` + `data/boundaries/`. Cross-checked against the B2 file Part 2.1 found: exact match (IoU = 1.0), confirming that file's provenance was legitimate too. Still pending: the user's visual sign-off on `results/phase1_boundary_check.png` (the Phase 1 Gate). |
 
 ## How to resolve these
 
