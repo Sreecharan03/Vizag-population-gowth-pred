@@ -19,11 +19,14 @@ bucket: satilliate-images
 prefixes:
   raw_sentinel2: vizag-geoai/data/raw/sentinel2/      # 280 .SAFE.zip archives, 182.82 GB, confirmed (Assumption A1/A4)
   raw_other: vizag-geoai/data/raw/                     # e.g. WorldPop rasters already live at raw/worldpop/ within this
-  # The prefixes below are intentionally still null: this bucket already has
-  # a "vizag-geoai/data/processed/sentinel2/" prefix with LEGACY processed
+  # processed_backup is intentionally still null: this bucket already has a
+  # "vizag-geoai/data/processed/sentinel2/" prefix with LEGACY processed
   # outputs from prior work (840 per-scene derivatives + 346 mosaics — not
   # produced by this codebase's Phase 3, which doesn't exist yet). Whether
   # our own Tier 3 backup reuses that prefix or uses a new one is a Phase 3
   # Part 3.0 design decision, not decided yet — do not guess it here.
   processed_backup: null
-  manifests_backup: null
+  # manifests_backup set at Phase 2 Part 2.6 — mirrors the local
+  # data/manifests/ layout; this prefix didn't previously exist in the
+  # bucket, so no legacy-naming conflict to resolve.
+  manifests_backup: vizag-geoai/data/manifests/

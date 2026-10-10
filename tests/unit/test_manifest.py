@@ -136,3 +136,52 @@ def test_manifest_file_lock_prevents_concurrent_corruption(tmp_path):
     keys = {r.object_key for r in records}
     expected = {f"a-{i}" for i in range(num_per_thread)} | {f"b-{i}" for i in range(num_per_thread)}
     assert keys == expected, "concurrent writes lost or corrupted records"
+
+
+def test_pending_excludes_terminal_states_by_default(tmp_path):
+    manifest = Manifest(tmp_path / "manifest.jsonl")
+    manifest.upsert(_record("done", ManifestState.VERIFIED), enforce_transition=False)
+    manifest.upsert(_record("in-flight", ManifestState.FETCHING), enforce_transition=False)
+    manifest.upsert(_record("not-started", ManifestState.LISTED), enforce_transition=False)
+
+    pending_keys = {r.object_key for r in manifest.pending()}
+    assert pending_keys == {"in-flight", "not-started"}
+
+
+def test_pending_accepts_custom_terminal_states(tmp_path):
+    manifest = Manifest(tmp_path / "manifest.jsonl")
+    manifest.upsert(_record("a", ManifestState.FETCHED), enforce_transition=False)
+    manifest.upsert(_record("b", ManifestState.LISTED), enforce_transition=False)
+
+    pending_keys = {r.object_key for r in manifest.pending(terminal_states={ManifestState.FETCHED})}
+    assert pending_keys == {"b"}
+
+
+def test_pending_simulates_a_resume_with_zero_duplicate_work(tmp_path):
+    """The actual Part 2.6 resume drill: process a worklist, "crash" by
+    reloading a fresh Manifest instance pointed at the same file (same as
+    a Studio restart would), and prove the second pass does zero duplicate
+    work — only the record that was never finished gets reprocessed.
+    """
+    manifest_path = tmp_path / "manifest.jsonl"
+    manifest = Manifest(manifest_path)
+    manifest.upsert(_record("scene-1", ManifestState.LISTED))
+    manifest.upsert(_record("scene-2", ManifestState.LISTED))
+
+    # First pass: scene-1 completes fully, scene-2 gets interrupted mid-flight.
+    for state in (ManifestState.PLANNED, ManifestState.FETCHING, ManifestState.FETCHED, ManifestState.VERIFIED):
+        manifest.upsert(_record("scene-1", state))
+    manifest.upsert(_record("scene-2", ManifestState.PLANNED))
+    manifest.upsert(_record("scene-2", ManifestState.FETCHING))  # "crash" happens here
+
+    # Simulate a Studio restart: a brand-new Manifest instance, same file.
+    resumed_manifest = Manifest(manifest_path)
+    worklist = resumed_manifest.pending()
+
+    processed_this_pass = [r.object_key for r in worklist]
+    assert processed_this_pass == ["scene-2"]  # scene-1 (VERIFIED) is never touched again
+
+    resumed_manifest.upsert(_record("scene-2", ManifestState.FETCHED))
+    resumed_manifest.upsert(_record("scene-2", ManifestState.VERIFIED))
+
+    assert resumed_manifest.pending() == []  # nothing left — zero duplicate transfers

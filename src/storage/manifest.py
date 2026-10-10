@@ -173,6 +173,19 @@ class Manifest:
         with _file_lock(self._lock_path):
             return list(self._read_all().values())
 
+    def pending(
+        self, terminal_states: "set[ManifestState] | None" = None
+    ) -> list[ManifestRecord]:
+        """Returns records NOT yet in a terminal state — the resumable
+        worklist. A caller processing this list after a crash/restart
+        never redoes a record that already reached a terminal state,
+        which is what "resume with zero duplicate transfers" means in
+        practice (plan.md Phase 2 Part 2.6's resume drill).
+        """
+        terminal = terminal_states if terminal_states is not None else {ManifestState.VERIFIED, ManifestState.ARCHIVED, ManifestState.EVICTED}
+        with _file_lock(self._lock_path):
+            return [r for r in self._read_all().values() if r.state not in terminal]
+
     def cleanup_stale_part_files(self) -> list[Path]:
         """Remove any leftover *.part temp files in the manifest's directory
         left over from a crash mid-write. A .part file is never treated as

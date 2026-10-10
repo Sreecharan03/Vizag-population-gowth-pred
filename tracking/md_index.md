@@ -17,6 +17,11 @@ markdown file is added, moved, or removed anywhere in the repo — not just unde
 | `tracking/handoff.md` | Step-by-step instructions for a new/cold LLM session picking up the project | A brand-new session, read right after `tracking.md` |
 | `README.md` | *(not yet created — Phase 0/11)* Short human-facing project summary | Humans / new contributors |
 | `results/phase2/inventory_report.md` | **Created (Phase 2 Part 2.1, 2026-10-10)** — real B2 inventory: 1,474 objects, 205.85 GB, confirms the raw archive's existence/location/format (A1/A4), lists incomplete mosaic products | Anyone planning Phase 2 Part 2.2+ or Phase 3 |
+| `results/phase2/missing_report.md` | **Created (Phase 2 Part 2.2, 2026-10-10)** — only `T44QQE` strictly required by the current buffer; zero Sentinel-2 gaps; DEM/WorldCover/OSM confirmed missing (at the time) | Anyone planning Phase 2 Part 2.4+ |
+| `results/phase2/integrity_report.md` | **Created (Phase 2 Part 2.3, 2026-10-10)** — 86/86 required raw scenes verified complete via cheap zip-central-directory reads | Anyone starting Phase 3 preprocessing |
+| `results/phase2/fetch_report.md` | **Created (Phase 2 Part 2.4, 2026-10-10)** — DEM/WorldCover/OSM fetch results: 9/9 files verified OK, uploaded to B2 | Anyone using these small datasets in Phase 4 |
+| `results/phase2/part_2_5_resume_status.md` | **Created (Phase 2 Part 2.5, 2026-10-10)** — confirms zero Sentinel-2 items remain to fetch | Reference only |
+| `results/phase2/part_2_6_backup_status.md` | **Created (Phase 2 Part 2.6, 2026-10-10)** — manifest backup confirmation + resume-drill summary | Reference only |
 | `docs/decisions/ADR-001-read-strategy.md` | *(not yet created — Phase 3 Part 3.0)* Records the chosen Sentinel-2 read strategy | Anyone touching `src/preprocessing/` |
 | `results/final_report.md` | *(not yet created — Phase 11)* Final write-up assembled from metrics/figures/SHAP plots | Humans, final deliverable |
 
