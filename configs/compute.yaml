@@ -1,0 +1,25 @@
+# Compute-plane configuration. This file contains no credentials.
+provider: modal
+profile: sankar132095
+environment: main
+app_name: vizag-geoai
+python_version: "3.12"
+
+# Created only after separate human approval. The local .env is never uploaded.
+secret_name: vizag-b2
+
+execution:
+  local_compute_allowed: false
+  tests_run_on_modal: true
+  processing_runs_on_modal: true
+  persistent_storage: backblaze_b2
+  ephemeral_disk_gb: 20
+
+# Keep v0.2 outputs isolated from legacy processed objects already in B2.
+b2_output_prefixes:
+  root: vizag-geoai/v2/
+  manifests: vizag-geoai/v2/manifests/
+  results: vizag-geoai/v2/results/
+  processed: vizag-geoai/v2/processed/
+  models: vizag-geoai/v2/models/
+  predictions: vizag-geoai/v2/predictions/

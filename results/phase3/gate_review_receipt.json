@@ -1,0 +1,98 @@
+{
+  "status": "review_evidence_complete_gate_pending",
+  "phase3_gate_approved": false,
+  "eligibility_policy_approved": false,
+  "outputs": [
+    {
+      "name": "qc_2018.png",
+      "key": "vizag-geoai/v2/results/phase3/gate_review/v1/qc_2018.png",
+      "bytes": 1315976,
+      "sha256": "ec63c9e9f00871d35fc3f1e30b5e6b37dab4e6eaf6eebee4412e46f72d5b8fda",
+      "version_id": "4_z2250dbc1f968e033a7050713_f113a1becd3e01f16_d20261110_m125058_c005_v0501053_t0005_u01794315058064",
+      "exact_version_readback_verified": true
+    },
+    {
+      "name": "qc_2020.png",
+      "key": "vizag-geoai/v2/results/phase3/gate_review/v1/qc_2020.png",
+      "bytes": 1321086,
+      "sha256": "8bcb78a0459ba8facf3c61105922aaf2f3cd17c2002d4530d50f460931ccecf4",
+      "version_id": "4_z2250dbc1f968e033a7050713_f101b0331fdfecd55_d20261110_m125058_c005_v0501051_t0043_u01794315058340",
+      "exact_version_readback_verified": true
+    },
+    {
+      "name": "qc_2022.png",
+      "key": "vizag-geoai/v2/results/phase3/gate_review/v1/qc_2022.png",
+      "bytes": 1260331,
+      "sha256": "55eee3c6ee2595ac5a08a1aeefd79183023177883b6c950d82d1e98c1e91dcf0",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1170602218cae3c1_d20261110_m125058_c005_v0501053_t0020_u01794315058982",
+      "exact_version_readback_verified": true
+    },
+    {
+      "name": "qc_2024.png",
+      "key": "vizag-geoai/v2/results/phase3/gate_review/v1/qc_2024.png",
+      "bytes": 1278313,
+      "sha256": "677c2e9c1188a16e0ff5ed64f6436a08b585541dc84cca87e267118459822a3f",
+      "version_id": "4_z2250dbc1f968e033a7050713_f100491a35323f2ca_d20261110_m125059_c005_v0501038_t0055_u01794315059170",
+      "exact_version_readback_verified": true
+    },
+    {
+      "name": "range_review.json",
+      "key": "vizag-geoai/v2/results/phase3/gate_review/v1/range_review.json",
+      "bytes": 145559,
+      "sha256": "98cb0984f4c648970c59af8e43da9d4c245d70105b3aecceb107714127e6c27c",
+      "version_id": "4_z2250dbc1f968e033a7050713_f112ff4afd477b7ca_d20261110_m125059_c005_v0501051_t0058_u01794315059516",
+      "exact_version_readback_verified": true
+    },
+    {
+      "name": "range_review.csv",
+      "key": "vizag-geoai/v2/results/phase3/gate_review/v1/range_review.csv",
+      "bytes": 50345,
+      "sha256": "1188bb396db7d64c5148efbc487d3a54a86ebe5858438fa7f03c3d63fec74922",
+      "version_id": "4_z2250dbc1f968e033a7050713_f116b8f6caae47763_d20261110_m125059_c005_v0501053_t0007_u01794315059754",
+      "exact_version_readback_verified": true
+    },
+    {
+      "name": "review.md",
+      "key": "vizag-geoai/v2/results/phase3/gate_review/v1/review.md",
+      "bytes": 5296,
+      "sha256": "6eb4064bfae43e20e4a96d8884b6513713dcecd42ec1e1577ea842c546dbf6f8",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1088798effa7762c_d20261110_m125059_c005_v0501053_t0037_u01794315059909",
+      "exact_version_readback_verified": true
+    },
+    {
+      "name": "phase3_gate_review.v1.json",
+      "key": "vizag-geoai/v2/manifests/phase3_gate_review.v1.json",
+      "bytes": 12864,
+      "sha256": "7ad2d07ab0b118d33bb8e572e982f9958ea6accefde8641e6d23eee7e556dee0",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1051d9b2500eb8a1_d20261110_m125100_c005_v0501051_t0035_u01794315060281",
+      "exact_version_readback_verified": true
+    }
+  ],
+  "input_bytes": 2778034701,
+  "new_output_bytes": 5389770,
+  "output_payload_transfer_bytes": 16169310,
+  "source_rasters_unchanged": true,
+  "remote_python": "3.12.10",
+  "epoch_summary": [
+    {
+      "epoch": 2018,
+      "coverage": 0.9966931735556007,
+      "unique_outlier_pixels": 11378
+    },
+    {
+      "epoch": 2020,
+      "coverage": 0.9991074636205455,
+      "unique_outlier_pixels": 0
+    },
+    {
+      "epoch": 2022,
+      "coverage": 0.9979864525169865,
+      "unique_outlier_pixels": 12
+    },
+    {
+      "epoch": 2024,
+      "coverage": 0.9937288638084835,
+      "unique_outlier_pixels": 0
+    }
+  ]
+}

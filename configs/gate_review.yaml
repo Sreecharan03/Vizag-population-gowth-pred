@@ -1,0 +1,204 @@
+# User-approved Phase 3 visual/scientific evidence generation; no automatic gate approval.
+version: "v1"
+output_prefix: vizag-geoai/v2/results/phase3/gate_review/v1/
+manifest_key: vizag-geoai/v2/manifests/phase3_gate_review.v1.json
+reservation_name: vizag-phase3-gate-review-v1
+reservation_key: review
+boundary_key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+maximum_boundary_bytes: 1048576
+feasibility_key: vizag-geoai/v2/results/epoch_feasibility.md
+feasibility_bytes: 1314
+expected_raster_bytes: 2777948118
+maximum_input_bytes: 2779050509
+maximum_new_output_bytes: 16777216
+# Count stored output, exact-version verification reads, and local viewing copies.
+maximum_output_transfer_bytes: 50331648
+chunk_size_pixels: 512
+preview_max_side: 768
+samples_per_index: 25
+expected_aoi_pixels: 15353996
+minimum_valid_observations: 4
+minimum_aoi_coverage_fraction: 0.99
+rgb_display_min: 0.0
+rgb_display_max: 0.30
+figure_dpi: 110
+local_receipt_name: gate_review_receipt.json
+file_caps:
+  qc_2018.png: 3145728
+  qc_2020.png: 3145728
+  qc_2022.png: 3145728
+  qc_2024.png: 3145728
+  range_review.json: 2097152
+  range_review.csv: 1048576
+  review.md: 262144
+  phase3_gate_review.v1.json: 262144
+sources:
+  - epoch: 2018
+    role: composite
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2018/composite.tif
+    bytes: 369765288
+    sha256: "995ea0d48d95f803b9e4f22694b16a6451e1f3b2605ada292765dd00a2a30d3f"
+    version_id: "4_z2250dbc1f968e033a7050713_f20036d283bc6c19f_d20261105_m202718_c005_v0501052_t0054_u01793910438974"
+  - epoch: 2018
+    role: valid_obs_count
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2018/valid_obs_count.tif
+    bytes: 690143
+    sha256: "42b813402a33c3551f92d8d63b23779aac817621fdde0a8fa0b2979657c43d14"
+    version_id: "4_z2250dbc1f968e033a7050713_f116d2b8100d56322_d20261105_m202722_c005_v0501052_t0043_u01793910442871"
+  - epoch: 2020
+    role: composite
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2020/composite.tif
+    bytes: 365060102
+    sha256: "8c6113e09f59456292ba742d1a97bcfd3581524d8ac2502935d9fb9d3d331dc7"
+    version_id: "4_z2250dbc1f968e033a7050713_f2005636fa6180741_d20261105_m203320_c005_v0501052_t0030_u01793910800348"
+  - epoch: 2020
+    role: valid_obs_count
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2020/valid_obs_count.tif
+    bytes: 667922
+    sha256: "de531c86f3efda0b072c3581c7a67bd3cbe15c90ff1b56555af49ed1943b92f9"
+    version_id: "4_z2250dbc1f968e033a7050713_f111b3d2a86c7aaca_d20261105_m203334_c005_v0501051_t0003_u01793910814438"
+  - epoch: 2022
+    role: composite
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2022/composite.tif
+    bytes: 366699998
+    sha256: "f8a7db985126f1c4e0acf18f9d52e338b656c1b7e76ffdde6311d72cc89e5404"
+    version_id: "4_z2250dbc1f968e033a7050713_f200061a8c6b9fe83_d20261105_m203937_c005_v0521006_t0015_u01793911177780"
+  - epoch: 2022
+    role: valid_obs_count
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2022/valid_obs_count.tif
+    bytes: 530604
+    sha256: "c25a807d366875f449f3851214d1dc4b5fb9c17d1f5e46183f05f67ce9c3f72c"
+    version_id: "4_z2250dbc1f968e033a7050713_f118ef491a43daa8b_d20261105_m203942_c005_v0501045_t0011_u01793911182768"
+  - epoch: 2024
+    role: composite
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2024/composite.tif
+    bytes: 364384445
+    sha256: "55fa556063dc14d8f3bd221e153d90bd302277fc9a59f5179a4dbf07ff8d9395"
+    version_id: "4_z2250dbc1f968e033a7050713_f20002e26b89227e8_d20261105_m205121_c005_v0501052_t0047_u01793911881934"
+  - epoch: 2024
+    role: valid_obs_count
+    key: vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2024/valid_obs_count.tif
+    bytes: 423047
+    sha256: "834c035e462a3c1530030b6e3ccce263f80adad68b88233ecac47f354b7329f1"
+    version_id: "4_z2250dbc1f968e033a7050713_f103444c6f55e2c1f_d20261105_m205136_c005_v0501043_t0053_u01793911896204"
+  - epoch: 2018
+    role: bsi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/bsi.tif
+    bytes: 67020064
+    sha256: "2d0631cd1571cdf1900121a13be80bd8057a8b4025d56aed67522c98b84a19a4"
+    version_id: "4_z2250dbc1f968e033a7050713_f113b9bc5f577d867_d20261110_m042659_c005_v0501046_t0039_u01794284819783"
+  - epoch: 2018
+    role: mndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/mndwi.tif
+    bytes: 62805656
+    sha256: "09d6a4afe4f2864b5a4bfbafa6919892822cefb4440bcb1fe80924aa8bbca196"
+    version_id: "4_z2250dbc1f968e033a7050713_f11453ffb44972a4f_d20261110_m042654_c005_v0501022_t0040_u01794284814177"
+  - epoch: 2018
+    role: ndbi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndbi.tif
+    bytes: 68446385
+    sha256: "818d1c3cf6b6a67a97dfc39ce781b647e620abdc903face7b7ca43cb62bddc94"
+    version_id: "4_z2250dbc1f968e033a7050713_f114bd4f93b307eaf_d20261110_m042641_c005_v0501017_t0019_u01794284801291"
+  - epoch: 2018
+    role: ndvi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndvi.tif
+    bytes: 66118226
+    sha256: "cb5a55bc354de9329759923080eb4b44b0968d1de5dc897da05b8c14ffaa093a"
+    version_id: "4_z2250dbc1f968e033a7050713_f11645ac46979a562_d20261110_m042635_c005_v0501036_t0041_u01794284795357"
+  - epoch: 2018
+    role: ndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndwi.tif
+    bytes: 63611030
+    sha256: "9373bc5174c9077d5def1e9c610efabe03b77be812a6d1e0ba80721bdd0a2c64"
+    version_id: "4_z2250dbc1f968e033a7050713_f106afc710e707f2d_d20261110_m042647_c005_v0501036_t0015_u01794284807176"
+  - epoch: 2020
+    role: bsi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/bsi.tif
+    bytes: 67824744
+    sha256: "c8f17670b21e8f3779127f9e7f0e5548858cdf6b0ee90449b2f8d40e9505d549"
+    version_id: "4_z2250dbc1f968e033a7050713_f115a474ba83f6461_d20261110_m042641_c005_v0501051_t0046_u01794284801715"
+  - epoch: 2020
+    role: mndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/mndwi.tif
+    bytes: 62343334
+    sha256: "ff01e7da0b1b8bbd81cbb64cd2107f96cfdeaa3d093709df49e2d6ebd1074d39"
+    version_id: "4_z2250dbc1f968e033a7050713_f116f0769d088cac0_d20261110_m042637_c005_v0501021_t0019_u01794284797942"
+  - epoch: 2020
+    role: ndbi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndbi.tif
+    bytes: 68212309
+    sha256: "1a9eb4e7e3ec51db9a4a8f1524e2ac0ed9f01c1337896f754c2fe0c227223995"
+    version_id: "4_z2250dbc1f968e033a7050713_f10040d1a4905e4c0_d20261110_m042631_c005_v0501053_t0000_u01794284791736"
+  - epoch: 2020
+    role: ndvi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndvi.tif
+    bytes: 64708200
+    sha256: "6831d54b136f03edd3a0180381fc13b53474d5c28584256cb784ef37872a18b3"
+    version_id: "4_z2250dbc1f968e033a7050713_f106d47069ac28567_d20261110_m042628_c005_v0501049_t0019_u01794284788794"
+  - epoch: 2020
+    role: ndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndwi.tif
+    bytes: 63465865
+    sha256: "7b6815de3d323cbf86ac8abee8f7f5b49288e331d648b1ea0d298856404c6852"
+    version_id: "4_z2250dbc1f968e033a7050713_f113c67daf8ded471_d20261110_m042634_c005_v0501049_t0045_u01794284794860"
+  - epoch: 2022
+    role: bsi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/bsi.tif
+    bytes: 68036083
+    sha256: "7a0692317871c738f41b207cd7997063cff6f91e247339099e6d156481370748"
+    version_id: "4_z2250dbc1f968e033a7050713_f111944a8485e97a0_d20261110_m042948_c005_v0501053_t0043_u01794284988863"
+  - epoch: 2022
+    role: mndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/mndwi.tif
+    bytes: 63049753
+    sha256: "b68fe5ee19e0755fc62c2638c469cd0e02bb20e0b8ff5cbccbee74764320f15f"
+    version_id: "4_z2250dbc1f968e033a7050713_f107599778293af6a_d20261110_m042925_c005_v0501049_t0013_u01794284965721"
+  - epoch: 2022
+    role: ndbi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndbi.tif
+    bytes: 68321428
+    sha256: "b3f7e6acbd160a6ba761405c3e8c87e71c67e170d14090a2c6c9d89f8b8e9aaa"
+    version_id: "4_z2250dbc1f968e033a7050713_f110cd932461ef996_d20261110_m042837_c005_v0501051_t0044_u01794284917684"
+  - epoch: 2022
+    role: ndvi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndvi.tif
+    bytes: 65201594
+    sha256: "461bdc70d7d23a73437139e7560dbbafdcf2ad1ab01875c33a68c14b47a4bd2e"
+    version_id: "4_z2250dbc1f968e033a7050713_f11404a575affa2ce_d20261110_m042812_c005_v0501036_t0028_u01794284892744"
+  - epoch: 2022
+    role: ndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndwi.tif
+    bytes: 63491012
+    sha256: "2bd2f2ccb847bdd05e7b532cb019fe118f8b696b0ebfd4bb362bfd483c29b0bb"
+    version_id: "4_z2250dbc1f968e033a7050713_f107599778293a634_d20261110_m042903_c005_v0501049_t0012_u01794284943072"
+  - epoch: 2024
+    role: bsi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/bsi.tif
+    bytes: 67708348
+    sha256: "e1af85d7ce170e258fa6863e1865d59e28fb1996cd5db2ed430fbaa0ca79b5b9"
+    version_id: "4_z2250dbc1f968e033a7050713_f118ef491a5f47ba9_d20261110_m042851_c005_v0501045_t0016_u01794284931620"
+  - epoch: 2024
+    role: mndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/mndwi.tif
+    bytes: 62688669
+    sha256: "fb3da2d3b3393244c8f1d6fb56b6a71363d8b15fe8ce8f3cd0c82fe8eece0063"
+    version_id: "4_z2250dbc1f968e033a7050713_f116f6e1fede7e461_d20261110_m042846_c005_v0501051_t0035_u01794284926905"
+  - epoch: 2024
+    role: ndbi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndbi.tif
+    bytes: 68146232
+    sha256: "6b21b29985f7e7c6d34c945a99c2b0f3271b907d7a84cf08e09ddf24b458c979"
+    version_id: "4_z2250dbc1f968e033a7050713_f108b7b9c13efecb3_d20261110_m042836_c005_v0501045_t0040_u01794284916763"
+  - epoch: 2024
+    role: ndvi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndvi.tif
+    bytes: 65200844
+    sha256: "b167b67822fe4eac9a1e79fc0ee56eafdf4cdeb41fdc9d4e96ef8608859d954f"
+    version_id: "4_z2250dbc1f968e033a7050713_f1046d9954157f90d_d20261110_m042832_c005_v0501051_t0057_u01794284912892"
+  - epoch: 2024
+    role: ndwi
+    key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndwi.tif
+    bytes: 63326793
+    sha256: "010524a6f7ee6e828581d7559e24193e62465c5f22e507b2a8ef967d41d83e2a"
+    version_id: "4_z2250dbc1f968e033a7050713_f1169fde71d16672a_d20261110_m042841_c005_v0501034_t0033_u01794284921825"
+

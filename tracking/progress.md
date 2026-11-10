@@ -11,7 +11,7 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 | 0 | Project scaffolding & environment | Gate pending | 5/5 | No |
 | 1 | Study boundary & configuration | Complete | 2/2 | **Yes** — boundary visual confirmed by user 2026-10-10 (`phase1_boundary_check.png`); Part 1.2 configs are plain config files with no separate visual gate per plan.md |
 | 2 | B2 inventory, reconciliation & acquisition | Complete | 6/6 | **Yes** — A1–A5 all confirmed 2026-10-10; nothing deleted/overwritten anywhere throughout |
-| 3 | Advanced Sentinel-2 preprocessing | In progress | 1/8 | No |
+| 3 | Advanced Sentinel-2 preprocessing | Complete | 8/8 | Yes — user approved review evidence and the affected-index-only outlier exclusion rule on 2026-11-10; originals remain unchanged |
 | 4 | Grid construction & feature aggregation | Not started | 0/4 | No |
 | 5 | Label generation | Not started | 0/3 | No |
 | 6 | Dataset assembly & split | Not started | 0/4 | No |
@@ -23,12 +23,95 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 
 ## Current position (detail)
 
-- **Current phase:** Phases 0–2 complete and gate-confirmed. **Phase 3 Part 3.0 (read-strategy benchmark)
-  complete and ADR-001 Accepted** — user explicitly approved strategy (b), direct remote windowed reads via
-  `/vsizip/vsis3/`, 2026-10-10. 211/211 tests passing.
-- **Next:** Part 3.1 (scene catalogue & epoch feasibility) — parse the Phase 2 inventory into
-  `scene_catalogue.jsonl`, report per-epoch scene counts/tiles/date spread/L2A vs L1C/baselines, user
-  confirms the epoch set. Not yet proposed/approved.
+- **Infrastructure migration verified 2026-11-04:** project version 0.2.0 uses Modal as the only
+  compute/test plane and Backblaze B2 as the only persistent runtime store. Modal Python 3.12.10,
+  geospatial imports and normalized B2 secret presence were verified remotely. Full regression:
+  **211/211 passed in Modal (4.23 s)**. No B2 objects were accessed or changed.
+- **Part 3.1 complete and confirmed (2026-11-04):** complete real inventory processed in Modal; 280 raw
+  archives catalogued; all four epochs have complete L2A coverage of required tile `T44QQE`; outputs
+  written and size-verified under `vizag-geoai/v2/`; 219/219 tests pass remotely. User explicitly
+  confirmed epochs `[2018, 2020, 2022, 2024]`.
+- **Part 3.2 complete and confirmed (2026-11-04):** 56 complete dry-season L2A scenes triaged from B2
+  using SCL windows only; 32 selected (8 per epoch). Mean usable coverage: 2018=98.70%, 2020=96.98%,
+  2022=85.49%, 2024=71.70%. Cloud/shadow rates are low, but 2022/2024 contain partial-coverage nodata
+  (13.56%/27.82% mean). User approved the selection with this limitation recorded; Phase 3.5 must inspect
+  `valid_obs_count` and halt if combined coverage is inadequate.
+- **Part 3.3 complete (2026-11-05):** all 32 selected scenes were extracted to 64 immutable
+  contract-3.3.2 COGs. The verified 32-row manifest is 34,713 bytes with SHA-256
+  `9168f92fb3ed33694c06b643e9d8a533899206cd8bf0a77633ed93955e8ebe6e`. Final audit found
+  32 complete pairs and zero partial pairs; no existing COG was overwritten.
+- **Part 3.4 complete (2026-11-05):** configurable in-memory SCL masks use classes 4/5/6/7 as valid,
+  conservatively exclude class 2, and dilate cloud/shadow classes by a circular 2 pixels. Read-only
+  validation scanned all 32 SCL COGs (24,659,693 compressed bytes), found zero unknown values, and measured
+  epoch valid fractions 98.07%/96.47%/85.08%/71.44%.
+- **Part 3.5 complete (2026-11-06):** approved threshold is 4 valid observations with at least 99% AOI
+  coverage. Four six-band median composites and four count rasters were published as immutable
+  contract-3.5.0 strict COGs (1,468,221,549 bytes total). Independent read-only audit streamed and matched
+  every SHA-256, confirmed one version per key, validated schema/grid/provenance, and proved pixel-level
+  agreement between count ≥4 and composite validity. Coverage: 2018=99.6693%, 2020=99.9107%,
+  2022=99.7986%, 2024=99.3729%.
+- **Part 3.6 production complete (2026-11-10):** user approved the workload; full Modal suite
+  **295 passed, one existing warning**. Downloaded and byte-hashed the four audited composites
+  (1,465,909,833 bytes), created 20 immutable index COGs (1,309,726,569 bytes), downloaded the exact
+  published versions and verified hashes, strict COGs, grids/provenance and every index pixel.
+  Created one 17,788-byte manifest with SHA-256
+  `4fb908c22737c7fc8de60f6ac4a36a5522d3d1e538b1bc330e8b4bb951dd0fcb` after all four audits.
+  Range QC remains open: 2018 has rare extreme finite values; 2022 has 12 slight outliers each in
+  NDVI/NDBI/NDWI. Preserved and reported, not clipped; review before features/models. Evidence:
+  `results/phase3/indices_validation.md` and `.json`.
+- **Part 3.7 read-only audit approved and completed (2026-11-10):** source-based Modal launch
+  works on remote Python 3.12.10; full regression **315 passed**, one existing warning.
+  Verified presence/size/version identities for all 92 expected rasters (13,419,102,871 bytes),
+  SHA metadata for 28 composite/count/index rasters, and full hashes of both critical manifests
+  (52,501 bytes read). V2 contains 100 objects/versions, 13,794,986,005 bytes, no delete markers.
+  Two older pilot rasters are preserved. No raster payload read, B2 write, eviction or Git mutation.
+  Evidence: `results/phase3/storage_report.md` and `storage_audit.json`.
+- **Part 3.7 publication complete (2026-11-10):** user explicitly approved the exact transfer.
+  Full regression **338 passed**, one existing warning. Rechecked the 94 existing references
+  against the approved snapshot, then published 16 frozen snapshots (122,487 bytes) and the
+  completion manifest last (41,766 bytes). All 17 exact-version read-back/hash checks passed;
+  total new payload **164,253 bytes**, below the approved 188,023-byte cap. V2 now contains
+  117 current objects/versions, 13,795,150,258 bytes, zero delete markers. All 92 production
+  rasters unchanged; no raster payload transfer, overwrite, deletion or Git mutation.
+  Eviction was not required. Evidence: `results/phase3/archive_completion.md` and `.json`.
+- **Phase 3 gate evidence generated and verified (2026-11-10):** approved source-based Modal
+  run `ap-TzE1Q1IpjSls5mOpRKwUU0` completed successfully; full regression **357 passed**, one
+  existing warning. Read/hash checked all 28 pinned raster versions, recomputed native formula,
+  mask/range/coverage statistics, and matched all prior index counts. Four figures plus three
+  review reports and a final manifest were published and exact-version verified, then saved
+  locally without overwrite. Input 2,778,034,701 bytes; new output 5,389,770 bytes;
+  stored/readback/viewing payload 16,169,310 bytes, within the approved 48 MiB cap.
+  Unique outlier pixels: 2018=11,378; 2020=0; 2022=12; 2024=0. Every flagged ratio has a negative
+  term; largest 2018 excursions have strong denominator cancellation. Original rasters unchanged.
+  Evidence: `results/phase3/gate_review_summary.md`, `review.md`, four `qc_<epoch>.png` files,
+  `range_review.json`/`.csv`, `gate_review_receipt.json` and `phase3_gate_review.v1.json`.
+- **Phase 3 gate approved (2026-11-10):** user approved the review evidence, then explicitly
+  approved affected-index-only exclusion of already-flagged out-of-range values from future
+  feature means. Preserve original COGs, carry per-cell exclusions/support counts, keep empty
+  means missing; do not clip or drop whole cells automatically. Policy recorded separately
+  in `configs/feature_aggregation.yaml`; aggregation implementation remains Part 4.2.
+  Minimum nonzero cell-support policy remains a Part 4.2 preflight/approval item, not an
+  invented threshold or a promise of prediction accuracy.
+- **Next:** exact Part 4.1 grid workload in `docs/phase-4-prediction-quality-plan.md` awaits
+  approval. No Phase 4 grid construction, feature aggregation or model training has started.
+- **Part 3.3.1 validation history (2026-11-04):** accuracy-first float32 reflectance plus separate SCL
+  COG design approved. Complete read-only Modal metadata/header scan passed for all 32 scenes and 224
+  required assets. Baselines are 04.00/05.00/05.10; every required offset mapping and frozen grid invariant
+  passed. JP2 nodata tags are unset, so pixel-level nodata semantics are the next mandatory validation gate.
+  Pixel validation is now complete: per-band DN=0 must be masked before radiometry/resampling and combined
+  with (not replaced by) the SCL mask. All 32 scenes completed via preemption-resilient epoch units; 235 tests pass.
+  Persisted nodata `-9999.0` is approved and the fail-closed metadata-driven conversion is implemented;
+  real-pixel statistics now pass across all 32 scenes and mixed baselines with stable cross-epoch scaling.
+  Rare out-of-nominal values are recorded, not clipped. 242/242 tests pass; no extraction output yet.
+  Spatial/resampling validation also passed all 32 scenes: exact window equivalence, one frozen 10 m grid,
+  nodata-safe bilinear SWIR, and class-safe nearest SCL. 247/247 tests pass. Part 3.3.1 contract validation is complete.
+  The one-scene 2018 pilot COG pair is now remotely validated after resuming at the final checkpoint without
+  overwrite: reflectance 375,165,086 bytes and SCL 481,974 bytes. The GDAL `.tif` VSI allowlist omission is
+  fixed with regression coverage; 249/249 Modal tests pass. Batch extraction of the remaining scenes has not started.
+  The subsequent read-only batch preflight passed: all 32 source archives exist (26,094,806,854 bytes total),
+  output pairs are 1 complete / 31 absent / 0 partial, and the extraction manifest does not yet exist.
+  Batch planning and overwrite-safety checks are covered by 257/257 passing Modal tests. Awaiting separate
+  approval before any extraction output or manifest is written.
 - **Plan gap flagged:** `plan.md`'s Phase 0 "Test cases" list doesn't name any test for `validation.py`
   (only logging's test is named), even though `validation.py` is an explicit Part 0.3 deliverable reused by
   every later phase. Wrote 18 tests for it anyway rather than leaving shared assertions untested — see
@@ -42,6 +125,12 @@ detail (what broke, what was decided) belongs in [`changelog.md`](changelog.md) 
 
 | Part | Date completed | Tests passing? | One-line result |
 |---|---|---|---|
+| 3.6 | 2026-11-10 | 295 passed, one existing warning in Modal | Published and independently byte/pixel-audited 20 index COGs plus a verified manifest. Finite 2018 extremes and 12 slight 2022 outliers per affected index flagged for scientific review before downstream use. |
+| 3.5 | 2026-11-06 | Latest user-supplied regression `ExitCode.OK`, one warning; count omitted in excerpt; independent audit passed | Four contract-3.5.0 epoch composites plus count rasters passed strict COG, streamed hash, single-version, coverage and pixel-validity gates. |
+| 3.4 | 2026-11-05 | 266/266 passing in Modal | Configurable SCL validity and 20 m cloud/shadow dilation validated read-only across all 32 SCL COGs; zero unknown classes and no B2 writes. |
+| 3.3 | 2026-11-05 | 260/260 passing in Modal | Extracted and validated 32 reflectance/SCL pairs under immutable contract-3.3.2 paths; published and audited a 32-row SHA-256-identified manifest without overwriting existing outputs. |
+| 3.2 | 2026-11-04 | 226/226 passing in Modal | 56 complete real dry-season scenes triaged with SCL-only windows; 32 selected (8/epoch) and user-approved. Very low cloud/shadow, but partial-coverage nodata recorded for 2022 (13.56%) and 2024 (27.82%); Phase 3.5 valid-observation gate is mandatory. |
+| 3.1 | 2026-11-04 | 219/219 passing in Modal | Full real B2 inventory parsed into a 280-scene catalogue. Required-tile L2A candidates: 2018=19, 2020=22, 2022=21, 2024=24; no L1C-only epochs, gaps or duplicates. Two new v0.2 B2 outputs written and verified. User confirmed epochs `[2018, 2020, 2022, 2024]`. |
 | 0.1 | 2026-09-29 | N/A (no tests specified for this part; verified by `git status` clean + `pyproject.toml` valid) | Repo init: `pyproject.toml` (Python 3.11–3.12, Part-0.1 core libs pinned), `.gitignore` (secrets, data/, models/, predictions/, logs/, Studio env noise), `git init` + GitHub remote (`origin`) wired via a repo-scoped SSH deploy key. |
 | 0.2 | 2026-09-29 | 10/10 passing (`pytest tests/`) | `configs/paths.yaml` (every path from `plan.md` Section 1) + `src/utils/io.py`: `find_repo_root()` (cwd-independent), `load_config()`, `resolve_path()`, `ConfigError`, and `find_duplicate_paths()` for the "two keys, one path" edge case (warns, doesn't fail). Added `tests/unit/test_io.py` and the Phase-0-mandated `tests/unit/test_no_hardcoded_paths.py` lint test (includes a self-check that the detector isn't vacuous). Installed `pytest`+`pyyaml`; added `pyyaml` to `pyproject.toml`. |
 | 0.3 | 2026-09-29 | 32/32 passing (`pytest tests/`) | `src/utils/logging.py`: `get_run_logger(phase, run_timestamp=...)` → append-safe `logs/<phase>_<timestamp>.log`. `src/utils/validation.py`: `assert_crs`, `assert_bounds_within`, `assert_no_nan`, `assert_nodata_consistent` (two-directional — catches both "nodata not masked" and "valid pixel misread as nodata"), all raising `ValidationError`. Refined `test_no_hardcoded_paths` to exempt only the literal *argument inside* a `resolve_path(...)` call (was about to false-positive on `resolve_path("logs")` since the dotted key and the path happen to be spelled the same). Credential-redaction in the logger is deliberately deferred to Part 0.4 (that's where `plan.md` places its edge case/test, and no secret ever flows through logging yet). |

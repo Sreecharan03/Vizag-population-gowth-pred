@@ -4,9 +4,9 @@
 **Purpose of this file:** This is the operating manual for building the project with Claude Code. It defines a strict phase-by-phase workflow, the directory structure that must exist at the end of each phase, the edge cases each phase must handle, the tests that must pass before moving on, and the human-in-the-loop checkpoint protocol. Keep this file at the repo root as `PLAN.md` (or `CLAUDE.md`) so Claude Code reads it at the start of every session.
 
 > **Revision 2 — environment & storage constraints (supersedes any earlier "download everything" assumption).**
-> - Work happens in a **new Lightning AI Studio**. Studio persistent storage is limited and billed beyond the plan's tier, so **the Studio cannot hold the full ~190–225 GB raw dataset**.
+> - As of version **0.2.0**, all project compute and tests run in **Modal**. The local checkout is source/control-plane only.
 > - About **190 GB of Vizag data (mostly Sentinel-2) is already downloaded** and must **not be downloaded again from the original providers**. The expected full set is ~225 GB, so roughly **35 GB remains** — *to be confirmed by inventory, never assumed*.
-> - **Backblaze B2 is the source of truth for raw data.** The Studio is only a scratch + working area. See **Section 1A** (storage strategy), **Phase 0.4–0.5** (environment + storage layer), **Phase 2** (B2 inventory + resume the remaining part) and **Phase 3** (budget-aware preprocessing).
+> - **Backblaze B2 is the source of truth and the only persistent runtime store** for raw data, processed products, manifests, results, models and predictions. Modal container disk is temporary scratch only.
 
 ---
 
@@ -38,11 +38,11 @@ This is not a "build everything" instruction. It is a **one-part-at-a-time, huma
 - Never implement more than one "part" per approval. A "part" is the smallest unit listed under each phase's **Implementation steps**.
 - Never skip the edge-case handling or the tests for a part to "move faster" — a part is not done until its tests pass.
 - If a test fails, fix it and re-run before reporting back; do not report a failing part as done.
-- If any step needs credentials, a bucket name, a storage limit, or a manual action from the user (B2 keys, Lightning storage cap, etc.), say so explicitly and pause. Never guess these values and never hardcode them.
+- If any step needs credentials, a bucket name, a Modal resource/cost choice, or a manual action from the user, say so explicitly and pause. Never guess these values and never hardcode them.
 - **Data-safety rules (the ~190 GB is irreplaceable time and money):**
   - Before ANY command that downloads, uploads, moves or deletes data, print the **estimated bytes, source, destination and whether it is reversible**, and get an explicit "yes" — even inside an already-approved part.
   - **Never** run `rclone sync`, `rclone move`, `b2 delete`, `aws s3 rm`, `rm -rf data/...` or any command with a delete flag against B2 or `data/`. Use **copy-only** semantics. Deleting a local raw object is allowed only through the project's `safe_evict()` function (Section 1A, rule 7).
-  - Every heavy operation calls the **storage guard** first (Section 1A). If the guard says the Studio budget would be exceeded, stop and report; do not "make room" by deleting things.
+  - Every heavy operation calls the **storage guard** first (Section 1A). If the guard says Modal ephemeral disk would be exceeded, stop and report; do not "make room" by deleting things.
   - Default every acquisition/eviction command to `--dry-run`. A real run needs a separate, explicit approval.
 - Every phase ends with a **Phase Gate**: a short checklist the user should be able to visually confirm before the project moves to the next phase.
 - Config values (paths, dates, thresholds) belong in `configs/`, never hardcoded inside processing scripts.
@@ -381,7 +381,7 @@ tests/fixtures/fake_bucket/            # tiny fake bucket tree incl. complete, i
 | D3 | **Band subset + spatial window**: B02, B03, B04, B08 (10 m), B11, B12 (20 m), SCL (20 m); window = buffered-boundary bbox in the tile's CRS | Cuts bytes read/stored by a large factor |
 | D4 | **Read strategy chosen by measurement** (Part 3.0): (a) fetch needed files to staging then read, vs (b) GDAL `/vsis3/` windowed reads straight from B2 | Depends on whether data is stored as `.SAFE` folders or `.zip`, and on B2 request pricing; decision saved as `docs/decisions/ADR-001-read-strategy.md` |
 | D5 | **Radiometric consistency across epochs**: apply the `BOA_ADD_OFFSET` / quantification value from each product's metadata (processing baseline ≥ 04.00 changed the L2A offset) | Otherwise a 2018 vs 2024 NDBI difference partly reflects a processing change, not the city |
-| D6 | **Outputs are COG** (deflate/zstd + predictor); scene stacks stored as DN `uint16` + mask, composites/indices as compressed `float32`/scaled `int16` | Small, cloud-optimised, resumable |
+| D6 | **Outputs are COG** (deflate/zstd + predictor); corrected six-band reflectance is stored as `float32`, while categorical SCL is stored in a separate integer COG; composites/indices use compressed `float32`/scaled `int16` | Accuracy-first design approved 2026-11-04: preserves offset-corrected values and categorical resampling semantics while remaining cloud-optimised and resumable |
 | D7 | **No intermediates on disk** beyond the clipped scene stack and the final composite | Prevents silent disk bloat |
 | D8 | **Median composite computed in chunks (dask)** with bounded memory | Avoids RAM/disk blow-ups |
 | D9 | **Unit of work = one scene → one clipped stack**, tracked in the manifest | Crash-safe, parallel-safe, evictable |
@@ -390,7 +390,9 @@ tests/fixtures/fake_bucket/            # tiny fake bucket tree incl. complete, i
 **Directory structure added**
 ```
 data/processed/sentinel2/
-├── scene_stacks/<epoch>/<scene_id>.tif        # clipped 6-band + SCL/mask COG
+├── scene_stacks/contract-<version>/<epoch>/   # immutable contract-versioned scene outputs
+│   ├── <scene_id>_reflectance.tif             # clipped six-band float32 COG
+│   └── <scene_id>_scl.tif                     # separate categorical SCL COG
 ├── composites/<epoch>/composite.tif           # dry-season median COG
 ├── composites/<epoch>/valid_obs_count.tif
 └── indices/<epoch>/{ndvi,ndbi,ndwi,mndwi,bsi}.tif
@@ -424,7 +426,7 @@ tests/fixtures/{tiny_scene_safe/, tiny_scene_zip/, fake_mtd_baseline_0206.xml, f
 | SCL marks bright built-up roofs as cloud / dark roofs as shadow | Mask thresholds are config; QC report shows how much urban area is masked; documented as a limitation |
 | Epoch composite below minimum valid-pixel % | Halt + report; do not emit a low-quality composite silently |
 | Division by zero in an index (e.g. NIR+Red = 0) | Guarded → nodata, not NaN propagating downstream |
-| Reflectance outside physical range after resampling | Clipped with logged pixel count |
+| Reflectance outside the nominal physical range after correction/resampling | Preserve initially, count and report by band for QC; never silently clip before scientific review |
 | Staging fills up during a batch | Storage guard blocks the next unit; no unit starts if projected staging > cap |
 | B2 throttling / timeouts | Retry with exponential backoff; persist state; resume |
 | Studio restarts mid-scene | Partial outputs discarded; unit restarts from manifest state; no duplicate/partial files |

@@ -73,7 +73,9 @@ def vsis3_credentials(key_id: str, application_key: str, endpoint: str) -> Itera
         "AWS_VIRTUAL_HOSTING": "FALSE",
         "AWS_HTTPS": "YES",
         "GDAL_DISABLE_READDIR_ON_OPEN": "YES",
-        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".jp2,.zip",
+        # Source bands are JP2 files inside SAFE ZIP archives; validated Phase 3
+        # outputs are GeoTIFF COGs reopened directly through /vsis3/.
+        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".jp2,.zip,.tif",
     }
     previous = {k: os.environ.get(k) for k in overrides}
     try:

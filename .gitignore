@@ -4,7 +4,7 @@
 *.pem
 *.key
 
-# Data (Tier 1/2 live only on the Studio; raw data lives in B2)
+# Runtime datasets live in B2; local snapshots are not source.
 data/
 
 # Model artifacts, predictions, logs — regenerable, not source
@@ -67,3 +67,12 @@ cache/
 .windsurf-server
 .zcompdump
 .zshrc
+
+# Preserved local report drafts and rendering previews; publish the reviewed pair only.
+results/project_report/Vizag_GeoAI_Project_Report.docx
+results/project_report/Vizag_GeoAI_Project_Report_Final.docx
+results/project_report/Vizag_GeoAI_Project_Report_Final.pdf
+results/project_report/architecture_page_*.png
+
+# Independent demo repository and deployment bundles; preserve locally.
+/sites/

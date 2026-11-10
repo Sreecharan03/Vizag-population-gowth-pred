@@ -1,6 +1,6 @@
 # Handoff Instructions for a New LLM Session (Support)
 
-If you are a new session — new Studio, context reset, or a different LLM entirely — picking this project
+If you are a new session — new machine, context reset, or a different LLM entirely — picking this project
 up cold, follow these steps in order.
 
 ## 1. Orient yourself
@@ -17,13 +17,83 @@ up cold, follow these steps in order.
 6. Only after all of the above, read [`../plan.md`](../plan.md) in full for the authoritative spec of the
    phase you're about to work on.
 
-## 1a. If you're in a brand-new Studio (git/SSH does not carry over)
+## 1a. Runtime and Git context (v0.2.0)
 
-The GitHub remote is `git@github.com:Sreecharan03/Vizag-population-gowth-pred.git`, pushed via a
+All project compute/tests run in Modal and all persistent runtime artifacts live in Backblaze B2. The local
+checkout is source/control-plane only. Use Modal profile `sankar132095`, environment `main`, and inject B2
+credentials through the named Modal Secret `vizag-b2`; never mount or upload `.env`.
+
+Git metadata was safely restored on 2026-11-04. The user explicitly approved committing and pushing the
+recovered checkpoint to `origin/main` on 2026-11-09 and renewed that authorization on
+2026-11-10, requesting accurate documentation and a professional README first.
+Verify the current commit and remote with Git;
+do not infer them from this historical note. Never force-push or include credentials or runtime data.
+
+Current checkpoint (2026-11-10): Phase 3 Parts 3.0–3.7 are complete; full Modal regression **357 passed,
+one existing warning**. All 32 extraction pairs and four composite/count pairs remain intact.
+User approved Part 3.6 and the production run created 20 index COGs (1,309,726,569 bytes), independently
+downloaded/hashed and fully pixel-audited them, then published one exact-byte-verified 17,788-byte manifest.
+Read `results/phase3/indices_validation.md`, its machine-readable `.json`, and
+`docs/phase-3.6-indices-contract.md` before proceeding.
+
+**Known scientific QC and approved handling:** 2018 contains rare extreme finite index outliers;
+2022 contains 12 slight outliers each in NDVI/NDBI/NDWI. The user has approved the review evidence
+and affected-index-only exclusion of already-flagged values from future feature means. Preserve
+original COGs, record per-cell exclusions/usable coverage, keep empty means missing, and do not
+clip or automatically drop whole cells. Policy: `configs/feature_aggregation.yaml`. Its actual
+aggregation implementation is Part 4.2; minimum nonzero support needs preflight/user approval.
+17 near-zero 2018 NDVI denominators became nodata under the approved guard.
+
+**Phase 3 gate review evidence and the specific downstream rule are now user-approved.** Read
+`results/phase3/gate_review_summary.md`, `review.md`, `range_review.json`/`.csv`, all four
+`qc_<epoch>.png` files and `gate_review_receipt.json`. Approved run
+`ap-TzE1Q1IpjSls5mOpRKwUU0` used 2,778,034,701 input bytes and published eight exact-version/
+hash-verified artifacts totaling 5,389,770 bytes; stored/readback/local viewing payload is
+16,169,310 bytes (within 48 MiB). Native unique outliers: 2018=11,378, 2022=12, others=0.
+All flagged ratios have a negative term; severe 2018 cases show cancellation. A composite-only
+review does not establish individual source-scene physical causes. Only affected-index exclusion
+of flagged values is approved: no clipping, broader negative-reflectance mask or new denominator
+threshold. Published review/receipt pending flags are immutable historical snapshots, superseded
+by the later decision in `docs/phase-4-prediction-quality-plan.md`. Part 4.1 exact workload still
+requires approval; do not infer permission for all Phase 4 parts. Do not rerun `part3-gate-review`, overwrite its outputs or clear the
+successful persistent reservation `vizag-phase3-gate-review-v1`. Output manifest is
+`vizag-geoai/v2/manifests/phase3_gate_review.v1.json`.
+
+Authentication works when the command has network access; do not recreate credentials for sandbox
+connectivity failures. Source/output contract 3.6.0 is populated: do not rerun `part3-indices-build`.
+Per-epoch persistent Modal reservations retain successful results; no lock is silently removed.
+**Part 3.7 read-only audit is approved and passed.** Read `results/phase3/storage_report.md`
+and `storage_audit.json`: 92 expected rasters present, 13,419,102,871 bytes; 100 v2 objects and
+versions, zero delete markers. Two manifests byte-hashed; no raster payload read or B2 write.
+**Part 3.7 publication is also approved and complete.** Read `results/phase3/archive_completion.md`
+and `.json`: 16 frozen snapshots (122,487 bytes) plus one completion manifest (41,766 bytes),
+all exact-version read-back/hash verified; 164,253 new bytes. V2 now has 117 objects/versions,
+13,795,150,258 bytes, zero delete markers. Existing production identities unchanged.
+The original audit reports are preserved historical snapshots; pending-publication wording
+in them is superseded by the completion receipt. Phase 3 gate was subsequently user-approved;
+Part 4.1 has only been proposed, not executed. Do not rerun `part3-archive-publish` or remove its persistent
+reservation: the successful result remains in `vizag-phase3-archive-publication-3-7-0`.
+The 16 allowlisted source files remain frozen by `configs/archive_publication.yaml`.
+Use source-based `modal run -e main modal_app.py --action part3-storage-audit`, not an in-memory
+`serialized=True` function: local Python 3.11 can launch the approved remote Python 3.12 image.
+The active workspace is `sankar132095`; do not reinstall Python or recreate credentials to fix
+the previously introduced serialization mismatch. The fixed test suite is self-contained and
+does not depend on local markdown reports being present in the remote image.
+
+The reviewed 19-page academic report and vector diagrams are in `results/project_report/`. Identity
+fields remain placeholders. Dashboard illustrations and the pressure-index discussion are proposals;
+no trained model or real predictions have been built. A separate public demo UI now exists in
+`sites/vizag-growth-demo/`, with its own source repository and real geographic layers but fictional
+analytics. A two-year model is not yet a validated 2030 forecast.
+
+### Historical SSH note
+
+The current remote is HTTPS: `https://github.com/Sreecharan03/Vizag-population-gowth-pred.git`.
+The historical remote was `git@github.com:Sreecharan03/Vizag-population-gowth-pred.git`, pushed via a
 repo-scoped **deploy key** generated on the *previous* Studio's disk (`~/.ssh/id_ed25519_vizag`). SSH keys
 are local to the Studio's filesystem and do not follow you to a new Studio automatically. If `git push`
-fails with a permission error here, generate a new keypair, ask the user to add it as a deploy key (with
-write access) at the repo's Settings → Deploy keys page, verify with `ssh -T git@github.com`, then proceed.
+fails with a permission error here, stop and report the authentication blocker. Ask for approval
+before provisioning any replacement credential or changing the remote/authentication configuration.
 Do not fall back to embedding a token in the remote URL or committing any key material.
 
 ## 2. Rules while working
@@ -33,8 +103,9 @@ Do not fall back to embedding a token in the remote URL or committing any key ma
   estimate, approximate, or infer a geographic fact from general knowledge — if a verified source isn't
   reachable, stop and ask the user rather than guessing. This applies especially to Phase 1's boundary
   config and Phase 4's OSM distance aggregation.
-- **Routine `git add`/`commit`/`push` to `origin` does not need a separate approval round** once a part is
-  implemented, tested, and tracking files are updated — the user pre-authorized this standing practice.
+- **Git authorization:** the user explicitly authorized this checkpoint's commit/push on 2026-11-09.
+  Follow the latest user instructions for later releases; older blanket authorizations do not override
+  a subsequent request to obtain approval.
   This does **not** cover destructive git operations (force-push, history rewrite, branch deletion) or
   anything that would stage `.env` or `data/` — those still require explicit confirmation.
 

@@ -6,6 +6,11 @@ decisions have actually been locked in (as opposed to just specified in the plan
 
 ## Storage tiers
 
+> **v0.2.0 update (2026-11-04):** Modal replaces Lightning Studio as the compute plane. Backblaze B2 is
+> the only persistent runtime store. References below to Studio/Tier 2 describe the historical v0.1
+> implementation; new jobs use bounded Modal ephemeral scratch and write durable artifacts to the
+> isolated `vizag-geoai/v2/` B2 namespace.
+
 | Tier | Location | Contents | Rule |
 |---|---|---|---|
 | 0 — Cold raw | Backblaze B2 | Full raw Sentinel-2 archive + everything downloaded so far | Read-only, source of truth, never deleted |
@@ -80,17 +85,23 @@ Checked by `tests/unit/test_no_hardcoded_paths.py`.
 | Config | Purpose | Status |
 |---|---|---|
 | `configs/paths.yaml` | Single source of truth for all directory paths | **Created (Part 0.2)** |
-| `configs/storage.yaml` | Studio budget, staging cap, eviction rules (no secrets) | **Created (Part 0.4)** — everything filled in except `budget_gb` (`null`, still waiting on the user) |
-| `configs/b2.yaml` | B2 endpoint, bucket, prefixes (no secrets) | **Created (Part 0.4), prefixes filled in (Part 2.1, 2026-10-10)** — endpoint, bucket, `raw_sentinel2`/`raw_other` all confirmed from the real inventory; `processed_backup`/`manifests_backup` deliberately still `null`, pending a Phase 3 Part 3.0 design decision |
-| `configs/boundary.yaml` | Study area source, CRS (`EPSG:32644`), buffer distance | Not created (Part 1.1) |
+| `configs/compute.yaml` | Modal execution policy and v0.2 B2 output prefixes (no secrets) | **Created (infrastructure v0.2.0)** |
+| `configs/archive.yaml` | Read-only archive identity pins and small-manifest read limit | **Validated (Part 3.7 audit):** references completed extraction/composite/index audits; enables no upload or eviction. |
+| `configs/archive_publication.yaml` | Explicitly approved 16-file snapshot identities, new destinations and byte caps | **Validated (Part 3.7 publication):** 17 objects/164,253 bytes created once and exact-version verified; persistent completion reservation retained. |
+| `configs/gate_review.yaml` | Approved 28 source versions/hashes, visual/native QC policy and transfer caps | **Validated:** four native reviews, eight new exact-version-verified artifacts; output storage/readback/local copies below 48 MiB. No automatic gate/eligibility approval. |
+| `configs/feature_aggregation.yaml` | User-approved affected-index-only outlier rule and required cell-quality fields | **Policy recorded, not implemented:** original COGs unchanged, no clipping/whole-cell drops, missing empty means; support threshold awaits Part 4.2 preflight/approval. |
+| `configs/storage.yaml` | Historical Studio budget, staging cap, eviction rules | **Created:** user-confirmed 150 GB historical cap. Current runtime is Modal; see `compute.yaml`. |
+| `configs/b2.yaml` | B2 endpoint, bucket, prefixes (no secrets) | Endpoint, bucket and raw prefixes confirmed; manifest backup is `vizag-geoai/data/manifests/`. New durable outputs use `compute.yaml` v2 prefixes; legacy `processed_backup` stays null. |
+| `configs/boundary.yaml` | Study area source, CRS (`EPSG:32644`), buffer distance | **Complete (Part 1.1):** verified OSM GVMC boundary, 625.15 km² administrative area, 5 km buffer. |
+| `configs/preprocessing.yaml` | Extraction, masking, composite and index contracts | **Validated through Part 3.6:** six bands, frozen grid, ≥4 observations/99% AOI composite gate, five guarded indices with finite outliers preserved for QC. |
 | `configs/temporal.yaml` | Epochs, transition pairs, holdout split | **Created (Part 1.2)** — epochs `[2018,2020,2022,2024]` confirmed against the real B2 inventory, not assumed |
 | `configs/grid.yaml` | Grid cell size (500 m), exclusions | **Created (Part 1.2)** |
 | `configs/label.yaml` | Growth threshold values (5/10/20%, primary 10%) | **Created (Part 1.2)** |
 | `configs/model.yaml` | Model hyperparameters per experiment | Not created (Phase 8) |
 | `configs/data_requirements.yaml` | What data each epoch/source needs | **Created (Part 2.2)** — auto-generated from the real buffered boundary + `temporal.yaml`; only `T44QQE` is the strictly-required Sentinel-2 tile |
 
-Secrets (`B2_KEY_ID`, `B2_APP_KEY` or S3-style equivalents) come from **Lightning Studio secrets /
-environment variables only** — never from a repo file. If you find a `.env` file in this repo, treat it as
+Secrets (`B2_KEY_ID`, `B2_APPLICATION_KEY`) come from the named **Modal Secret `vizag-b2`** — never from
+a repo file. If you find a `.env` file in this repo, treat it as
 a local-only credential holder that must stay out of git (`.gitignore`) and must never be read into logs,
 configs, or committed anywhere; confirm it's gitignored before touching it.
 
@@ -100,6 +111,15 @@ Fill in as ADRs and irreversible design choices get made (e.g., Phase 3 Part 3.0
 
 | Decision | Phase/Part | Date | Notes |
 |---|---|---|---|
+| Approve Phase 3 gate and per-index downstream exclusion, without rewriting data or promising accuracy | Phase 3 gate / Phase 4 planning | 2026-11-10 | User approved evidence then the specific flagged-value rule. Reuse nominal [-1,1] with existing 1e-6 tolerance; omit only flagged values from affected means, retain quality counts and NaN empties, never clip originals or silently drop cells. Confirm support policy after Part 4.2 coverage preflight; require dated contextual sources, validated labels, untouched temporal/spatial evaluation and horizon qualification before prediction claims. |
+| Native outlier maps and diagnostics are separate from display previews and human gate approval | Phase 3 gate review | 2026-11-10 | One sequential 2-CPU/4-GiB Python 3.12 worker hashes 28 version-pinned COGs, checks every native formula/mask and prior QC count, then renders four fixed-display figures. Flag maps preserve every native outlier, independent of overviews. Eight artifacts publish only after all epochs pass, manifest last, with persistent reservation and exact read-back. Original values remain untouched; all eligibility and Phase 3 gate choices remain explicit user decisions. |
+| Separate bounded evidence publisher; manifest last; preserve audit snapshots | Phase 3, Part 3.7 completion | 2026-11-10 | A new config freezes 16 original sources without changing `archive.yaml` or old reports. Source-based Python 3.12 worker refreshes production identities, holds a persistent atomic reservation, refuses any current/historical destination, uploads once with retries disabled, and verifies exact versions. Completion manifest records limitations and a pending Phase 3 gate. No raster copy or eviction was needed. |
+| Read-only identity audit before archive publication; no redundant raster copy | Phase 3, Part 3.7 audit | 2026-11-10 | Source-based Modal Python 3.12 worker checks 92 production raster identities and hashes two small manifest payloads. A request hook blocks non-read APIs. Existing B2 persistence requires no duplicate 13.419 GB upload; new report publication still needs transfer approval. Missing scene-stack SHA metadata is disclosed, not confused with a fresh raster content hash. Older pilot outputs are preserved. |
+| Keep 8 selected scenes/epoch despite later-epoch partial coverage; enforce downstream coverage gate | Phase 3, Part 3.2 | 2026-11-04 | User approved the SCL-ranked selection after review. Mean nodata is 13.56% for 2022 and 27.82% for 2024, despite very low cloud/shadow. These are the best-ranked dry-season candidates, so extraction proceeds, but Part 3.5 must generate `valid_obs_count` and halt rather than emit an inadequate composite if combined spatial coverage is insufficient. |
+| Build SCL masks in memory; class 2 invalid by default; circular 2-pixel cloud/shadow dilation | Phase 3, Part 3.4 | 2026-11-05 | Avoids redundant mask rasters while keeping policy configurable and auditable. All 32 real SCL COGs validated with zero unknown classes; class-2 exclusion and dilation have modest measured effects. Reflectance validity remains independently required so SCL cannot restore extraction nodata. |
+| Median composite requires ≥4 valid observations and ≥99% AOI coverage | Phase 3, Part 3.5 | 2026-11-06 | Read-only preflight showed four is the strongest common threshold retaining ≥99% in every epoch; five would collapse 2024 coverage to 45.8736%. Composite pixels below four are `-9999`, while the count raster retains 0–8. Two-pixel chunk halos preserve Part 3.4 dilation semantics at chunk boundaries. Eight immutable contract-3.5.0 COGs passed an independent streamed-hash and pixel-validity audit. |
+| Guard indices independently; retain finite outliers; audit published bytes and every formula pixel | Phase 3, Part 3.6 | 2026-11-10 | Float64 calculation/float32 COGs, per-index absolute denominator guard 1e-6, nodata -9999, no clipping. Twenty COGs independently validated after version-pinned read-back. Per-epoch atomic Modal reservations and no SDK PUT retry prevent blind reruns. 2018 extreme range outliers and slight 2022 excursions remain an open scientific review item before downstream aggregation. |
+| Modal compute + B2-only persistence, isolated v0.2 namespace | Infrastructure v0.2.0 | 2026-11-04 | User replaced the Lightning/Studio runtime. All tests and processing execute remotely in Modal; local is source/control-plane only; Modal disk is ephemeral; durable outputs use `vizag-geoai/v2/` to avoid collision with legacy B2 products. Secrets are injected by the named Modal Secret `vizag-b2`, never by uploading `.env`. |
 | `validation.py` avoids hard dependency on geopandas/rasterio/pyproj | Phase 0, Part 0.3 | 2026-09-29 | Those aren't installed until Part 0.4. `assert_crs` duck-types any CRS-like object (string, int, or one exposing `to_epsg()`/`to_string()`) instead of importing `pyproj.CRS` directly, so shared assertions work before and after the geospatial stack lands. |
 | `assert_nodata_consistent` checks both directions | Phase 0, Part 0.3 | 2026-09-29 | Not just "no sentinel where valid" but also "sentinel present everywhere flagged nodata" — matches Phase 3's "nodata stays nodata, never read as 0 reflectance" and Phase 4's "empty cell → NaN, never coerced to 0" concerns from `plan.md`. |
 | Credential redaction lives in Part 0.4, not the Part 0.3 logger | Phase 0, Part 0.3/0.4 | 2026-09-29 | `plan.md` places the redaction edge case and its test (`test_logger_redacts_credential_patterns`) under Parts 0.4–0.5, and no secret flows through logging yet — deferred rather than scope-creeping into 0.3. Must not be forgotten when 0.4 is implemented. |

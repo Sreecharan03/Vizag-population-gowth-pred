@@ -15,8 +15,33 @@ credentials, bucket names, storage limits, and similar values must be stated exp
 
 ## Other pending user inputs
 
+Remaining research choices: validate historical built-up labels and contextual source dates; finalize
+accessibility indicators, normalization and weights; resolve the 2024–2030 six-year forecast horizon.
+The discussed `IPI = growth probability × accessibility gap` is a proposal, not an implemented or
+universally standardized formula. Locality dry-run numbers are illustrative. A separate public demo
+dashboard is built; the scientific prediction system remains planned.
+
+**Part 3.6 range QC (2026-11-10; downstream rule subsequently approved):** 2018 has under 0.074% range outliers per index but severe
+extrema (e.g. NDBI -3806.94 to 2208.96); 2022 has 12 slight outliers each in NDVI/NDBI/NDWI.
+The outputs are formula-correct, not clipped, and all byte/pixel audits pass. This does not make the
+extremes physically trustworthy. See `results/phase3/indices_validation.md`; do not invent thresholds.
+
+**Gate review completed and user-approved (2026-11-10):** actual native union is 11,378
+pixels in 2018 (0.0741045% of AOI), 12 in 2022, zero in 2020/2024. All flagged ratios have
+negative terms; severe 2018 excursions are amplified by denominator cancellation. Four figures,
+bounded actual-coordinate samples and full statistics are in `results/phase3/gate_review_summary.md`
+and linked artifacts. The percentages above are not interchangeable with per-index valid-pixel
+fractions. The physical cause within individual source scenes is not established. User explicitly
+approved excluding only already-flagged values from each affected index's future mean, preserving
+originals, carrying counts/coverage, keeping empty means missing and not dropping whole cells.
+No clipping, broader negative-reflectance mask or new denominator threshold is authorized.
+Implementation remains Part 4.2. Minimum usable-cell support, date-safe population/OSM features,
+label validation and the six-year forecast method are still unresolved quality choices; do not guess.
+
 | Needed for | What's needed | Status |
 |---|---|---|
+| Modal+B2 foundation (v0.2.0) | Named Modal Secret `vizag-b2`, non-mutating remote environment verification and full regression suite. | **Resolved (2026-11-04).** Secret contains only `B2_KEY_ID` and `B2_APPLICATION_KEY`; Python 3.12.10 and geospatial imports verified remotely; 211/211 tests passed in Modal. No B2 objects were accessed or changed. |
+| Git/GitHub versioning | Commit and push the recovered implementation checkpoint after reviewing the exact diff and receiving explicit approval. | **Resolved 2026-11-06.** User explicitly requested documentation through validated Part 3.5 and publication to GitHub. No tag was requested. |
 | `configs/b2.yaml` (Part 0.4) | B2 endpoint URL, bucket name, prefixes | **Resolved (2026-10-10).** Endpoint + bucket confirmed. `raw_sentinel2`/`raw_other` prefixes now filled in from Part 2.1's real inventory. `processed_backup`/`manifests_backup` deliberately still `null` — a Phase 3 Part 3.0 design decision (reuse the bucket's existing legacy `processed/` prefix or use a new one), not yet made. |
 | B2 credentials | Actual `.env` var names (not the plan's placeholder `B2_KEY_ID`/`B2_APP_KEY`): `Backbaze-keyID`, `Backbaze-applicationKey`, plus `BUCKET-ID` (holds the B2 bucket ID, not name — unused; real bucket name `satilliate-images` is hardcoded in code/config instead) and `Backbaze-keyName` (unused, informational only). `.env` is gitignored — confirmed never committed. | **Resolved and working** |
 | `configs/storage.yaml` (Part 0.4) | Real Lightning storage plan cap (`budget_gb`) | **Resolved (2026-10-10).** User set 150 GB max. |

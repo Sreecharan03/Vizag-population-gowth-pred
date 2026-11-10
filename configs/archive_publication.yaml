@@ -1,0 +1,64 @@
+# Explicitly approved Part 3.7 copy-only publication. Original audit config stays frozen.
+contract_version: "3.7.0"
+destination_prefix: vizag-geoai/v2/results/phase3/archive/contract-3.7.0/
+manifest_key: vizag-geoai/v2/manifests/phase3_archive_manifest.contract-3.7.0.json
+reservation_name: vizag-phase3-archive-publication-3-7-0
+reservation_key: publication
+expected_file_count: 16
+expected_payload_bytes: 122487
+maximum_manifest_bytes: 65536
+maximum_new_bytes: 188023
+expected_raster_objects: 92
+expected_raster_bytes: 13419102871
+expected_existing_references: 94
+snapshot_audit_path: results/phase3/storage_audit.json
+payloads:
+  - path: results/phase3/storage_report.md
+    bytes: 6573
+    sha256: "ef6167492126b5b57fc32327bfd461649601b1d35b9ca946eebcccc081a0cceb"
+  - path: results/phase3/storage_audit.json
+    bytes: 45408
+    sha256: "d479185ce1f4204b71574f9aa8a9d3c679c81b38793a5e24fd8dc82a362e2f8e"
+  - path: results/phase3/indices_validation.md
+    bytes: 8674
+    sha256: "24a69a661aecb11e777719bbdfb0e0c10f4702b79e84c88b1a8133e1e2568b91"
+  - path: results/phase3/indices_validation.json
+    bytes: 25017
+    sha256: "ddcd1640676522bdf408542fbeddcf7790eae22bf60445ba8b2f4b98dfeed82e"
+  - path: results/phase3/composite_validation.md
+    bytes: 3295
+    sha256: "b00b7cc9c174fc66273e178c81e133b3dec4f6e91ce6b471f7eeca096787fd7a"
+  - path: results/phase3/mask_validation.md
+    bytes: 1650
+    sha256: "ccd8049411f69580c1c40fb61b0a8bdd701946cde333dbc8bdd3137e0ee2f447"
+  - path: results/phase3/read_benchmark.md
+    bytes: 766
+    sha256: "fa51203df61a5292d8ab0aa8b7374ab41ab8c329a3adcf0aa5794ffc0439f2cf"
+  - path: docs/phase-3.3-extraction-contract.md
+    bytes: 15032
+    sha256: "f4a3ab8cd961e545060c2d46ede08510632d5849767ff1f71ab1686710ca1088"
+  - path: docs/phase-3.6-indices-contract.md
+    bytes: 4834
+    sha256: "cd100783c3acadcb5f312d136158a02b67ea9cc59d8cf12c948ddb47e724ffe3"
+  - path: docs/decisions/ADR-001-read-strategy.md
+    bytes: 2275
+    sha256: "4d6c30507cdeff643f1c394e8a66f402ea2b66eee87d247fe554fe65d10d9ca7"
+  - path: configs/archive.yaml
+    bytes: 1591
+    sha256: "d20d77d4581a4fbf4e663ff858e35ed23f7c73024a954d6841ed2faa0e020aae"
+  - path: configs/preprocessing.yaml
+    bytes: 2491
+    sha256: "9e421f1216dfb1277ec0af72f22a35fabfea25d0e542b7be02a13a2263019423"
+  - path: configs/compute.yaml
+    bytes: 740
+    sha256: "73dfd60d27ba50c11336fb21638a497e210146c93be17d7145ad5572f3dd41a4"
+  - path: configs/storage.yaml
+    bytes: 1079
+    sha256: "82beb95ffbb9265b0d576f442f77b406444480b267de75372ebf9409ba69a51f"
+  - path: configs/temporal.yaml
+    bytes: 1427
+    sha256: "02c25730a8c13cfbfa94e32c48517cdac97e7b00fac29ce3e537ebb4fc27d86c"
+  - path: configs/boundary.yaml
+    bytes: 1635
+    sha256: "cec063e5d56ccde9eb701d4001cb61d9939e4d7dbce56e9a6c715e0b4ac23785"
+

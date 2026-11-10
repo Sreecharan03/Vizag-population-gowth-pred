@@ -1,0 +1,27 @@
+# Read-only Part 3.7 audit pins, copied from completed Part 3.3/3.5/3.6 audits.
+# No upload, copy or eviction action is enabled by this configuration.
+manifest_read_limit_bytes: 1048576
+expected_scene_count: 32
+manifests:
+  extraction:
+    filename: scene_extraction_manifest.jsonl
+    bytes: 34713
+    sha256: "9168f92fb3ed33694c06b643e9d8a533899206cd8bf0a77633ed93955e8ebe6e"
+  indices:
+    filename: indices_manifest.contract-3.6.0.jsonl
+    bytes: 17788
+    sha256: "4fb908c22737c7fc8de60f6ac4a36a5522d3d1e538b1bc330e8b4bb951dd0fcb"
+    version_id: "4_z2250dbc1f968e033a7050713_f106f523b12a40a6e_d20261110_m043035_c005_v0501017_t0048_u01794285035687"
+composites:
+  2018:
+    composite: {bytes: 369765288, sha256: "995ea0d48d95f803b9e4f22694b16a6451e1f3b2605ada292765dd00a2a30d3f"}
+    valid_obs_count: {bytes: 690143, sha256: "42b813402a33c3551f92d8d63b23779aac817621fdde0a8fa0b2979657c43d14"}
+  2020:
+    composite: {bytes: 365060102, sha256: "8c6113e09f59456292ba742d1a97bcfd3581524d8ac2502935d9fb9d3d331dc7"}
+    valid_obs_count: {bytes: 667922, sha256: "de531c86f3efda0b072c3581c7a67bd3cbe15c90ff1b56555af49ed1943b92f9"}
+  2022:
+    composite: {bytes: 366699998, sha256: "f8a7db985126f1c4e0acf18f9d52e338b656c1b7e76ffdde6311d72cc89e5404"}
+    valid_obs_count: {bytes: 530604, sha256: "c25a807d366875f449f3851214d1dc4b5fb9c17d1f5e46183f05f67ce9c3f72c"}
+  2024:
+    composite: {bytes: 364384445, sha256: "55fa556063dc14d8f3bd221e153d90bd302277fc9a59f5179a4dbf07ff8d9395"}
+    valid_obs_count: {bytes: 423047, sha256: "834c035e462a3c1530030b6e3ccce263f80adad68b88233ecac47f354b7329f1"}

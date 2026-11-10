@@ -1,0 +1,32 @@
+# Approved downstream rule, 2026-11-10. Not an instruction to rewrite source COGs.
+# Aggregation implementation/tests remain Part 4.2; no feature table exists yet.
+policy_version: "4.2-policy-v1"
+approval_status: approved
+source_index_contract: "3.6.0"
+preserve_source_rasters: true
+out_of_range_action: exclude_from_affected_index_mean_only
+nominal_range: [-1.0, 1.0]
+range_tolerance: 0.000001
+exclude_nonfinite: true
+respect_source_nodata: true
+clip_values: false
+drop_whole_cells_for_index_outliers: false
+empty_usable_mean: nan
+required_per_cell_per_index_qc:
+  - aoi_pixel_count
+  - input_valid_pixel_count
+  - nodata_pixel_count
+  - out_of_range_excluded_pixel_count
+  - usable_pixel_count
+  - usable_fraction_of_aoi_pixels
+  - exclusion_fraction_of_input_valid_pixels
+  - unfiltered_mean_diagnostic
+  - filtered_mean
+minimum_cell_support:
+  status: pending_part_4_2_coverage_preflight_and_user_approval
+  minimum_usable_fraction: null
+  refuse_model_ready_export_until_resolved: true
+sensitivity_review:
+  compare_filtered_and_unfiltered_cell_means: true
+  report_by_epoch_and_spatial_location: true
+  do_not_select_rules_using_holdout_labels: true

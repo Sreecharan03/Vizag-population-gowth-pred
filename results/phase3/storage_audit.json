@@ -1,0 +1,831 @@
+{
+  "recorded_date": "2026-11-10",
+  "audit_run_url": "https://modal.com/apps/sankar132095/main/ap-6z0LeTusIAEINIEKXjEKl6",
+  "regression": {
+    "passed": 315,
+    "warnings": 1,
+    "seconds": 7.12,
+    "run_url": "https://modal.com/apps/sankar132095/main/ap-9M4vz5BCCmXboSz6SZncVQ"
+  },
+  "local_inventory": {
+    "data/staging": {
+      "exists": false,
+      "files": 0,
+      "bytes": 0
+    },
+    "data/processed": {
+      "exists": false,
+      "files": 0,
+      "bytes": 0
+    },
+    "data/derived": {
+      "exists": false,
+      "files": 0,
+      "bytes": 0
+    },
+    "data/manifests": {
+      "exists": true,
+      "files": 1,
+      "bytes": 632216
+    }
+  },
+  "phase3_qc_images_found": [],
+  "audit": {
+    "all_version_bytes": 13794986005,
+    "all_version_count": 100,
+    "audit_container_scratch": {
+      "data.derived": {
+        "bytes": 0,
+        "exists": false,
+        "files": 0
+      },
+      "data.processed": {
+        "bytes": 0,
+        "exists": false,
+        "files": 0
+      },
+      "data.staging": {
+        "bytes": 0,
+        "exists": false,
+        "files": 0
+      }
+    },
+    "bucket": "satilliate-images",
+    "checked_identities": [
+      {
+        "bytes": 17788,
+        "key": "vizag-geoai/v2/manifests/indices_manifest.contract-3.6.0.jsonl",
+        "sha256": "4fb908c22737c7fc8de60f6ac4a36a5522d3d1e538b1bc330e8b4bb951dd0fcb",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f106f523b12a40a6e_d20261110_m043035_c005_v0501017_t0048_u01794285035687"
+      },
+      {
+        "bytes": 34713,
+        "key": "vizag-geoai/v2/manifests/scene_extraction_manifest.jsonl",
+        "sha256": "9168f92fb3ed33694c06b643e9d8a533899206cd8bf0a77633ed93955e8ebe6e",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f10125247b3def999_d20261105_m084802_c005_v0501044_t0048_u01793868482001"
+      },
+      {
+        "bytes": 369765288,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2018/composite.tif",
+        "sha256": "995ea0d48d95f803b9e4f22694b16a6451e1f3b2605ada292765dd00a2a30d3f",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20036d283bc6c19f_d20261105_m202718_c005_v0501052_t0054_u01793910438974"
+      },
+      {
+        "bytes": 690143,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2018/valid_obs_count.tif",
+        "sha256": "42b813402a33c3551f92d8d63b23779aac817621fdde0a8fa0b2979657c43d14",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f116d2b8100d56322_d20261105_m202722_c005_v0501052_t0043_u01793910442871"
+      },
+      {
+        "bytes": 365060102,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2020/composite.tif",
+        "sha256": "8c6113e09f59456292ba742d1a97bcfd3581524d8ac2502935d9fb9d3d331dc7",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f2005636fa6180741_d20261105_m203320_c005_v0501052_t0030_u01793910800348"
+      },
+      {
+        "bytes": 667922,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2020/valid_obs_count.tif",
+        "sha256": "de531c86f3efda0b072c3581c7a67bd3cbe15c90ff1b56555af49ed1943b92f9",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f111b3d2a86c7aaca_d20261105_m203334_c005_v0501051_t0003_u01793910814438"
+      },
+      {
+        "bytes": 366699998,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2022/composite.tif",
+        "sha256": "f8a7db985126f1c4e0acf18f9d52e338b656c1b7e76ffdde6311d72cc89e5404",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200061a8c6b9fe83_d20261105_m203937_c005_v0521006_t0015_u01793911177780"
+      },
+      {
+        "bytes": 530604,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2022/valid_obs_count.tif",
+        "sha256": "c25a807d366875f449f3851214d1dc4b5fb9c17d1f5e46183f05f67ce9c3f72c",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f118ef491a43daa8b_d20261105_m203942_c005_v0501045_t0011_u01793911182768"
+      },
+      {
+        "bytes": 364384445,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2024/composite.tif",
+        "sha256": "55fa556063dc14d8f3bd221e153d90bd302277fc9a59f5179a4dbf07ff8d9395",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20002e26b89227e8_d20261105_m205121_c005_v0501052_t0047_u01793911881934"
+      },
+      {
+        "bytes": 423047,
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2024/valid_obs_count.tif",
+        "sha256": "834c035e462a3c1530030b6e3ccce263f80adad68b88233ecac47f354b7329f1",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f103444c6f55e2c1f_d20261105_m205136_c005_v0501043_t0053_u01793911896204"
+      },
+      {
+        "bytes": 67020064,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/bsi.tif",
+        "sha256": "2d0631cd1571cdf1900121a13be80bd8057a8b4025d56aed67522c98b84a19a4",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f113b9bc5f577d867_d20261110_m042659_c005_v0501046_t0039_u01794284819783"
+      },
+      {
+        "bytes": 62805656,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/mndwi.tif",
+        "sha256": "09d6a4afe4f2864b5a4bfbafa6919892822cefb4440bcb1fe80924aa8bbca196",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f11453ffb44972a4f_d20261110_m042654_c005_v0501022_t0040_u01794284814177"
+      },
+      {
+        "bytes": 68446385,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndbi.tif",
+        "sha256": "818d1c3cf6b6a67a97dfc39ce781b647e620abdc903face7b7ca43cb62bddc94",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f114bd4f93b307eaf_d20261110_m042641_c005_v0501017_t0019_u01794284801291"
+      },
+      {
+        "bytes": 66118226,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndvi.tif",
+        "sha256": "cb5a55bc354de9329759923080eb4b44b0968d1de5dc897da05b8c14ffaa093a",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f11645ac46979a562_d20261110_m042635_c005_v0501036_t0041_u01794284795357"
+      },
+      {
+        "bytes": 63611030,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndwi.tif",
+        "sha256": "9373bc5174c9077d5def1e9c610efabe03b77be812a6d1e0ba80721bdd0a2c64",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f106afc710e707f2d_d20261110_m042647_c005_v0501036_t0015_u01794284807176"
+      },
+      {
+        "bytes": 67824744,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/bsi.tif",
+        "sha256": "c8f17670b21e8f3779127f9e7f0e5548858cdf6b0ee90449b2f8d40e9505d549",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f115a474ba83f6461_d20261110_m042641_c005_v0501051_t0046_u01794284801715"
+      },
+      {
+        "bytes": 62343334,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/mndwi.tif",
+        "sha256": "ff01e7da0b1b8bbd81cbb64cd2107f96cfdeaa3d093709df49e2d6ebd1074d39",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f116f0769d088cac0_d20261110_m042637_c005_v0501021_t0019_u01794284797942"
+      },
+      {
+        "bytes": 68212309,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndbi.tif",
+        "sha256": "1a9eb4e7e3ec51db9a4a8f1524e2ac0ed9f01c1337896f754c2fe0c227223995",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f10040d1a4905e4c0_d20261110_m042631_c005_v0501053_t0000_u01794284791736"
+      },
+      {
+        "bytes": 64708200,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndvi.tif",
+        "sha256": "6831d54b136f03edd3a0180381fc13b53474d5c28584256cb784ef37872a18b3",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f106d47069ac28567_d20261110_m042628_c005_v0501049_t0019_u01794284788794"
+      },
+      {
+        "bytes": 63465865,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndwi.tif",
+        "sha256": "7b6815de3d323cbf86ac8abee8f7f5b49288e331d648b1ea0d298856404c6852",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f113c67daf8ded471_d20261110_m042634_c005_v0501049_t0045_u01794284794860"
+      },
+      {
+        "bytes": 68036083,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/bsi.tif",
+        "sha256": "7a0692317871c738f41b207cd7997063cff6f91e247339099e6d156481370748",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f111944a8485e97a0_d20261110_m042948_c005_v0501053_t0043_u01794284988863"
+      },
+      {
+        "bytes": 63049753,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/mndwi.tif",
+        "sha256": "b68fe5ee19e0755fc62c2638c469cd0e02bb20e0b8ff5cbccbee74764320f15f",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f107599778293af6a_d20261110_m042925_c005_v0501049_t0013_u01794284965721"
+      },
+      {
+        "bytes": 68321428,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndbi.tif",
+        "sha256": "b3f7e6acbd160a6ba761405c3e8c87e71c67e170d14090a2c6c9d89f8b8e9aaa",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f110cd932461ef996_d20261110_m042837_c005_v0501051_t0044_u01794284917684"
+      },
+      {
+        "bytes": 65201594,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndvi.tif",
+        "sha256": "461bdc70d7d23a73437139e7560dbbafdcf2ad1ab01875c33a68c14b47a4bd2e",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f11404a575affa2ce_d20261110_m042812_c005_v0501036_t0028_u01794284892744"
+      },
+      {
+        "bytes": 63491012,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndwi.tif",
+        "sha256": "2bd2f2ccb847bdd05e7b532cb019fe118f8b696b0ebfd4bb362bfd483c29b0bb",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f107599778293a634_d20261110_m042903_c005_v0501049_t0012_u01794284943072"
+      },
+      {
+        "bytes": 67708348,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/bsi.tif",
+        "sha256": "e1af85d7ce170e258fa6863e1865d59e28fb1996cd5db2ed430fbaa0ca79b5b9",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f118ef491a5f47ba9_d20261110_m042851_c005_v0501045_t0016_u01794284931620"
+      },
+      {
+        "bytes": 62688669,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/mndwi.tif",
+        "sha256": "fb3da2d3b3393244c8f1d6fb56b6a71363d8b15fe8ce8f3cd0c82fe8eece0063",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f116f6e1fede7e461_d20261110_m042846_c005_v0501051_t0035_u01794284926905"
+      },
+      {
+        "bytes": 68146232,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndbi.tif",
+        "sha256": "6b21b29985f7e7c6d34c945a99c2b0f3271b907d7a84cf08e09ddf24b458c979",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f108b7b9c13efecb3_d20261110_m042836_c005_v0501045_t0040_u01794284916763"
+      },
+      {
+        "bytes": 65200844,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndvi.tif",
+        "sha256": "b167b67822fe4eac9a1e79fc0ee56eafdf4cdeb41fdc9d4e96ef8608859d954f",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1046d9954157f90d_d20261110_m042832_c005_v0501051_t0057_u01794284912892"
+      },
+      {
+        "bytes": 63326793,
+        "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndwi.tif",
+        "sha256": "010524a6f7ee6e828581d7559e24193e62465c5f22e507b2a8ef967d41d83e2a",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1169fde71d16672a_d20261110_m042841_c005_v0501034_t0033_u01794284921825"
+      },
+      {
+        "bytes": 370023725,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180103T045201_N0500_R076_T44QQE_20230717T103013_reflectance.tif",
+        "sha256": "e7f095ec6a9bddee5cad3aad56ab07d9436adb801400c661f96aeee64a088ba5",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200061a8c6ad1fd0_d20261105_m071907_c005_v0501004_t0006_u01793863147991"
+      },
+      {
+        "bytes": 644311,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180103T045201_N0500_R076_T44QQE_20230717T103013_scl.tif",
+        "sha256": "05a8db60154938c411688b5cbdb5d4c623054b63096d5e6fec1415ebcbbf16c5",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f114f9a8ca64aa3b6_d20261105_m071913_c005_v0501034_t0006_u01793863153099"
+      },
+      {
+        "bytes": 366605617,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180222T044811_N0500_R076_T44QQE_20230721T033012_reflectance.tif",
+        "sha256": "676291f188ac7f80ec1b3b496eba4175b827d63d87451865b37d2e9c454b4fed",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20104835c5b7a620_d20261105_m071904_c005_v0501051_t0007_u01793863144468"
+      },
+      {
+        "bytes": 750268,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180222T044811_N0500_R076_T44QQE_20230721T033012_scl.tif",
+        "sha256": "30ab3ea21354e0636ab86c9e5a82d7e63367b9b8731877940fa28ad447cba466",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f118b3979d517ede9_d20261105_m071910_c005_v0501034_t0048_u01793863150510"
+      },
+      {
+        "bytes": 375165544,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180304T044701_N0500_R076_T44QQE_20230904T140422_reflectance.tif",
+        "sha256": "32245b4c78debccc883b3a5d71c597dea14583d64fc327c6f96c56bc0d7a20db",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20057c63813193b3_d20261105_m071702_c005_v0501024_t0000_u01793863022907"
+      },
+      {
+        "bytes": 482432,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180304T044701_N0500_R076_T44QQE_20230904T140422_scl.tif",
+        "sha256": "9406893cc898d69b1f93ffbb39937b4eb04837c63093301b7537303ac7e53a1c",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f110cd932421155d3_d20261105_m071706_c005_v0501051_t0028_u01793863026644"
+      },
+      {
+        "bytes": 384086188,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180314T044701_N0500_R076_T44QQE_20230910T205501_reflectance.tif",
+        "sha256": "34e6386e7ef40ffbe9264b37d153d3a22b48f1f54ce0797531be3f46f0132fae",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20088946cbea2f66_d20261105_m071759_c005_v0501040_t0028_u01793863079549"
+      },
+      {
+        "bytes": 526380,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2A_MSIL2A_20180314T044701_N0500_R076_T44QQE_20230910T205501_scl.tif",
+        "sha256": "40891eccfbe6dec6731c8716bd3ac7b548cf7233e02b3c3daaba45d0145d3537",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f108c7937c87ff1ce_d20261105_m071804_c005_v0501048_t0025_u01793863084865"
+      },
+      {
+        "bytes": 365932547,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180108T045149_N0500_R076_T44QQE_20230913T143555_reflectance.tif",
+        "sha256": "81fca904a1757d0fd97f54c082b7d8fa5e699c84fd962021fe4b2731f92518ac",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200284c585e463d4_d20261105_m072005_c005_v0501024_t0006_u01793863205158"
+      },
+      {
+        "bytes": 660571,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180108T045149_N0500_R076_T44QQE_20230913T143555_scl.tif",
+        "sha256": "78c6c2f8bd44db421ee3f91d95580bf3840fccc11ab3e0a009f4b96b2bb34afe",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1069702fb0757a61_d20261105_m072010_c005_v0501033_t0001_u01793863210203"
+      },
+      {
+        "bytes": 366609890,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180118T045119_N0500_R076_T44QQE_20230801T192630_reflectance.tif",
+        "sha256": "66dba9d6fb5ae199ede56ea165bf1a84f597114eb9cfadd4308b8fb92c23cb43",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20003bf91910b079_d20261105_m072010_c005_v0501050_t0045_u01793863210890"
+      },
+      {
+        "bytes": 847165,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180118T045119_N0500_R076_T44QQE_20230801T192630_scl.tif",
+        "sha256": "6043d965b53b0077ea3ee0f21a37946daf7aa45a81676a456840b683eaf03624",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f10090038033b1ee6_d20261105_m072017_c005_v0501022_t0024_u01793863217721"
+      },
+      {
+        "bytes": 374813574,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180227T044729_N0500_R076_T44QQE_20230911T092404_reflectance.tif",
+        "sha256": "7bd4f8433024a2e9bba349d82e17fdacff46469a4f895a40605bf4bf26e1ec98",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200117610a50b57d_d20261105_m071700_c005_v0501022_t0056_u01793863020937"
+      },
+      {
+        "bytes": 459722,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180227T044729_N0500_R076_T44QQE_20230911T092404_scl.tif",
+        "sha256": "01b53002a482a725dfbb65d49db1c94e72b715509148473192825814f84cb556",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f101c89bf1e5b992f_d20261105_m071706_c005_v0501050_t0045_u01793863026348"
+      },
+      {
+        "bytes": 394307669,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180309T044649_N0500_R076_T44QQE_20230709T143320_reflectance.tif",
+        "sha256": "498326bd4f79a5bd8a349d34d380bbfad7038c314bc8aa2e55e79ce7676fa748",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20079da8b2ad8418_d20261105_m071804_c005_v0501015_t0003_u01793863084824"
+      },
+      {
+        "bytes": 174755,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2018/S2B_MSIL2A_20180309T044649_N0500_R076_T44QQE_20230709T143320_scl.tif",
+        "sha256": "268d6f1fdb577603098f4c3be4533a4633b74a5b7626cd443542ba99f5d6ac9d",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f112ff4afd016ac6a_d20261105_m071811_c005_v0501051_t0020_u01793863091323"
+      },
+      {
+        "bytes": 365832496,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200113T045131_N0500_R076_T44QQE_20230425T185402_reflectance.tif",
+        "sha256": "caea1e1a805b595d7e387a3198124a05fbabb4b1fec198128d10557102fd0a8f",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20010d93c2a9e4c3_d20261105_m072154_c005_v0501026_t0059_u01793863314348"
+      },
+      {
+        "bytes": 917636,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200113T045131_N0500_R076_T44QQE_20230425T185402_scl.tif",
+        "sha256": "be1a8bdeb9e0ca6dc992bb8a88a23f987c41ddaaac1dc280f3e560eecdccde21",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1180d661d15cd1a8_d20261105_m072157_c005_v0521006_t0040_u01793863317106"
+      },
+      {
+        "bytes": 366147233,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200212T044921_N0500_R076_T44QQE_20230413T041200_reflectance.tif",
+        "sha256": "a37e85516645a743f59e0ce0912a8a8783d4361c584832cf4cd35aa3a7f84b24",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f2009559109c6c080_d20261105_m072326_c005_v0501005_t0002_u01793863406588"
+      },
+      {
+        "bytes": 943202,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200212T044921_N0500_R076_T44QQE_20230413T041200_scl.tif",
+        "sha256": "12d9f56212999f00427682e2f02216b473b87831195f5a028df3df16aed12475",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f104acaa0af870d7d_d20261105_m072332_c005_v0501049_t0001_u01793863412901"
+      },
+      {
+        "bytes": 366765385,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200222T044811_N0500_R076_T44QQE_20230426T015307_reflectance.tif",
+        "sha256": "45310a993b07fd3199f13ab4f0a191d5058c4d19b99d3d87b5d3255ee12ee4ce",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f201059e5ffd8eace_d20261105_m072114_c005_v0501018_t0027_u01793863274705"
+      },
+      {
+        "bytes": 1006326,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200222T044811_N0500_R076_T44QQE_20230426T015307_scl.tif",
+        "sha256": "a25fe517989c7df340dfe3f5c53bc326263f2fecd0c3e7b2501f0f3d3acbebad",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f117859e7c5cc39e4_d20261105_m072118_c005_v0501034_t0031_u01793863278967"
+      },
+      {
+        "bytes": 364288699,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200303T044701_N0500_R076_T44QQE_20230627T125902_reflectance.tif",
+        "sha256": "f69efa5604ba7cc1cbf0af6a330f461a843e4e30309e98b176f2a8b51ee46811",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20010d93c2a9eab2_d20261105_m072427_c005_v0501045_t0035_u01793863467771"
+      },
+      {
+        "bytes": 990056,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200303T044701_N0500_R076_T44QQE_20230627T125902_scl.tif",
+        "sha256": "262bba7b7f639cb2bf8235539ec65840bd5af974cda50f310e5b08626b1ae907",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1050621426a70253_d20261105_m072434_c005_v0501046_t0039_u01793863474196"
+      },
+      {
+        "bytes": 365543438,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200313T044701_N0500_R076_T44QQE_20230413T221426_reflectance.tif",
+        "sha256": "d3094887e7ffd4543b3071b85124d3fe85ef2701ddd393dde9ef9e7ea008a0dd",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20109402afb83bff_d20261105_m072340_c005_v0501052_t0020_u01793863420616"
+      },
+      {
+        "bytes": 1058637,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2A_MSIL2A_20200313T044701_N0500_R076_T44QQE_20230413T221426_scl.tif",
+        "sha256": "d1d28af02d9f551a06660d98183e4fcf7d5c1408b75f09dd9becf5641570c765",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f11351fadca62cb9b_d20261105_m072343_c005_v0501050_t0036_u01793863423512"
+      },
+      {
+        "bytes": 370505764,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2B_MSIL2A_20200108T045159_N0500_R076_T44QQE_20230428T212829_reflectance.tif",
+        "sha256": "e1ec3221ca8a8d401dac4aa6fa69be9bb890bf72995ef7678690c8f8e37993a4",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20057c638131a92d_d20261105_m072215_c005_v0501036_t0032_u01793863335968"
+      },
+      {
+        "bytes": 894456,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2B_MSIL2A_20200108T045159_N0500_R076_T44QQE_20230428T212829_scl.tif",
+        "sha256": "37cff7d3eabce4e514777f10f24e3904088f07e6589a166fb2aa6d70558f92f6",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f119e7b3612f20193_d20261105_m072232_c005_v0501011_t0036_u01793863352006"
+      },
+      {
+        "bytes": 365023563,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2B_MSIL2A_20200217T044849_N0500_R076_T44QQE_20230427T054428_reflectance.tif",
+        "sha256": "606ff7785f49e73f24fe6462711fb7ff9f32b23575c1aa7c9ec4e75da85ca95a",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200556a2c722368f_d20261105_m072246_c005_v0501041_t0055_u01793863366966"
+      },
+      {
+        "bytes": 1002405,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2B_MSIL2A_20200217T044849_N0500_R076_T44QQE_20230427T054428_scl.tif",
+        "sha256": "7e3cdde129f9e782e141c7c7c3c7c87656075524ea9168783f74f08e5cfcf326",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f113b9bc5f3a17b1a_d20261105_m072251_c005_v0501046_t0037_u01793863371669"
+      },
+      {
+        "bytes": 365820977,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2B_MSIL2A_20200328T044659_N0500_R076_T44QQE_20230509T194536_reflectance.tif",
+        "sha256": "c7c8a2e629bb96f39e50bb432526fd548ae3d37e042c359e537879b81ba1d535",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20037ac155f41c5d_d20261105_m072100_c005_v0501040_t0001_u01793863260804"
+      },
+      {
+        "bytes": 962883,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2020/S2B_MSIL2A_20200328T044659_N0500_R076_T44QQE_20230509T194536_scl.tif",
+        "sha256": "c8c98119bfbc67cd10bf271dcef1a8d88e2e6474a7f8e8c8cbd7af802237d7a2",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f113935f59328b0e2_d20261105_m072105_c005_v0501051_t0004_u01793863265236"
+      },
+      {
+        "bytes": 366858496,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220122T045111_N0510_R076_T44QQE_20240504T124340_reflectance.tif",
+        "sha256": "99145038f4487c3f66f246aeb3147bebb6eff05787395dc72011c117270f505b",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20032da8934099a1_d20261105_m072638_c005_v0501046_t0024_u01793863598054"
+      },
+      {
+        "bytes": 1037982,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220122T045111_N0510_R076_T44QQE_20240504T124340_scl.tif",
+        "sha256": "5e97045804bfbcf990ced896a8d034bae6eb26ca5e530a2938336206cc56520b",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f112230229145efae_d20261105_m072641_c005_v0501046_t0038_u01793863601494"
+      },
+      {
+        "bytes": 366718839,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220201T045031_N0510_R076_T44QQE_20240509T132931_reflectance.tif",
+        "sha256": "e97e8516809c0034f3e8addb991fcde8d2417ad4f90496e5dca45bb6abe853ad",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f2006985c5c9924d0_d20261105_m072627_c005_v0501009_t0020_u01793863587011"
+      },
+      {
+        "bytes": 1050069,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220201T045031_N0510_R076_T44QQE_20240509T132931_scl.tif",
+        "sha256": "fa77cc24155657ded954828943179af528ee183226d62618d77b154f18a4959a",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1195a54a0933ceaf_d20261105_m072632_c005_v0501048_t0051_u01793863592192"
+      },
+      {
+        "bytes": 368141098,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220211T044921_N0510_R076_T44QQE_20240513T131326_reflectance.tif",
+        "sha256": "34dc3951f3e7bff3c5f5de8210c870fe85993dccf4527d57e4805d05aaa776e3",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20072e2e5fbc5848_d20261105_m072724_c005_v0501025_t0048_u01793863644795"
+      },
+      {
+        "bytes": 644055,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220211T044921_N0510_R076_T44QQE_20240513T131326_scl.tif",
+        "sha256": "bec41294b33a38907e8885f31592eef14a39f3a6bbcd99634fad10766ba17d15",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1088c4392e7c27ee_d20261105_m072728_c005_v0501045_t0032_u01793863648375"
+      },
+      {
+        "bytes": 170821641,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220214T045911_N0510_R119_T44QQE_20240514T114743_reflectance.tif",
+        "sha256": "3a387d3f0443aac180d40df218eb4e6979410cad1b90ee9212d39683a3bd4bea",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f2004672875c3f874_d20261105_m072757_c005_v0501048_t0027_u01793863677830"
+      },
+      {
+        "bytes": 662894,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2A_MSIL2A_20220214T045911_N0510_R119_T44QQE_20240514T114743_scl.tif",
+        "sha256": "9b1c9d6b2544754ef86119ec8ca16b61e79312ad73ec819f1356b29d78a60b60",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f10553b681990c22e_d20261105_m072759_c005_v0501020_t0042_u01793863679370"
+      },
+      {
+        "bytes": 173790345,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220130T050029_N0400_R119_T44QQE_20220130T074613_reflectance.tif",
+        "sha256": "542112341c318b31e0f21dafecf045a15615d03551bfc30a0a11068711d412ff",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200873ad3c1ab7ea_d20261105_m072717_c005_v0501022_t0031_u01793863637944"
+      },
+      {
+        "bytes": 681350,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220130T050029_N0400_R119_T44QQE_20220130T074613_scl.tif",
+        "sha256": "a6af97f783846414f6bdcb51a968a6e11c59e44229fecec8f7424764af28945e",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f117b2c5b05f2131e_d20261105_m072722_c005_v0501022_t0032_u01793863642775"
+      },
+      {
+        "bytes": 369562287,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220226T044739_N0510_R076_T44QQE_20240520T072937_reflectance.tif",
+        "sha256": "6530986b2ae68cc627bfb268c66d78af94896abe6a36c9640ef6ed516e51dc12",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20088946cbea3f6b_d20261105_m072437_c005_v0501051_t0030_u01793863477059"
+      },
+      {
+        "bytes": 1026218,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220226T044739_N0510_R076_T44QQE_20240520T072937_scl.tif",
+        "sha256": "bec135d2e45754a7e0f3eb84bdb6199abd995667e21e92ae6da9f9bf7938587e",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1065d4e102e0ded6_d20261105_m072441_c005_v0501050_t0044_u01793863481947"
+      },
+      {
+        "bytes": 364927543,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220308T044659_N0510_R076_T44QQE_20240604T100200_reflectance.tif",
+        "sha256": "7e0cf802508adb638168cdc7bd4458e3c9abcf8833a0a9a59ff1b13fe31e8738",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20033e2dcb3a952c_d20261105_m072534_c005_v0501037_t0044_u01793863534435"
+      },
+      {
+        "bytes": 927119,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220308T044659_N0510_R076_T44QQE_20240604T100200_scl.tif",
+        "sha256": "79caea8492590fa8c60b9606e29225c30769a284c0cd5f3e00d031a8ec327423",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1069d388aea7fe84_d20261105_m072537_c005_v0501052_t0005_u01793863537529"
+      },
+      {
+        "bytes": 375947874,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220328T044659_N0510_R076_T44QQE_20240601T032312_reflectance.tif",
+        "sha256": "9ea17a47b5a6085a06fde958adb7361f77b39a7c3bc7c9e7bd8d016ca369f242",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20003bf91910eb09_d20261105_m072530_c005_v0501046_t0037_u01793863530897"
+      },
+      {
+        "bytes": 316282,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2022/S2B_MSIL2A_20220328T044659_N0510_R076_T44QQE_20240601T032312_scl.tif",
+        "sha256": "14ea94f777f60811c522514bc54ffcd53e111ae14c03284aa0178a9a91451cf5",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f106403fe5be0b311_d20261105_m072534_c005_v0501051_t0047_u01793863534658"
+      },
+      {
+        "bytes": 367643911,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2A_MSIL2A_20240221T044821_N0510_R076_T44QQE_20240221T075652_reflectance.tif",
+        "sha256": "32835a6a9bebccd2d650f21d4eb14c4e259d302f965191c061c313a03b319c0e",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20036d283bbb998d_d20261105_m072919_c005_v0501021_t0049_u01793863759484"
+      },
+      {
+        "bytes": 1019102,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2A_MSIL2A_20240221T044821_N0510_R076_T44QQE_20240221T075652_scl.tif",
+        "sha256": "7cea713e60386c40dbb07a054e54760cd54a3416f2f4774cc87ca20d33913c4a",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f111b3d2a8657b4a1_d20261105_m073001_c005_v0501051_t0047_u01793863801951"
+      },
+      {
+        "bytes": 160483563,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240110T050159_N0510_R119_T44QQE_20240110T071958_reflectance.tif",
+        "sha256": "ac13c0bc2bbdae3a8d400fc64a819c3cdde92aa281381a20d6d8cb60bbb83655",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200058092134368a_d20261105_m073144_c005_v0501031_t0057_u01793863904391"
+      },
+      {
+        "bytes": 457424,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240110T050159_N0510_R119_T44QQE_20240110T071958_scl.tif",
+        "sha256": "e987b70339f3da79bee87fc838b284e34cd32fd7365756c699f1d74a9d5787cd",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f11493c6089bb435f_d20261105_m073146_c005_v0501046_t0037_u01793863906600"
+      },
+      {
+        "bytes": 175435412,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240130T050039_N0510_R119_T44QQE_20240130T072016_reflectance.tif",
+        "sha256": "021928c46122b34fd52ec6194b8dad618c1a7b367ae5ae4b9930cdd46eb238bb",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200008b9ed1fc56e_d20261105_m073050_c005_v0501052_t0000_u01793863850974"
+      },
+      {
+        "bytes": 593068,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240130T050039_N0510_R119_T44QQE_20240130T072016_scl.tif",
+        "sha256": "2b467a80b04c852c0fcc2836927338e50d3aba3a39963ce4e239496b52f5e660",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1077923c67030a05_d20261105_m073113_c005_v0501052_t0020_u01793863873964"
+      },
+      {
+        "bytes": 365199589,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240206T044959_N0510_R076_T44QQE_20240206T070023_reflectance.tif",
+        "sha256": "1d6e5ce66cc6148fdef11273365eba415cf0d102b2b8fe5a1d33e8f370ec43ec",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20018cb9269d24aa_d20261105_m072852_c005_v0501018_t0042_u01793863732937"
+      },
+      {
+        "bytes": 1016148,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240206T044959_N0510_R076_T44QQE_20240206T070023_scl.tif",
+        "sha256": "818444e8cc684ec1dd4143a507c3b1980763f27f6aed973a2c0e7b46913508a2",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f10316e83473f954a_d20261105_m072857_c005_v0501051_t0023_u01793863737501"
+      },
+      {
+        "bytes": 371079988,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240216T044859_N0510_R076_T44QQE_20240216T071303_reflectance.tif",
+        "sha256": "d0d7a7d92cdc7a74dcbdc3123fd02d0bd2c51f61ae62c841de7c8151e7e555a5",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200646fc136f4aef_d20261105_m072824_c005_v0501052_t0030_u01793863704452"
+      },
+      {
+        "bytes": 1067071,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240216T044859_N0510_R076_T44QQE_20240216T071303_scl.tif",
+        "sha256": "d597903ca831b3a8eac274aa1344f336a027a689d7a250221b2b09f8188e94fb",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f107f99bcd9b9c572_d20261105_m072827_c005_v0501039_t0025_u01793863707173"
+      },
+      {
+        "bytes": 164518715,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240229T045729_N0510_R119_T44QQE_20240229T075454_reflectance.tif",
+        "sha256": "b9e6e48958dab0ff98ac5093492f6057ed250d02fdf68e5472546acf96c06d1a",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20057c63813276cd_d20261105_m073038_c005_v0501021_t0029_u01793863838709"
+      },
+      {
+        "bytes": 397292,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240229T045729_N0510_R119_T44QQE_20240229T075454_scl.tif",
+        "sha256": "04b3aeb3e57d6ebf9c1918d909cc8839337af3c6aaa048b7550f007c4f2d2e79",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f10040722defc2e78_d20261105_m073111_c005_v0501049_t0001_u01793863871247"
+      },
+      {
+        "bytes": 365593879,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240327T044659_N0510_R076_T44QQE_20240327T065801_reflectance.tif",
+        "sha256": "a55078e9bbbc9043fd9ab95352c8a5fbccfd65e800137c8d075ffff4e0b0d711",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f200530e8dbcaa407_d20261105_m072949_c005_v0501052_t0047_u01793863789381"
+      },
+      {
+        "bytes": 865587,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240327T044659_N0510_R076_T44QQE_20240327T065801_scl.tif",
+        "sha256": "8990177c5f8973007d026cbb3df374a1765b9f0618eb38c95cede30a97d98a10",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f1198edec4a9cbc01_d20261105_m073014_c005_v0501004_t0042_u01793863814247"
+      },
+      {
+        "bytes": 162299571,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240330T045659_N0510_R119_T44QQE_20240330T072508_reflectance.tif",
+        "sha256": "800efb84cf34b829b5f94131173155b57a742b47ee19d445ff527ab2b55a1749",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f20010d93c2aa09b1_d20261105_m073148_c005_v0501001_t0008_u01793863908850"
+      },
+      {
+        "bytes": 576827,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/contract-3.3.2/2024/S2B_MSIL2A_20240330T045659_N0510_R119_T44QQE_20240330T072508_scl.tif",
+        "sha256": "e9ba32292d6f23660ec9fcca58b7ffbec69fda521cc5166bc8f457a0adc7b407",
+        "sha256_metadata_present": false,
+        "version_id": "4_z2250dbc1f968e033a7050713_f11089e1ac6e97525_d20261105_m073155_c005_v0501038_t0042_u01793863915052"
+      }
+    ],
+    "delete_markers": 0,
+    "inventory_current_bytes": 13794986005,
+    "inventory_current_objects": 100,
+    "manifest_bytes_read": 52501,
+    "manifests": [
+      {
+        "bytes": 34713,
+        "key": "vizag-geoai/v2/manifests/scene_extraction_manifest.jsonl",
+        "payload_sha256_verified": true,
+        "sha256": "9168f92fb3ed33694c06b643e9d8a533899206cd8bf0a77633ed93955e8ebe6e",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f10125247b3def999_d20261105_m084802_c005_v0501044_t0048_u01793868482001"
+      },
+      {
+        "bytes": 17788,
+        "key": "vizag-geoai/v2/manifests/indices_manifest.contract-3.6.0.jsonl",
+        "payload_sha256_verified": true,
+        "sha256": "4fb908c22737c7fc8de60f6ac4a36a5522d3d1e538b1bc330e8b4bb951dd0fcb",
+        "sha256_metadata_present": true,
+        "version_id": "4_z2250dbc1f968e033a7050713_f106f523b12a40a6e_d20261110_m043035_c005_v0501017_t0048_u01794285035687"
+      }
+    ],
+    "namespace_groups": {
+      "manifests": {
+        "bytes": 217601,
+        "objects": 4
+      },
+      "processed/sentinel2/composites/contract-3.5.0": {
+        "bytes": 1468221549,
+        "objects": 8
+      },
+      "processed/sentinel2/indices/contract-3.6.0": {
+        "bytes": 1309726569,
+        "objects": 20
+      },
+      "processed/sentinel2/scene_stacks/2018": {
+        "bytes": 375647060,
+        "objects": 2
+      },
+      "processed/sentinel2/scene_stacks/contract-3.3.2": {
+        "bytes": 10641154753,
+        "objects": 64
+      },
+      "results": {
+        "bytes": 18473,
+        "objects": 2
+      }
+    },
+    "other_objects": [
+      {
+        "bytes": 148413,
+        "delete_markers": 0,
+        "key": "vizag-geoai/v2/manifests/scene_catalogue.jsonl",
+        "versions": 1
+      },
+      {
+        "bytes": 16687,
+        "delete_markers": 0,
+        "key": "vizag-geoai/v2/manifests/selected_scenes.jsonl",
+        "versions": 1
+      },
+      {
+        "bytes": 375165086,
+        "delete_markers": 0,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/2018/S2A_MSIL2A_20180304T044701_N0500_R076_T44QQE_20230904T140422_reflectance.tif",
+        "versions": 1
+      },
+      {
+        "bytes": 481974,
+        "delete_markers": 0,
+        "key": "vizag-geoai/v2/processed/sentinel2/scene_stacks/2018/S2A_MSIL2A_20180304T044701_N0500_R076_T44QQE_20230904T140422_scl.tif",
+        "versions": 1
+      },
+      {
+        "bytes": 17159,
+        "delete_markers": 0,
+        "key": "vizag-geoai/v2/results/cloud_triage.csv",
+        "versions": 1
+      },
+      {
+        "bytes": 1314,
+        "delete_markers": 0,
+        "key": "vizag-geoai/v2/results/epoch_feasibility.md",
+        "versions": 1
+      }
+    ],
+    "raster_hashes_recomputed": false,
+    "raster_payloads_read": 0,
+    "read_only": true,
+    "remote_python": "3.12.10",
+    "requests": {
+      "get_object": 2,
+      "head_object": 94,
+      "list_object_versions_pages": 1,
+      "list_objects_v2_pages": 1
+    },
+    "root": "vizag-geoai/v2/",
+    "scene_outputs_without_hash_metadata": 64,
+    "time_utc": "2026-11-10T11:13:37.359713+00:00",
+    "verified_groups": {
+      "composites_and_counts": {
+        "bytes": 1468221549,
+        "objects": 8
+      },
+      "indices": {
+        "bytes": 1309726569,
+        "objects": 20
+      },
+      "scene_stacks": {
+        "bytes": 10641154753,
+        "objects": 64
+      }
+    },
+    "verified_raster_bytes": 13419102871,
+    "verified_raster_objects": 92
+  }
+}
+

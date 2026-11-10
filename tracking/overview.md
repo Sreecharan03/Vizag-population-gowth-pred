@@ -6,13 +6,24 @@ it so a new session gets oriented fast.
 
 ## What this project is
 
+**Checkpoint reviewed 2026-11-10:** Parts 3.0–3.7 are complete. Four epoch composites/count pairs and
+20 spectral-index COGs passed independent B2 byte/COG/pixel auditing. Part 3.7 archived 16 approved
+snapshots plus a verified completion manifest (164,253 bytes); 357 regression tests pass.
+The separately approved gate-review workload produced four figures and native diagnostics;
+eight artifacts were verified and originals remain unchanged. The user approved the Phase 3
+gate and affected-index-only exclusion of flagged outliers for future feature means. Part 4.1
+grid workload awaits exact approval; model-ready support thresholds, dated contextual inputs,
+labels, independent evaluation and the forecast horizon remain explicit quality checkpoints.
+Research grid features, labels, trained models, SHAP and infrastructure-pressure outputs remain
+planned. A separate public dashboard demonstrates real geography with fictional analytics.
+
 Explainable multimodal GeoAI system for Visakhapatnam (Vizag), India, that predicts urban expansion and
 infrastructure pressure.
 
 Pipeline, end to end:
 
 ```
-Sentinel-2 time series (2018–2024/25)
+Sentinel-2 time series (2018 / 2020 / 2022 / 2024)
    → cloud-free composites & spectral indices (NDVI, NDBI, NDWI, MNDWI, BSI)
    → 500 m analysis grid
    → multimodal feature aggregation (satellite + population + OSM roads/amenities + terrain)
@@ -31,7 +42,7 @@ Sentinel-2 time series (2018–2024/25)
   (2026-10-10; was only an unverified ~190 GB estimate before that). It must never be re-downloaded from
   Copernicus. See [`architecture.md`](architecture.md) for the storage-tier design that enforces this.
 - **Backblaze B2 is the permanent source of truth.** Nothing is ever deleted from B2. The Lightning Studio
-  disk is scratch + a capped working set only.
+  disk description below is historical; current computation uses Modal ephemeral scratch exclusively.
 - **One-part-at-a-time workflow.** Every unit of implementation ("part," the smallest item under a phase's
   "Implementation steps" in `plan.md`) requires: PROPOSE → explicit user "yes" → IMPLEMENT only that part →
   TEST (incl. full regression) → REPORT in plain language → WAIT again. Never bundle parts. Every phase

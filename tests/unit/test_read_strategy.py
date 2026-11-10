@@ -81,6 +81,7 @@ def test_vsis3_credentials_sets_and_restores_env(monkeypatch):
     with vsis3_credentials("key123", "secret456", "s3.example.com"):
         assert os.environ["AWS_ACCESS_KEY_ID"] == "key123"
         assert os.environ["AWS_S3_ENDPOINT"] == "s3.example.com"
+        assert os.environ["CPL_VSIL_CURL_ALLOWED_EXTENSIONS"] == ".jp2,.zip,.tif"
         assert os.environ["AWS_VIRTUAL_HOSTING"] == "FALSE"
     assert "AWS_ACCESS_KEY_ID" not in os.environ
 

@@ -1,0 +1,572 @@
+{
+  "recorded_date": "2026-11-10",
+  "run_url": "https://modal.com/apps/sankar132095/main/ap-dI7A4YpZCjqreUvxOudKke",
+  "regression": {
+    "passed": 295,
+    "warnings": 1,
+    "seconds": 7.18
+  },
+  "key": "vizag-geoai/v2/manifests/indices_manifest.contract-3.6.0.jsonl",
+  "bytes": 17788,
+  "sha256": "4fb908c22737c7fc8de60f6ac4a36a5522d3d1e538b1bc330e8b4bb951dd0fcb",
+  "version_id": "4_z2250dbc1f968e033a7050713_f106f523b12a40a6e_d20261110_m043035_c005_v0501017_t0048_u01794285035687",
+  "created": true,
+  "epoch_count": 4,
+  "index_count": 20,
+  "output_bytes": 1309726569,
+  "epochs": [
+    {
+      "epoch": 2020,
+      "contract_version": "3.6.0",
+      "source": {
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2020/composite.tif",
+        "bytes": 365060102,
+        "sha256": "8c6113e09f59456292ba742d1a97bcfd3581524d8ac2502935d9fb9d3d331dc7",
+        "version_id": "4_z2250dbc1f968e033a7050713_f2005636fa6180741_d20261105_m203320_c005_v0501052_t0030_u01793910800348"
+      },
+      "source_sha256_verified": true,
+      "outputs": {
+        "ndvi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndvi.tif",
+          "bytes": 64708200,
+          "sha256": "6831d54b136f03edd3a0180381fc13b53474d5c28584256cb784ef37872a18b3",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15340292,
+            "source_invalid_pixels": 16435830,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15340292,
+            "nodata_pixels": 16435830,
+            "out_of_range_pixels": 0,
+            "minimum": -0.8280373811721802,
+            "maximum": 0.8915445804595947
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f106d47069ac28567_d20261110_m042628_c005_v0501049_t0019_u01794284788794",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndbi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndbi.tif",
+          "bytes": 68212309,
+          "sha256": "1a9eb4e7e3ec51db9a4a8f1524e2ac0ed9f01c1337896f754c2fe0c227223995",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15340292,
+            "source_invalid_pixels": 16435830,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15340292,
+            "nodata_pixels": 16435830,
+            "out_of_range_pixels": 0,
+            "minimum": -0.838951826095581,
+            "maximum": 0.7113029956817627
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f10040d1a4905e4c0_d20261110_m042631_c005_v0501053_t0000_u01794284791736",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/ndwi.tif",
+          "bytes": 63465865,
+          "sha256": "7b6815de3d323cbf86ac8abee8f7f5b49288e331d648b1ea0d298856404c6852",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15340292,
+            "source_invalid_pixels": 16435830,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15340292,
+            "nodata_pixels": 16435830,
+            "out_of_range_pixels": 0,
+            "minimum": -0.8343273997306824,
+            "maximum": 0.8954545259475708
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f113c67daf8ded471_d20261110_m042634_c005_v0501049_t0045_u01794284794860",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "mndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/mndwi.tif",
+          "bytes": 62343334,
+          "sha256": "ff01e7da0b1b8bbd81cbb64cd2107f96cfdeaa3d093709df49e2d6ebd1074d39",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15340292,
+            "source_invalid_pixels": 16435830,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15340292,
+            "nodata_pixels": 16435830,
+            "out_of_range_pixels": 0,
+            "minimum": -0.8275052905082703,
+            "maximum": 0.8787242770195007
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f116f0769d088cac0_d20261110_m042637_c005_v0501021_t0019_u01794284797942",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "bsi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2020/bsi.tif",
+          "bytes": 67824744,
+          "sha256": "c8f17670b21e8f3779127f9e7f0e5548858cdf6b0ee90449b2f8d40e9505d549",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15340292,
+            "source_invalid_pixels": 16435830,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15340292,
+            "nodata_pixels": 16435830,
+            "out_of_range_pixels": 0,
+            "minimum": -0.5567418932914734,
+            "maximum": 0.5774406790733337
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f115a474ba83f6461_d20261110_m042641_c005_v0501051_t0046_u01794284801715",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        }
+      },
+      "provenance": {
+        "contract_version": "3.6.0",
+        "epoch": "2020",
+        "source_key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2020/composite.tif",
+        "source_sha256": "8c6113e09f59456292ba742d1a97bcfd3581524d8ac2502935d9fb9d3d331dc7",
+        "source_version_id": "4_z2250dbc1f968e033a7050713_f2005636fa6180741_d20261105_m203320_c005_v0501052_t0030_u01793910800348",
+        "source_composite_contract": "3.5.0",
+        "minimum_valid_observations": "4"
+      },
+      "remote_full_resolution_audit": true
+    },
+    {
+      "epoch": 2018,
+      "contract_version": "3.6.0",
+      "source": {
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2018/composite.tif",
+        "bytes": 369765288,
+        "sha256": "995ea0d48d95f803b9e4f22694b16a6451e1f3b2605ada292765dd00a2a30d3f",
+        "version_id": "4_z2250dbc1f968e033a7050713_f20036d283bc6c19f_d20261105_m202718_c005_v0501052_t0054_u01793910438974"
+      },
+      "source_sha256_verified": true,
+      "outputs": {
+        "ndvi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndvi.tif",
+          "bytes": 66118226,
+          "sha256": "cb5a55bc354de9329759923080eb4b44b0968d1de5dc897da05b8c14ffaa093a",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15303223,
+            "source_invalid_pixels": 16472899,
+            "guarded_denominator_pixels": 17,
+            "negative_denominator_pixels": 441,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15303206,
+            "nodata_pixels": 16472916,
+            "out_of_range_pixels": 11300,
+            "minimum": -379.0006408691406,
+            "maximum": 341.0006103515625
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f11645ac46979a562_d20261110_m042635_c005_v0501036_t0041_u01794284795357",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndbi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndbi.tif",
+          "bytes": 68446385,
+          "sha256": "818d1c3cf6b6a67a97dfc39ce781b647e620abdc903face7b7ca43cb62bddc94",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15303223,
+            "source_invalid_pixels": 16472899,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 519,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15303223,
+            "nodata_pixels": 16472899,
+            "out_of_range_pixels": 11075,
+            "minimum": -3806.935546875,
+            "maximum": 2208.962646484375
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f114bd4f93b307eaf_d20261110_m042641_c005_v0501017_t0019_u01794284801291",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/ndwi.tif",
+          "bytes": 63611030,
+          "sha256": "9373bc5174c9077d5def1e9c610efabe03b77be812a6d1e0ba80721bdd0a2c64",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15303223,
+            "source_invalid_pixels": 16472899,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 37,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15303223,
+            "nodata_pixels": 16472899,
+            "out_of_range_pixels": 11079,
+            "minimum": -30.23073387145996,
+            "maximum": 25.941164016723633
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f106afc710e707f2d_d20261110_m042647_c005_v0501036_t0015_u01794284807176",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "mndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/mndwi.tif",
+          "bytes": 62805656,
+          "sha256": "09d6a4afe4f2864b5a4bfbafa6919892822cefb4440bcb1fe80924aa8bbca196",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15303223,
+            "source_invalid_pixels": 16472899,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15303223,
+            "nodata_pixels": 16472899,
+            "out_of_range_pixels": 4,
+            "minimum": -1.113512396812439,
+            "maximum": 0.8876640200614929
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f11453ffb44972a4f_d20261110_m042654_c005_v0501022_t0040_u01794284814177",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "bsi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2018/bsi.tif",
+          "bytes": 67020064,
+          "sha256": "2d0631cd1571cdf1900121a13be80bd8057a8b4025d56aed67522c98b84a19a4",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15303223,
+            "source_invalid_pixels": 16472899,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 36,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15303223,
+            "nodata_pixels": 16472899,
+            "out_of_range_pixels": 1974,
+            "minimum": -2.4442267417907715,
+            "maximum": 17.627452850341797
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f113b9bc5f577d867_d20261110_m042659_c005_v0501046_t0039_u01794284819783",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        }
+      },
+      "provenance": {
+        "contract_version": "3.6.0",
+        "epoch": "2018",
+        "source_key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2018/composite.tif",
+        "source_sha256": "995ea0d48d95f803b9e4f22694b16a6451e1f3b2605ada292765dd00a2a30d3f",
+        "source_version_id": "4_z2250dbc1f968e033a7050713_f20036d283bc6c19f_d20261105_m202718_c005_v0501052_t0054_u01793910438974",
+        "source_composite_contract": "3.5.0",
+        "minimum_valid_observations": "4"
+      },
+      "remote_full_resolution_audit": true
+    },
+    {
+      "epoch": 2024,
+      "contract_version": "3.6.0",
+      "source": {
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2024/composite.tif",
+        "bytes": 364384445,
+        "sha256": "55fa556063dc14d8f3bd221e153d90bd302277fc9a59f5179a4dbf07ff8d9395",
+        "version_id": "4_z2250dbc1f968e033a7050713_f20002e26b89227e8_d20261105_m205121_c005_v0501052_t0047_u01793911881934"
+      },
+      "source_sha256_verified": true,
+      "outputs": {
+        "ndvi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndvi.tif",
+          "bytes": 65200844,
+          "sha256": "b167b67822fe4eac9a1e79fc0ee56eafdf4cdeb41fdc9d4e96ef8608859d954f",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15257709,
+            "source_invalid_pixels": 16518413,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15257709,
+            "nodata_pixels": 16518413,
+            "out_of_range_pixels": 0,
+            "minimum": -0.698060929775238,
+            "maximum": 0.8941352367401123
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f1046d9954157f90d_d20261110_m042832_c005_v0501051_t0057_u01794284912892",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndbi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndbi.tif",
+          "bytes": 68146232,
+          "sha256": "6b21b29985f7e7c6d34c945a99c2b0f3271b907d7a84cf08e09ddf24b458c979",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15257709,
+            "source_invalid_pixels": 16518413,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15257709,
+            "nodata_pixels": 16518413,
+            "out_of_range_pixels": 0,
+            "minimum": -0.8559505939483643,
+            "maximum": 0.821719765663147
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f108b7b9c13efecb3_d20261110_m042836_c005_v0501045_t0040_u01794284916763",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndwi.tif",
+          "bytes": 63326793,
+          "sha256": "010524a6f7ee6e828581d7559e24193e62465c5f22e507b2a8ef967d41d83e2a",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15257709,
+            "source_invalid_pixels": 16518413,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15257709,
+            "nodata_pixels": 16518413,
+            "out_of_range_pixels": 0,
+            "minimum": -0.8101430535316467,
+            "maximum": 0.7898795008659363
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f1169fde71d16672a_d20261110_m042841_c005_v0501034_t0033_u01794284921825",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "mndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/mndwi.tif",
+          "bytes": 62688669,
+          "sha256": "fb3da2d3b3393244c8f1d6fb56b6a71363d8b15fe8ce8f3cd0c82fe8eece0063",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15257709,
+            "source_invalid_pixels": 16518413,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15257709,
+            "nodata_pixels": 16518413,
+            "out_of_range_pixels": 0,
+            "minimum": -0.8512460589408875,
+            "maximum": 0.8453746438026428
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f116f6e1fede7e461_d20261110_m042846_c005_v0501051_t0035_u01794284926905",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "bsi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/bsi.tif",
+          "bytes": 67708348,
+          "sha256": "e1af85d7ce170e258fa6863e1865d59e28fb1996cd5db2ed430fbaa0ca79b5b9",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15257709,
+            "source_invalid_pixels": 16518413,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15257709,
+            "nodata_pixels": 16518413,
+            "out_of_range_pixels": 0,
+            "minimum": -0.5991295576095581,
+            "maximum": 0.7049225568771362
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f118ef491a5f47ba9_d20261110_m042851_c005_v0501045_t0016_u01794284931620",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        }
+      },
+      "provenance": {
+        "contract_version": "3.6.0",
+        "epoch": "2024",
+        "source_key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2024/composite.tif",
+        "source_sha256": "55fa556063dc14d8f3bd221e153d90bd302277fc9a59f5179a4dbf07ff8d9395",
+        "source_version_id": "4_z2250dbc1f968e033a7050713_f20002e26b89227e8_d20261105_m205121_c005_v0501052_t0047_u01793911881934",
+        "source_composite_contract": "3.5.0",
+        "minimum_valid_observations": "4"
+      },
+      "remote_full_resolution_audit": true
+    },
+    {
+      "epoch": 2022,
+      "contract_version": "3.6.0",
+      "source": {
+        "key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2022/composite.tif",
+        "bytes": 366699998,
+        "sha256": "f8a7db985126f1c4e0acf18f9d52e338b656c1b7e76ffdde6311d72cc89e5404",
+        "version_id": "4_z2250dbc1f968e033a7050713_f200061a8c6b9fe83_d20261105_m203937_c005_v0521006_t0015_u01793911177780"
+      },
+      "source_sha256_verified": true,
+      "outputs": {
+        "ndvi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndvi.tif",
+          "bytes": 65201594,
+          "sha256": "461bdc70d7d23a73437139e7560dbbafdcf2ad1ab01875c33a68c14b47a4bd2e",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15323080,
+            "source_invalid_pixels": 16453042,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15323080,
+            "nodata_pixels": 16453042,
+            "out_of_range_pixels": 12,
+            "minimum": -1.0160642862319946,
+            "maximum": 0.8980668187141418
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f11404a575affa2ce_d20261110_m042812_c005_v0501036_t0028_u01794284892744",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndbi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndbi.tif",
+          "bytes": 68321428,
+          "sha256": "b3f7e6acbd160a6ba761405c3e8c87e71c67e170d14090a2c6c9d89f8b8e9aaa",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15323080,
+            "source_invalid_pixels": 16453042,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15323080,
+            "nodata_pixels": 16453042,
+            "out_of_range_pixels": 12,
+            "minimum": -0.8804473876953125,
+            "maximum": 1.096786379814148
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f110cd932461ef996_d20261110_m042837_c005_v0501051_t0044_u01794284917684",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "ndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/ndwi.tif",
+          "bytes": 63491012,
+          "sha256": "2bd2f2ccb847bdd05e7b532cb019fe118f8b696b0ebfd4bb362bfd483c29b0bb",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15323080,
+            "source_invalid_pixels": 16453042,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15323080,
+            "nodata_pixels": 16453042,
+            "out_of_range_pixels": 12,
+            "minimum": -0.8566271066665649,
+            "maximum": 1.0091116428375244
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f107599778293a634_d20261110_m042903_c005_v0501049_t0012_u01794284943072",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "mndwi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/mndwi.tif",
+          "bytes": 63049753,
+          "sha256": "b68fe5ee19e0755fc62c2638c469cd0e02bb20e0b8ff5cbccbee74764320f15f",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15323080,
+            "source_invalid_pixels": 16453042,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15323080,
+            "nodata_pixels": 16453042,
+            "out_of_range_pixels": 0,
+            "minimum": -0.8034257292747498,
+            "maximum": 0.8539823293685913
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f107599778293af6a_d20261110_m042925_c005_v0501049_t0013_u01794284965721",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        },
+        "bsi": {
+          "key": "vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2022/bsi.tif",
+          "bytes": 68036083,
+          "sha256": "7a0692317871c738f41b207cd7997063cff6f91e247339099e6d156481370748",
+          "statistics": {
+            "pixels": 31776122,
+            "source_valid_pixels": 15323080,
+            "source_invalid_pixels": 16453042,
+            "guarded_denominator_pixels": 0,
+            "negative_denominator_pixels": 0,
+            "nonfinite_result_pixels": 0,
+            "valid_pixels": 15323080,
+            "nodata_pixels": 16453042,
+            "out_of_range_pixels": 0,
+            "minimum": -0.5816260576248169,
+            "maximum": 0.5845031142234802
+          },
+          "strict_cog": true,
+          "local_formula_audit": true,
+          "version_id": "4_z2250dbc1f968e033a7050713_f111944a8485e97a0_d20261110_m042948_c005_v0501053_t0043_u01794284988863",
+          "remote_sha256_verified": true,
+          "remote_pixel_audit": true
+        }
+      },
+      "provenance": {
+        "contract_version": "3.6.0",
+        "epoch": "2022",
+        "source_key": "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/2022/composite.tif",
+        "source_sha256": "f8a7db985126f1c4e0acf18f9d52e338b656c1b7e76ffdde6311d72cc89e5404",
+        "source_version_id": "4_z2250dbc1f968e033a7050713_f200061a8c6b9fe83_d20261105_m203937_c005_v0521006_t0015_u01793911177780",
+        "source_composite_contract": "3.5.0",
+        "minimum_valid_observations": "4"
+      },
+      "remote_full_resolution_audit": true
+    }
+  ]
+}
+

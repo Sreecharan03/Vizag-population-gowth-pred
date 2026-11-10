@@ -14,6 +14,12 @@ configs:
   storage: configs/storage.yaml
   b2: configs/b2.yaml
   data_requirements: configs/data_requirements.yaml
+  compute: configs/compute.yaml
+  preprocessing: configs/preprocessing.yaml
+  archive: configs/archive.yaml
+  archive_publication: configs/archive_publication.yaml
+  gate_review: configs/gate_review.yaml
+  feature_aggregation: configs/feature_aggregation.yaml
 
 data:
   root: data
@@ -38,6 +44,7 @@ notebooks: notebooks
 models: models
 predictions: predictions
 results: results
+phase3_gate_review: results/phase3
 logs: logs
 
 docs:
