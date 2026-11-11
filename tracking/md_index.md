@@ -35,9 +35,12 @@ markdown file is added, moved, or removed anywhere in the repo — not just unde
 | `docs/phase-3-qc-review-plan.md` | Approved four-epoch visual/native QC workload, exact input/output byte limits, source pins, display limitations, publication safeguards and separate human gate | Phase 3 review implementers and user |
 | `results/phase3/review.md` | Published exact-version-verified detailed QC report, four figure links, native range/cancellation measurements and the existing feasibility text; gate explicitly pending | User and scientific reviewers |
 | `results/phase3/gate_review_summary.md` | Local completion/interpretation summary, actual 2018 ratio example, image-reading notes and remaining decision; publication identities in `gate_review_receipt.json` | User and Phase 3 gate reviewers |
-| `docs/phase-4-prediction-quality-plan.md` | Later user approval of the Phase 3 gate/specific outlier policy; accuracy safeguards and exact Part 4.1-only workload awaiting approval; supersedes historic pending flags without rewriting artifacts | Phase 4 implementers and user |
+| `docs/phase-4-prediction-quality-plan.md` | Approved Phase 3 outlier policy, accuracy safeguards, completed Part 4.1 contract and link to the next proposal | Phase 4 implementers and user |
 | `docs/phase-3.3-extraction-contract.md` | Frozen radiometry, band, nodata, grid and COG extraction contract | Preprocessing implementers/reviewers |
 | `results/project_report/README.md` | Reviewed academic report, architecture assets, regeneration instructions and draft limitations | Student, guide and contributors |
+| `results/phase4/grid/contract-4.1.0/README.md` | Part 4.1 verified grid summary, preview meaning and Modal run identities | Anyone reviewing or consuming the 500 m grid |
+| `docs/phase-4.2-feature-aggregation-proposal.md` | Part 4.2 preflight, DEM correction, full-batch publication, scientific review and approved support policy | Phase 4 implementers and reviewers |
+| `results/phase4/features/contract-4.2.0/part4_2_completion.md` | Final Part 4.2 execution, corrected error, verified outputs and 50% support/terrain eligibility rule | Downstream feature consumers |
 | `results/final_report.md` | *(not yet created — Phase 11)* Final write-up assembled from metrics/figures/SHAP plots | Humans, final deliverable |
 
 *(As phases progress, add a row for any new `.md` file — e.g. future ADRs, or any prose report a phase

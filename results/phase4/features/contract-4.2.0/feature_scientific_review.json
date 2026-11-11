@@ -1,0 +1,66 @@
+{
+  "b2_writes": 0,
+  "cells_without_terrain": 15,
+  "contract_version": "4.2.0",
+  "map_sha256": "64e56b053604d44d3b1bd3b8e3a00be88926aa2ea71b466795fb498a054c72ec",
+  "minimum_support_quantiles": {
+    "0": 0.0,
+    "0.01": 0.901864,
+    "0.05": 0.992,
+    "0.25": 1.0,
+    "0.5": 1.0,
+    "0.95": 1.0,
+    "1": 1.0
+  },
+  "outputs_hash_verified": 6,
+  "satellite_rows": 25484,
+  "status": "scientific_review_passed_policy_pending",
+  "terrain_rows": 6371,
+  "threshold_counts": {
+    "0.0": {
+      "all_epochs_with_terrain": 6356,
+      "per_epoch": {
+        "2018": 6356,
+        "2020": 6356,
+        "2022": 6356,
+        "2024": 6356
+      }
+    },
+    "0.5": {
+      "all_epochs_with_terrain": 6355,
+      "per_epoch": {
+        "2018": 6355,
+        "2020": 6356,
+        "2022": 6356,
+        "2024": 6356
+      }
+    },
+    "0.8": {
+      "all_epochs_with_terrain": 6300,
+      "per_epoch": {
+        "2018": 6321,
+        "2020": 6355,
+        "2022": 6353,
+        "2024": 6322
+      }
+    },
+    "0.9": {
+      "all_epochs_with_terrain": 6184,
+      "per_epoch": {
+        "2018": 6280,
+        "2020": 6345,
+        "2022": 6331,
+        "2024": 6232
+      }
+    },
+    "0.95": {
+      "all_epochs_with_terrain": 6034,
+      "per_epoch": {
+        "2018": 6213,
+        "2020": 6320,
+        "2022": 6268,
+        "2024": 6119
+      }
+    }
+  }
+}

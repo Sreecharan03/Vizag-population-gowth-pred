@@ -1,0 +1,85 @@
+{
+  "b2_writes": 0,
+  "contract_version": "4.2.0-dem-gate-v1",
+  "input_bytes": 46382829,
+  "part": "4.2-dem-gate",
+  "part4_2b_started": false,
+  "remote_python": "3.12.10",
+  "sources": [
+    {
+      "band_count": 1,
+      "bounds": [
+        81.99986111111112,
+        17.000138888888888,
+        82.99986111111112,
+        18.000138888888888
+      ],
+      "bytes": 37750448,
+      "crs": "EPSG:4326",
+      "dtype": "float32",
+      "height": 3600,
+      "key": "vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E082_00_DEM.tif",
+      "maximum_elevation_m": 1584.4180908203125,
+      "mean_elevation_m": 236.8603606201129,
+      "minimum_elevation_m": -2.589803695678711,
+      "nodata": null,
+      "nodata_pixels": 0,
+      "resolution_degrees": [
+        0.0002777777777777778,
+        0.0002777777777777778
+      ],
+      "sha256": "7959862a0f0dc6fb742d37dedd3dc47754a9dc32272dd3dae4c8d89b99095026",
+      "strict_cog": true,
+      "transform": [
+        0.0002777777777777778,
+        0.0,
+        81.99986111111112,
+        0.0,
+        -0.0002777777777777778,
+        18.000138888888888
+      ],
+      "valid_pixels": 12960000,
+      "version_id": "4_z2250dbc1f968e033a7050713_f20004cc62dd58dfb_d20261010_m191329_c005_v0501050_t0057_u01791659609592",
+      "width": 3600
+    },
+    {
+      "band_count": 1,
+      "bounds": [
+        82.99986111111112,
+        17.000138888888888,
+        83.99986111111112,
+        18.000138888888888
+      ],
+      "bytes": 8632381,
+      "crs": "EPSG:4326",
+      "dtype": "float32",
+      "height": 3600,
+      "key": "vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E083_00_DEM.tif",
+      "maximum_elevation_m": 591.1585083007812,
+      "mean_elevation_m": 11.232812307349436,
+      "minimum_elevation_m": -4.971808910369873,
+      "nodata": null,
+      "nodata_pixels": 0,
+      "resolution_degrees": [
+        0.0002777777777777778,
+        0.0002777777777777778
+      ],
+      "sha256": "fd8b5c09fc1f1d28deb78f287c830e1c0041ee7eabb813f8bc2b25456653fd29",
+      "strict_cog": true,
+      "transform": [
+        0.0002777777777777778,
+        0.0,
+        82.99986111111112,
+        0.0,
+        -0.0002777777777777778,
+        18.000138888888888
+      ],
+      "valid_pixels": 12960000,
+      "version_id": "4_z2250dbc1f968e033a7050713_f2002970276968e1d_d20261010_m191330_c005_v0501041_t0049_u01791659610769",
+      "width": 3600
+    }
+  ],
+  "sources_hashed": 2,
+  "status": "passed",
+  "strict_cogs": 2
+}

@@ -2825,6 +2825,483 @@ def run_phase3_gate_review() -> dict:
         raise
 
 
+@app.function(secrets=[b2_secret], timeout=600, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def build_phase4_part1_grid() -> dict:
+    """Approved geometry-only job. Restore one pinned boundary; never read imagery."""
+    import json
+    import os
+    import platform
+    import tempfile
+    import uuid
+    from pathlib import Path
+
+    import boto3
+    from botocore.config import Config
+
+    from src.grid.build_grid import boundary_from_bytes, build_grid, validate_grid, render_preview
+    from src.grid.grid_job import restore_boundary, publish_grid
+    from src.storage.archive_publish import require_new_keys, reject_non_archive_api
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, grid_config, b2 = load_config("grid_build"), load_config("grid"), load_config("b2")
+    if grid_config["cell_size_m"] != 500 or grid_config.get("exclusions"):
+        raise ValueError("Approved grid requires 500 m cells and no exclusions")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=60),
+    )
+    client.meta.events.register("before-call.s3.*", reject_non_archive_api)
+    ledger = modal.Dict.from_name(config["reservation_name"], create_if_missing=True)
+    lock_key, run_id = config["reservation_key"], uuid.uuid4().hex
+    if not ledger.put(lock_key, {"status": "reserved", "run_id": run_id}, skip_if_exists=True):
+        raise RuntimeError("Grid reservation exists; inspect before any explicitly approved retry")
+
+    def checkpoint(state):
+        ledger.put(lock_key, {"run_id": run_id, **state})
+
+    try:
+        require_new_keys(client, b2["bucket"], list(config["outputs"].values()))
+        check_budget(config["source"]["bytes"]+config["maximum_new_bytes"])
+        staging = resolve_path("data.staging")
+        staging.mkdir(parents=True, exist_ok=True)
+        scratch = Path(tempfile.mkdtemp(prefix="grid-4-1-", dir=staging))
+        # Preserve scratch on any failure; there is no explicit delete/cleanup.
+        body = restore_boundary(client, b2["bucket"], config["source"], scratch / "boundary.geojson")
+        boundary = boundary_from_bytes(body, config["metric_crs"])
+        grid, candidates = build_grid(boundary, size=grid_config["cell_size_m"], config=config)
+        report, geojson = validate_grid(grid, boundary, size=grid_config["cell_size_m"], config=config)
+        report.update({"candidate_squares": candidates, "source_boundary": config["source"],
+                       "remote_python": platform.python_version()})
+        print("GRID_VALIDATION="+json.dumps(report, sort_keys=True), flush=True)
+        blobs = {"analysis_grid.geojson": geojson,
+                 "grid_validation.json": (json.dumps(report, indent=2, allow_nan=False)+"\n").encode(),
+                 "grid_preview.png": render_preview(grid, boundary)}
+        result, payloads = publish_grid(client, bucket=b2["bucket"], config=config,
+                                        blobs=blobs, checkpoint=checkpoint)
+        result["validation"] = report
+        result["remote_python"] = platform.python_version()
+        checkpoint({"status": "complete", "result": result})
+        return {**result, "local_payloads": payloads}
+    except Exception as exc:
+        current = ledger.get(lock_key) or {}
+        ledger.put(lock_key, {**current, "status": "failed", "error": str(exc)})
+        raise
+
+
+@app.function(secrets=[b2_secret], timeout=300, cpu=0.5, memory=1024,
+              max_containers=1, retries=0)
+def preflight_phase4_part2_sources() -> dict:
+    """Approved 4.2a: small pinned manifests plus metadata, never raster payloads."""
+    import json
+    import os
+    import platform
+
+    import boto3
+    from botocore.config import Config
+
+    from src.grid.feature_preflight import (
+        read_pinned_small, pin_dem_metadata, validate_manifests, build_report, render_markdown,
+    )
+    from src.utils.io import load_config
+
+    config, b2 = load_config("feature_preflight"), load_config("b2")
+    gate = load_config("gate_review")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=45),
+    )
+
+    def reject_non_preflight_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject", "GetObject"}:
+            raise RuntimeError(f"Feature preflight refused API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_preflight_api)
+    grid_body = read_pinned_small(client, b2["bucket"], config["grid_manifest"])
+    index_body = read_pinned_small(client, b2["bucket"], config["index_manifest"])
+    read_pinned_small(client, b2["bucket"], config["boundary"])
+    index_roles = {"ndvi", "ndbi", "ndwi", "mndwi", "bsi"}
+    expected = [item for item in gate["sources"] if item["role"] in index_roles]
+    grid_item, index_rows = validate_manifests(grid_body, index_body, expected)
+    dem = pin_dem_metadata(client, b2["bucket"], config["dem_sources"])
+    report = build_report(config, grid_item, index_rows, dem, platform.python_version())
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_local_output_bytes"]:
+        raise RuntimeError("Feature preflight local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["local_outputs"]["json"]: json_body,
+        config["local_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret], timeout=600, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def validate_phase4_dem_sources() -> dict:
+    """Approved full-byte hash/header/value gate for only two pinned DEM COGs."""
+    import json
+    import os
+    import platform
+    import tempfile
+    from pathlib import Path
+
+    import boto3
+    from botocore.config import Config
+
+    from src.grid.dem_validation import (
+        download_and_hash, inspect_dem, require_expected_hash, validate_pair, render_markdown,
+    )
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("dem_validation"), load_config("b2")
+    if sum(item["bytes"] for item in config["sources"]) != config["maximum_input_bytes"]:
+        raise RuntimeError("DEM source list differs from approved byte budget")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=90),
+    )
+
+    def reject_non_validation_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject", "GetObject"}:
+            raise RuntimeError(f"DEM validation refused API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_validation_api)
+    check_budget(config["maximum_input_bytes"])
+    staging = resolve_path("data.staging")
+    staging.mkdir(parents=True, exist_ok=True)
+    scratch = Path(tempfile.mkdtemp(prefix="dem-4-2-gate-", dir=staging))
+    records = []
+    for position, spec in enumerate(config["sources"]):
+        path = scratch/f"dem-{position}.tif"
+        digest = download_and_hash(client, b2["bucket"], spec, path)
+        record = inspect_dem(path, spec, config)
+        record["sha256"] = digest
+        require_expected_hash(record, spec)
+        records.append(record)
+    report = validate_pair(records, config)
+    report["remote_python"] = platform.python_version()
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_local_output_bytes"]:
+        raise RuntimeError("DEM validation local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["local_outputs"]["json"]: json_body,
+        config["local_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret], timeout=600, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def probe_phase4_dem_headers() -> dict:
+    """Evidence-only headers and hashes for the two exact pinned DEM versions."""
+    import json
+    import os
+    import platform
+    import tempfile
+    from pathlib import Path
+
+    import boto3
+    from botocore.config import Config
+
+    from src.grid.dem_validation import (
+        download_and_hash, inspect_dem_header, render_header_probe_markdown,
+    )
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("dem_validation"), load_config("b2")
+    if sum(item["bytes"] for item in config["sources"]) != config["maximum_input_bytes"]:
+        raise RuntimeError("DEM probe source list differs from approved byte budget")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=90),
+    )
+
+    def reject_non_probe_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject", "GetObject"}:
+            raise RuntimeError(f"DEM header probe refused API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_probe_api)
+    check_budget(config["maximum_input_bytes"])
+    staging = resolve_path("data.staging")
+    staging.mkdir(parents=True, exist_ok=True)
+    scratch = Path(tempfile.mkdtemp(prefix="dem-4-2-header-probe-", dir=staging))
+    records = []
+    for position, spec in enumerate(config["sources"]):
+        path = scratch/f"dem-{position}.tif"
+        digest = download_and_hash(client, b2["bucket"], spec, path)
+        record = inspect_dem_header(path, spec)
+        record["sha256"] = digest
+        records.append(record)
+    report = {"status": "observed", "part": "4.2-dem-header-probe",
+              "contract_version": config["contract_version"],
+              "input_bytes": config["maximum_input_bytes"], "b2_writes": 0,
+              "part4_2b_started": False, "remote_python": platform.python_version(),
+              "sources": records}
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_header_probe_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_local_output_bytes"]:
+        raise RuntimeError("DEM header probe local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["probe_outputs"]["json"]: json_body,
+        config["probe_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret], timeout=900, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def run_phase4_feature_aggregation_pilot() -> dict:
+    """One pinned 2024 NDVI raster; local evidence only and no B2 writes."""
+    import json
+    import os
+    import platform
+    import tempfile
+    from pathlib import Path
+
+    import boto3
+    from botocore.config import Config
+
+    from src.grid.dem_validation import download_and_hash
+    from src.grid.feature_aggregation_pilot import run_pilot, render_markdown
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("feature_aggregation_pilot"), load_config("b2")
+    specs = [config["index"], config["grid"], config["boundary"]]
+    if sum(item["bytes"] for item in specs) != config["maximum_input_bytes"]:
+        raise RuntimeError("Pilot source list differs from the approved byte budget")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=120),
+    )
+
+    def reject_non_pilot_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject", "GetObject"}:
+            raise RuntimeError(f"Feature pilot refused API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_pilot_api)
+    check_budget(config["maximum_input_bytes"])
+    staging = resolve_path("data.staging")
+    staging.mkdir(parents=True, exist_ok=True)
+    scratch = Path(tempfile.mkdtemp(prefix="feature-4-2-pilot-", dir=staging))
+    paths, hashes = {}, {}
+    for name, spec in (("index", config["index"]), ("grid", config["grid"]),
+                       ("boundary", config["boundary"])):
+        suffix = ".tif" if name == "index" else ".geojson"
+        paths[name] = scratch/f"{name}{suffix}"
+        hashes[name] = download_and_hash(client, b2["bucket"], spec, paths[name])
+        if hashes[name] != spec["sha256"]:
+            raise RuntimeError(f"Pilot source SHA-256 mismatch: {spec['key']}")
+    report = run_pilot(paths["index"], paths["grid"], paths["boundary"], config)
+    report.update({"input_bytes": config["maximum_input_bytes"], "source_hashes": hashes,
+                   "remote_python": platform.python_version()})
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_local_output_bytes"]:
+        raise RuntimeError("Feature pilot local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["local_outputs"]["json"]: json_body,
+        config["local_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret], timeout=3600, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def run_phase4_feature_aggregation_batch() -> dict:
+    """Full provisional 20-index plus terrain batch; create-only publication."""
+    import json
+    import os
+    import platform
+    import tempfile
+    import uuid
+    from pathlib import Path
+
+    import boto3
+    import geopandas as gpd
+    from botocore.config import Config
+
+    from src.grid.dem_validation import download_and_hash
+    from src.grid.feature_aggregation_batch import (
+        build_payloads, build_satellite, build_terrain, publish_payloads,
+    )
+    from src.storage.archive_publish import require_new_keys
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("feature_aggregation_batch"), load_config("b2")
+    gate, dem, pilot = load_config("gate_review"), load_config("dem_validation"), load_config("feature_aggregation_pilot")
+    wanted = set(config["roles"])
+    indices = sorted((item for item in gate["sources"] if item.get("role") in wanted),
+                     key=lambda item: (int(item["epoch"]), item["role"]))
+    if (len(indices) != 20 or {(int(i["epoch"]), i["role"]) for i in indices}
+            != {(e, r) for e in config["epochs"] for r in config["roles"]}):
+        raise RuntimeError("Full batch does not resolve the exact 20 index identities")
+    sources = indices + dem["sources"] + [pilot["grid"], pilot["boundary"]]
+    if sum(int(item["bytes"]) for item in sources) != config["maximum_input_bytes"]:
+        raise RuntimeError("Full batch source bytes differ from approved cap")
+
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=180),
+    )
+    allowed = {"ListObjectVersions", "HeadObject", "GetObject", "PutObject"}
+    def reject_non_batch_api(model, **kwargs):
+        if model.name not in allowed:
+            raise RuntimeError(f"Feature batch refused API operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_non_batch_api)
+
+    ledger = modal.Dict.from_name(config["reservation_name"], create_if_missing=True)
+    run_id = uuid.uuid4().hex
+    existing = ledger.get(config["reservation_key"])
+    allowed_failure = (existing and existing.get("status") == "failed"
+                       and existing.get("error_type") == "RuntimeError"
+                       and existing.get("error") == "Reprojected DEM seam disagreement exceeds 1 metre")
+    if existing and not allowed_failure:
+        raise RuntimeError("Feature batch reservation exists; inspect before any retry")
+    if allowed_failure:
+        ledger.put(config["reservation_key"], {"run_id": run_id, "status": "controlled_resume",
+                                               "previous_run_id": existing.get("run_id"),
+                                               "previous_error": existing.get("error")})
+    elif not ledger.put(config["reservation_key"], {"run_id": run_id, "status": "reserved"}, skip_if_exists=True):
+        raise RuntimeError("Feature batch reservation was concurrently created")
+    def checkpoint(status, **extra):
+        ledger[config["reservation_key"]] = {"run_id": run_id, "status": status, **extra}
+
+    try:
+        require_new_keys(client, b2["bucket"], list(config["outputs"].values()))
+        check_budget(config["maximum_input_bytes"])
+        staging = resolve_path("data.staging"); staging.mkdir(parents=True, exist_ok=True)
+        scratch = Path(tempfile.mkdtemp(prefix="feature-4-2-full-", dir=staging))
+        index_paths, source_hashes = [], {}
+        for position, spec in enumerate(indices):
+            path = scratch/f"index-{position:02d}.tif"
+            digest = download_and_hash(client, b2["bucket"], spec, path)
+            if digest != spec["sha256"]:
+                raise RuntimeError(f"Index SHA-256 mismatch: {spec['key']}")
+            source_hashes[spec["key"]] = digest; index_paths.append((spec, path))
+            checkpoint("index_downloaded", completed_indices=position+1)
+        dem_paths = []
+        for position, spec in enumerate(dem["sources"]):
+            path = scratch/f"dem-{position}.tif"; digest = download_and_hash(client, b2["bucket"], spec, path)
+            if digest != spec["sha256"]:
+                raise RuntimeError(f"DEM SHA-256 mismatch: {spec['key']}")
+            source_hashes[spec["key"]] = digest; dem_paths.append(path)
+        small_paths = {}
+        for name, spec in (("grid", pilot["grid"]), ("boundary", pilot["boundary"])):
+            path = scratch/f"{name}.geojson"; digest = download_and_hash(client, b2["bucket"], spec, path)
+            if digest != spec["sha256"]:
+                raise RuntimeError(f"Small source SHA-256 mismatch: {spec['key']}")
+            source_hashes[spec["key"]] = digest; small_paths[name] = path
+        checkpoint("sources_verified", source_count=len(sources))
+        grid, boundary = gpd.read_file(small_paths["grid"]), gpd.read_file(small_paths["boundary"])
+        satellite, summaries = build_satellite(index_paths, grid, boundary, config)
+        terrain, terrain_summary = build_terrain(dem_paths, grid, boundary, config)
+        payloads, scientific_summary = build_payloads(satellite, terrain, summaries, terrain_summary, grid, config)
+        checkpoint("calculated_and_validated", payload_bytes=sum(map(len, payloads.values())))
+        result = publish_payloads(client, b2["bucket"], payloads, config)
+        result.update({"input_bytes": config["maximum_input_bytes"], "source_count": len(sources),
+                       "source_hashes_verified": len(source_hashes), "remote_python": platform.python_version(),
+                       "scientific_summary": scientific_summary})
+        checkpoint("complete", result=result)
+        return result
+    except Exception as exc:
+        checkpoint("failed", error_type=type(exc).__name__, error=str(exc))
+        raise
+
+
+@app.function(secrets=[b2_secret], timeout=600, cpu=1.0, memory=4096,
+              max_containers=1, retries=0)
+def review_phase4_feature_aggregation_batch() -> dict:
+    """Exact-version read-only scientific review of the completed provisional batch."""
+    import hashlib
+    import io
+    import json
+    import os
+
+    import boto3
+    import pandas as pd
+    from botocore.config import Config
+
+    from src.grid.feature_aggregation import validate_feature_frames
+    from src.storage.archive_publish import exact_versions
+    from src.utils.io import load_config
+
+    config, b2 = load_config("feature_aggregation_batch"), load_config("b2")
+    ledger = modal.Dict.from_name(config["reservation_name"], create_if_missing=False)
+    checkpoint = ledger.get(config["reservation_key"])
+    if not checkpoint or checkpoint.get("status") != "complete":
+        raise RuntimeError("Feature batch completion checkpoint is absent")
+    result = checkpoint.get("result", {})
+    records = {item["name"]: item for item in result.get("outputs", [])}
+    if set(records) != set(config["outputs"]):
+        raise RuntimeError("Feature completion checkpoint output set differs from contract")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=90),
+    )
+    def reject_non_review_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject", "GetObject"}:
+            raise RuntimeError(f"Feature review refused API operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_non_review_api)
+    payloads = {}
+    for name, record in records.items():
+        versions = exact_versions(client, b2["bucket"], record["key"])
+        if (len(versions) != 1 or versions[0].get("VersionId") != record["version_id"]
+                or not versions[0].get("IsLatest") or int(versions[0].get("Size", -1)) != record["bytes"]):
+            raise RuntimeError(f"Feature review version identity mismatch: {name}")
+        response = client.get_object(Bucket=b2["bucket"], Key=record["key"], VersionId=record["version_id"])
+        stream = response["Body"]
+        try:
+            body = stream.read(record["bytes"]+1)
+        finally:
+            stream.close()
+        if len(body) != record["bytes"] or hashlib.sha256(body).hexdigest() != record["sha256"]:
+            raise RuntimeError(f"Feature review payload hash mismatch: {name}")
+        payloads[name] = body
+    satellite = pd.read_parquet(io.BytesIO(payloads["satellite_cell_features.parquet"]))
+    terrain = pd.read_parquet(io.BytesIO(payloads["terrain_cell_features.parquet"]))
+    validate_feature_frames(satellite, terrain, expected_cells=config["expected_cells"],
+                            epochs=config["epochs"], roles=config["roles"])
+    support_columns = [f"{role}_usable_fraction_of_aoi_pixels" for role in config["roles"]]
+    satellite["minimum_index_support"] = satellite[support_columns].min(axis=1)
+    terrain_ids = set(terrain.loc[terrain["elevation_mean_m"].notna()
+                                  & terrain["slope_mean_degrees"].notna(), "grid_id"])
+    thresholds = {}
+    for threshold in (0.0, 0.5, 0.8, 0.9, 0.95):
+        per_epoch = {}
+        for epoch in config["epochs"]:
+            frame = satellite[satellite["epoch"] == epoch]
+            eligible = frame[(frame["minimum_index_support"] >= threshold)
+                             & frame["grid_id"].isin(terrain_ids)]
+            per_epoch[str(epoch)] = int(len(eligible))
+        all_epochs = satellite.groupby("grid_id")["minimum_index_support"].min()
+        thresholds[str(threshold)] = {"per_epoch": per_epoch,
+                                      "all_epochs_with_terrain": int(((all_epochs >= threshold)
+                                                                      & all_epochs.index.isin(terrain_ids)).sum())}
+    review = {"status": "scientific_review_passed_policy_pending",
+              "contract_version": config["contract_version"], "outputs_hash_verified": len(payloads),
+              "satellite_rows": len(satellite), "terrain_rows": len(terrain),
+              "cells_without_terrain": int(config["expected_cells"]-len(terrain_ids)),
+              "minimum_support_quantiles": {str(q): float(satellite["minimum_index_support"].quantile(q))
+                                             for q in (0, .01, .05, .25, .5, .95, 1)},
+              "threshold_counts": thresholds, "b2_writes": 0,
+              "map_sha256": hashlib.sha256(payloads["support_maps.png"]).hexdigest()}
+    review_body = (json.dumps(review, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    return {**review, "local_payloads": {
+        config["review_outputs"]["json"]: review_body,
+        config["review_outputs"]["map"]: payloads["support_maps.png"],
+    }}
+
+
 @app.local_entrypoint()
 def main(action: str = "verify") -> None:
     """Dispatch a local control-plane command to a remote Modal function."""
@@ -2835,6 +3312,140 @@ def main(action: str = "verify") -> None:
     if action == "test":
         exit_code = run_regression_tests.remote()
         print({"pytest_exit_code": exit_code})
+        return
+    if action == "part4-grid-build":
+        import hashlib
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("grid_build")
+        directory = resolve_path("phase4_grid_review")
+        names = [*config["outputs"], config["local_receipt_name"]]
+        if any((directory / name).exists() for name in names):
+            raise FileExistsError("Local grid evidence exists; refusing overwrite before remote execution")
+        result = build_phase4_part1_grid.remote()
+        payloads = result.pop("local_payloads")
+        if set(payloads) != set(config["outputs"]):
+            raise RuntimeError("Local grid payload set differs from approved output names")
+        identities = {item["name"]: item for item in result["outputs"]}
+        for name, body in payloads.items():
+            if len(body) != identities[name]["bytes"] or hashlib.sha256(body).hexdigest() != identities[name]["sha256"]:
+                raise RuntimeError("Local grid payload does not match verified remote artifact")
+        receipt = (json.dumps(result, indent=2, allow_nan=False)+"\n").encode()
+        if (len(receipt) > config["file_caps"]["grid_validation.json"]
+                or result["output_payload_bytes"]+len(receipt) > config["maximum_output_transfer_bytes"]):
+            raise RuntimeError("Local grid receipt exceeds approved combined output budget")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in {**payloads, config["local_receipt_name"]: receipt}.items():
+            with (directory / name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_GRID="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-feature-preflight":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("feature_preflight")
+        directory = resolve_path("phase4_feature_review")
+        names = list(config["local_outputs"].values())
+        if any((directory / name).exists() for name in names):
+            raise FileExistsError("Local feature preflight evidence exists; refusing overwrite")
+        result = preflight_phase4_part2_sources.remote()
+        payloads = result.pop("local_payloads")
+        if set(payloads) != set(names) or sum(map(len, payloads.values())) > config["maximum_local_output_bytes"]:
+            raise RuntimeError("Feature preflight local payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory / name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_FEATURE_PREFLIGHT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-dem-validate":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("dem_validation")
+        directory = resolve_path("phase4_feature_review")
+        names = list(config["local_outputs"].values())
+        if any((directory / name).exists() for name in names):
+            raise FileExistsError("Local DEM validation evidence exists; refusing overwrite")
+        result = validate_phase4_dem_sources.remote()
+        payloads = result.pop("local_payloads")
+        if set(payloads) != set(names) or sum(map(len, payloads.values())) > config["maximum_local_output_bytes"]:
+            raise RuntimeError("DEM validation local payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_DEM_VALIDATION="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-dem-header-probe":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("dem_validation")
+        directory = resolve_path("phase4_feature_review")
+        names = list(config["probe_outputs"].values())
+        if any((directory / name).exists() for name in names):
+            raise FileExistsError("Local DEM header-probe evidence exists; refusing overwrite")
+        result = probe_phase4_dem_headers.remote()
+        payloads = result.pop("local_payloads")
+        if set(payloads) != set(names) or sum(map(len, payloads.values())) > config["maximum_local_output_bytes"]:
+            raise RuntimeError("DEM header-probe local payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_DEM_HEADER_PROBE="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-feature-pilot":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("feature_aggregation_pilot")
+        directory = resolve_path("phase4_feature_review")
+        names = list(config["local_outputs"].values())
+        if any((directory / name).exists() for name in names):
+            raise FileExistsError("Local feature-pilot evidence exists; refusing overwrite")
+        result = run_phase4_feature_aggregation_pilot.remote()
+        payloads = result.pop("local_payloads")
+        if set(payloads) != set(names) or sum(map(len, payloads.values())) > config["maximum_local_output_bytes"]:
+            raise RuntimeError("Feature-pilot local payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_FEATURE_PILOT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-feature-batch":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("feature_aggregation_batch")
+        directory = resolve_path("phase4_feature_review")
+        receipt = directory/config["local_receipt"]
+        if receipt.exists():
+            raise FileExistsError("Local full-batch receipt exists; refusing overwrite")
+        result = run_phase4_feature_aggregation_batch.remote()
+        body = (json.dumps(result, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+        if len(body) > config["file_caps"]["feature_aggregation_manifest.contract-4.2.0.json"]:
+            raise RuntimeError("Local full-batch receipt exceeds cap")
+        directory.mkdir(parents=True, exist_ok=True)
+        with receipt.open("xb") as output:
+            output.write(body)
+        print("PHASE4_FEATURE_BATCH="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-feature-review":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("feature_aggregation_batch")
+        directory = resolve_path("phase4_feature_review")
+        names = list(config["review_outputs"].values())
+        if any((directory/name).exists() for name in names):
+            raise FileExistsError("Local scientific-review evidence exists; refusing overwrite")
+        result = review_phase4_feature_aggregation_batch.remote()
+        payloads = result.pop("local_payloads")
+        if set(payloads) != set(names) or sum(map(len, payloads.values())) > 2*1024*1024:
+            raise RuntimeError("Scientific-review payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_FEATURE_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
         return
     if action == "part3-gate-review":
         import hashlib

@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "contract_version": "4.1.0",
+  "geometry_only": true,
+  "metric_crs": "EPSG:32644",
+  "interchange_crs": "EPSG:4326",
+  "cell_size_m": 500,
+  "anchor_m": [
+    0,
+    0
+  ],
+  "grid_cells": 6371,
+  "full_cells": 5912,
+  "edge_cells": 459,
+  "aoi_area_m2": 1535397424.6073387,
+  "missing_aoi_area_m2": 0.0,
+  "overlap_area_m2": 0.0,
+  "intersection_area_error_m2": 7.152557373046875e-07,
+  "maximum_roundtrip_displacement_m": 2.2088254290877697e-09,
+  "aoi_fraction_min": 2.449377573130842e-06,
+  "aoi_fraction_max": 1.0,
+  "metric_grid_bounds": [
+    706500.0,
+    1936000.0,
+    765500.0,
+    1990500.0
+  ],
+  "area_tolerance_m2": 0.0001,
+  "roundtrip_tolerance_m": 0.001,
+  "water_and_boundary_cells_retained": true,
+  "features_labels_predictions_created": false,
+  "grid_review": "pending_user_visual_review",
+  "candidate_squares": 12862,
+  "source_boundary": {
+    "key": "vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson",
+    "version_id": "4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534",
+    "bytes": 32768,
+    "sha256": "afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49"
+  },
+  "remote_python": "3.12.10"
+}

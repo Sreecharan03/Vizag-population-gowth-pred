@@ -1,0 +1,46 @@
+{
+  "b2_writes": 0,
+  "contract_version": "4.2.0",
+  "dem_bytes": 46382829,
+  "dem_payload_hash_required": [
+    "vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E082_00_DEM.tif",
+    "vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E083_00_DEM.tif"
+  ],
+  "dem_sources": [
+    {
+      "bytes": 37750448,
+      "etag": "f84fe1be009446854e8b2cb2eeda7962-5",
+      "key": "vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E082_00_DEM.tif",
+      "payload_hash_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f20004cc62dd58dfb_d20261010_m191329_c005_v0501050_t0057_u01791659609592"
+    },
+    {
+      "bytes": 8632381,
+      "etag": "80a2bc8eb7810b362f770a5feb3bacfe-2",
+      "key": "vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E083_00_DEM.tif",
+      "payload_hash_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f2002970276968e1d_d20261010_m191330_c005_v0501041_t0049_u01791659610769"
+    }
+  ],
+  "grid": {
+    "bytes": 2816012,
+    "exact_version_readback_verified": true,
+    "key": "vizag-geoai/v2/derived/grid/contract-4.1.0/analysis_grid.geojson",
+    "name": "analysis_grid.geojson",
+    "sha256": "e5739a996f51cabe0edbb976390bd0070cd2e0e333d90b1652847a0b6e4d2f8f",
+    "version_id": "4_z2250dbc1f968e033a7050713_f10475e8a42d77e32_d20261111_m115845_c005_v0501051_t0054_u01794398325165"
+  },
+  "index_bytes": 1309726569,
+  "index_count": 20,
+  "known_aggregation_input_bytes": 1358958178,
+  "metadata_only": true,
+  "part": "4.2a",
+  "part4_2b_started": false,
+  "raster_payload_bytes_read": 0,
+  "remote_python": "3.12.10",
+  "schema_validation_status": "deferred_to_separately_approved_header_or_payload_read",
+  "small_payload_bytes_read": 52147,
+  "status": "preflight_complete_dem_payload_hash_required"
+}

@@ -29,8 +29,9 @@ recovered checkpoint to `origin/main` on 2026-11-09 and renewed that authorizati
 Verify the current commit and remote with Git;
 do not infer them from this historical note. Never force-push or include credentials or runtime data.
 
-Current checkpoint (2026-11-10): Phase 3 Parts 3.0–3.7 are complete; full Modal regression **357 passed,
-one existing warning**. All 32 extraction pairs and four composite/count pairs remain intact.
+Current checkpoint (2026-11-11): Phase 3 Parts 3.0–3.7 and Parts 4.1-4.2 are complete; full Modal
+regression **383 passed, one existing warning**. All 32 extraction pairs and four composite/count
+pairs remain intact.
 User approved Part 3.6 and the production run created 20 index COGs (1,309,726,569 bytes), independently
 downloaded/hashed and fully pixel-audited them, then published one exact-byte-verified 17,788-byte manifest.
 Read `results/phase3/indices_validation.md`, its machine-readable `.json`, and
@@ -41,7 +42,8 @@ Read `results/phase3/indices_validation.md`, its machine-readable `.json`, and
 and affected-index-only exclusion of already-flagged values from future feature means. Preserve
 original COGs, record per-cell exclusions/usable coverage, keep empty means missing, and do not
 clip or automatically drop whole cells. Policy: `configs/feature_aggregation.yaml`. Its actual
-aggregation implementation is Part 4.2; minimum nonzero support needs preflight/user approval.
+Part 4.2 implements this rule. Approved eligibility requires >=50% usable support for every
+required index/epoch plus valid elevation and slope; all QC rows remain preserved.
 17 near-zero 2018 NDVI denominators became nodata under the approved guard.
 
 **Phase 3 gate review evidence and the specific downstream rule are now user-approved.** Read
@@ -54,8 +56,8 @@ All flagged ratios have a negative term; severe 2018 cases show cancellation. A 
 review does not establish individual source-scene physical causes. Only affected-index exclusion
 of flagged values is approved: no clipping, broader negative-reflectance mask or new denominator
 threshold. Published review/receipt pending flags are immutable historical snapshots, superseded
-by the later decision in `docs/phase-4-prediction-quality-plan.md`. Part 4.1 exact workload still
-requires approval; do not infer permission for all Phase 4 parts. Do not rerun `part3-gate-review`, overwrite its outputs or clear the
+by the later decision in `docs/phase-4-prediction-quality-plan.md`. Part 4.1 completed and was
+visually approved on 2026-11-11. Part 4.2 was later separately approved and completed; do not infer permission for later parts. Do not rerun `part3-gate-review`, overwrite its outputs or clear the
 successful persistent reservation `vizag-phase3-gate-review-v1`. Output manifest is
 `vizag-geoai/v2/manifests/phase3_gate_review.v1.json`.
 
@@ -71,7 +73,7 @@ all exact-version read-back/hash verified; 164,253 new bytes. V2 now has 117 obj
 13,795,150,258 bytes, zero delete markers. Existing production identities unchanged.
 The original audit reports are preserved historical snapshots; pending-publication wording
 in them is superseded by the completion receipt. Phase 3 gate was subsequently user-approved;
-Part 4.1 has only been proposed, not executed. Do not rerun `part3-archive-publish` or remove its persistent
+Part 4.1 is complete and visually approved. Do not rerun `part3-archive-publish` or remove its persistent
 reservation: the successful result remains in `vizag-phase3-archive-publication-3-7-0`.
 The 16 allowlisted source files remain frozen by `configs/archive_publication.yaml`.
 Use source-based `modal run -e main modal_app.py --action part3-storage-audit`, not an in-memory
@@ -79,6 +81,24 @@ Use source-based `modal run -e main modal_app.py --action part3-storage-audit`, 
 The active workspace is `sankar132095`; do not reinstall Python or recreate credentials to fix
 the previously introduced serialization mismatch. The fixed test suite is self-contained and
 does not depend on local markdown reports being present in the remote image.
+
+**Part 4.1 grid publication is complete; do not rerun it.** Modal run
+`ap-0XT8PeoGerm8Mu7VlDv49j` restored the pinned 32,768-byte boundary and created 6,371 fixed
+500 m cells (5,912 full, 459 edge). Four `contract-4.1.0` objects totaling 2,936,091 bytes were
+created once and exact-version/read-back/hash verified. The persistent reservation is
+`vizag-phase4-grid-4-1-0`; preserve it. Local evidence is under
+`results/phase4/grid/contract-4.1.0/`. The user approved the preview on 2026-11-11.
+Part 4.2 is complete. Do not rerun its populated six-output contract.
+
+**Part 4.2a metadata-only preflight completed; do not mistake it for aggregation.** Run
+`ap-Aa5eCAKVU7wPh0pwIn3I4W` read 52,147 bytes from three pinned small objects, pinned all 20 index
+COGs and both DEM versions, read zero raster payload bytes and made zero B2 writes. Both legacy DEM
+uploads lacked SHA-256 metadata; the later strict payload gate resolved that historical blocker.
+Corrected full batch `ap-Dz1CfM1F43J7c3bAnkHkcH` published six verified outputs, manifest last.
+Read-only review `ap-wKjNJgIpGetKO9w1nqLs01` approved >=50% support for every required index/epoch
+plus valid elevation/slope, retaining 6,355 cells. Preserve all rows and QC fields. Evidence is in
+`results/phase4/features/contract-4.2.0/`; Part 4.3 is next. See
+`docs/phase-4.2-feature-aggregation-proposal.md`.
 
 The reviewed 19-page academic report and vector diagrams are in `results/project_report/`. Identity
 fields remain placeholders. Dashboard illustrations and the pressure-index discussion are proposals;

@@ -1,5 +1,5 @@
 # Approved downstream rule, 2026-11-10. Not an instruction to rewrite source COGs.
-# Aggregation implementation/tests remain Part 4.2; no feature table exists yet.
+# Part 4.2 completed 2026-11-11; published evidence tables remain immutable.
 policy_version: "4.2-policy-v1"
 approval_status: approved
 source_index_contract: "3.6.0"
@@ -23,9 +23,14 @@ required_per_cell_per_index_qc:
   - unfiltered_mean_diagnostic
   - filtered_mean
 minimum_cell_support:
-  status: pending_part_4_2_coverage_preflight_and_user_approval
-  minimum_usable_fraction: null
-  refuse_model_ready_export_until_resolved: true
+  status: approved_after_part_4_2_full_scientific_review
+  minimum_usable_fraction: 0.50
+  require_threshold_for_every_required_index_and_epoch: true
+  require_valid_elevation_and_slope: true
+  preserve_ineligible_rows_with_explicit_flags: true
+  drop_ineligible_rows_from_evidence_tables: false
+  refuse_model_ready_export_until_resolved: false
+  evidence: results/phase4/features/contract-4.2.0/feature_scientific_review.json
 sensitivity_review:
   compare_filtered_and_unfiltered_cell_means: true
   report_by_epoch_and_spatial_location: true

@@ -1,0 +1,31 @@
+# Full provisional Part 4.2b batch; publication remains create-only and manifest-last.
+contract_version: "4.2.0"
+expected_cells: 6371
+epochs: [2018, 2020, 2022, 2024]
+roles: [ndvi, ndbi, ndwi, mndwi, bsi]
+analysis_crs: EPSG:32644
+terrain_resolution_m: 30
+maximum_input_bytes: 1358958178
+maximum_new_bytes: 67108864
+maximum_output_transfer_bytes: 201326592
+support_policy_status: pending_user_approval
+outputs:
+  satellite_cell_features.parquet: vizag-geoai/v2/derived/features/contract-4.2.0/satellite_cell_features.parquet
+  terrain_cell_features.parquet: vizag-geoai/v2/derived/features/contract-4.2.0/terrain_cell_features.parquet
+  support_summary.json: vizag-geoai/v2/results/phase4/features/contract-4.2.0/support_summary.json
+  support_summary.csv: vizag-geoai/v2/results/phase4/features/contract-4.2.0/support_summary.csv
+  support_maps.png: vizag-geoai/v2/results/phase4/features/contract-4.2.0/support_maps.png
+  feature_aggregation_manifest.contract-4.2.0.json: vizag-geoai/v2/manifests/feature_aggregation_manifest.contract-4.2.0.json
+file_caps:
+  satellite_cell_features.parquet: 33554432
+  terrain_cell_features.parquet: 8388608
+  support_summary.json: 2097152
+  support_summary.csv: 2097152
+  support_maps.png: 8388608
+  feature_aggregation_manifest.contract-4.2.0.json: 1048576
+local_receipt: feature_aggregation_receipt.json
+review_outputs:
+  json: feature_scientific_review.json
+  map: support_maps_review.png
+reservation_name: vizag-phase4-features-4-2-0
+reservation_key: full-batch

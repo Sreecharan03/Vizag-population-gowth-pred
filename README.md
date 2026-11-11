@@ -4,8 +4,9 @@
 A geospatial research pipeline for **Visakhapatnam, India**, designed to combine satellite
 observations, population, road accessibility and terrain for explainable urban-expansion modelling.
 
-**Current milestone:** Phase 3 is complete and user-approved. The repository contains a validated
-Sentinel-2 preprocessing pipeline—not a trained prediction model. Feature engineering, labels,
+**Current milestone:** Phase 3 and Phase 4 Parts 4.1-4.2 are complete. The fixed grid now has
+verified four-epoch satellite-index, elevation and slope features with an approved support policy.
+Population and OSM aggregation remain Part 4.3. The repository does not yet contain a trained prediction model. Feature engineering, labels,
 model evaluation and infrastructure-pressure scenarios are the next research stages.
 
 [Public demo](https://vizag-growth-demo.mohan1401.chatgpt.site) ·
@@ -37,11 +38,11 @@ model evaluation and infrastructure-pressure scenarios are the next research sta
 
 ## Verified results
 
-Checkpoint: **10 November 2026**.
+Checkpoint: **11 November 2026**.
 
 | Measure | Verified result |
 |---|---|
-| Automated regression | **357 passed**, one existing warning; executed on Modal |
+| Automated regression | **383 passed**, one existing warning; executed on Modal |
 | Selected input scenes | **32**, eight per epoch: 2018, 2020, 2022, 2024 |
 | Scene products | 32 six-band reflectance stacks + 32 categorical SCL rasters |
 | Composite products | Four median composites + four valid-observation count rasters |
@@ -53,8 +54,8 @@ Checkpoint: **10 November 2026**.
 COG means Cloud Optimized GeoTIFF: a raster format supporting efficient partial reads.
 
 The latest recorded full-suite run is
-[available on Modal](https://modal.com/apps/sankar132095/main/ap-ggOetjThQ6jCvoVTSmUkJG)
-(357 passed in 9.51 seconds; one existing all-NaN synthetic-median warning).
+[available on Modal](https://modal.com/apps/sankar132095/main/ap-4TcjPhUUgw4Egcss0jMApg)
+(383 passed; one existing all-NaN synthetic-median warning).
 Automated tests validate implementation behaviour; separate real-data audits validate published
 outputs. Neither establishes prediction accuracy.
 
@@ -75,6 +76,8 @@ The implemented processing sequence is:
 5. Create per-epoch median composites and observation-count rasters.
 6. Calculate guarded NDVI, NDBI, NDWI, MNDWI and BSI products.
 7. Audit grids, formulas, hashes, coverage and anomalies; publish review evidence.
+8. Build and visually approve 6,371 stable 500 m analysis cells.
+9. Aggregate the five indices for four epochs plus elevation and slope, preserving per-cell support QC.
 
 See the [architecture and operational safeguards](tracking/architecture.md) for details.
 B2 publication protections depend on cooperative exclusive writers; ordinary object PUT is
@@ -91,7 +94,7 @@ around it. The buffered study area is larger than the administrative boundary.
 | Sentinel-2 Level-2A | Four-epoch imagery; selected scenes processed through Phase 3 |
 | WorldPop | Acquired population inputs; temporal suitability and cell aggregation remain to be checked |
 | OpenStreetMap | Acquired roads and amenities; historical consistency must be checked before modelling |
-| Copernicus GLO-30 DEM | Acquired terrain input; grid-level features are planned |
+| Copernicus GLO-30 DEM | Validated and aggregated to cell-level elevation and slope in Part 4.2 |
 | ESA WorldCover | Acquired land-cover input; suitability for label generation/cross-checking remains to be validated |
 
 The raw inventory contains **280 Sentinel-2 archives, approximately 182.82 GB**, across the
@@ -124,10 +127,12 @@ ratios. Original rasters were preserved; the exact physical source causes are no
 
 The approved future feature rule excludes only flagged values from the affected index mean,
 retains support/exclusion counts, and leaves empty means missing. It does not clip original
-rasters or automatically remove whole cells. Implementation belongs to Part 4.2; the minimum
-usable-support threshold still requires approval.
+rasters or automatically remove whole cells. Part 4.2 implements this rule. The approved downstream
+eligibility threshold is 50% usable support per required index/epoch plus valid elevation and slope.
 
 [Approved policy](configs/feature_aggregation.yaml) ·
+[Part 4.2 completion evidence](results/phase4/features/contract-4.2.0/part4_2_completion.md) ·
+[Part 4.2 scientific review](results/phase4/features/contract-4.2.0/feature_scientific_review.json) ·
 [Prediction-quality plan](docs/phase-4-prediction-quality-plan.md) ·
 [2018 QC](results/phase3/qc_2018.png) ·
 [2020 QC](results/phase3/qc_2020.png) ·
@@ -190,8 +195,8 @@ There is no production prediction CLI yet.
 |---|---|
 | Study boundary and acquisition | Phases 1–2 complete, gate-confirmed |
 | Satellite preprocessing, indices and archive | Phase 3 complete, gate-confirmed |
-| 500 m research grid | Part 4.1 proposed; exact workload approval still required |
-| Cell-level features and coverage checks | Planned; approved outlier policy not yet implemented |
+| 500 m research grid | Part 4.1 complete and visually approved; 6,371 validated cells |
+| Cell-level satellite/terrain features | Part 4.2 complete; six outputs verified, 6,355 cells meet the approved support/terrain rule |
 | Built-fraction change labels | Planned; data suitability and label validation required |
 | Logistic and tree-based baselines | Planned |
 | Temporal holdout, spatial robustness and calibration | Planned |
@@ -204,8 +209,9 @@ a reliable six-year 2030 forecast. Any infrastructure-pressure index will be a d
 heuristic, not a measured infrastructure-capacity deficit.
 
 Phase 0 implementation is complete, with its historical formal gate still pending.
-The [quality plan](docs/phase-4-prediction-quality-plan.md) records the specific next-step proposal
-and unresolved choices; this README does not authorize further processing.
+The [quality plan](docs/phase-4-prediction-quality-plan.md) records the approved feature rule and
+the safeguards still required for later prediction work. Part 4.3 is the next planned unit; this
+README does not authorize further production processing.
 
 ## Documentation
 

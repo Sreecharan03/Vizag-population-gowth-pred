@@ -1,8 +1,9 @@
 # Phase 4 — approved feature rule and prediction-quality plan
 
-Date: 10 November 2026.
+Date: 10 November 2026; status updated 11 November 2026.
 **Phase 3 evidence and the specific downstream outlier rule are user-approved.**
-Phase 4 implementation is not started; Part 4.1 proposal below awaits exact-workload approval.
+Parts 4.1 and 4.2 are complete. Part 4.2's final exact-version review approved >=50%
+usable support for every required index/epoch plus valid elevation and slope; all QC rows remain preserved.
 No claim of prediction accuracy is made by closing the preprocessing gate.
 
 ## 1. Decision and immutable evidence
@@ -75,7 +76,7 @@ The public demo's fictional analytics are not training data, labels, performance
 evidence or real forecasts. Infrastructure-pressure scores require separately
 defined/validated accessibility assumptions; they are not measured infrastructure capacity.
 
-## 4. Next part only: proposed Part 4.1
+## 4. Completed Part 4.1 contract
 
 ### Proposed grid contract
 
@@ -140,7 +141,13 @@ if any proposed key has a current/historical version or delete marker.
 
 ## 5. Approval boundary
 
-Approval of Phase 3 and its downstream rule is recorded now. **The exact Part 4.1
-workload above still requires explicit approval before implementation/transfers.**
-This document creates no grid, performs no B2 request/write, changes no original
-raster, and authorizes no Git staging/commit/push or later Phase 4 part.
+Approval of Phase 3, its downstream rule and the exact Part 4.1 workload is recorded.
+Part 4.1 completed on Modal on 11 November 2026: 6,371 cells, zero AOI gap/overlap,
+and four new exact-version/hash-verified objects totaling 2,936,091 bytes. The user
+approved the preview. The source boundary and all rasters remain unchanged. This
+approval does not authorize Part 4.2, Git staging/commit/push or later Phase 4 parts.
+
+The next-step workload and its approval boundary are defined in
+[`phase-4.2-feature-aggregation-proposal.md`](phase-4.2-feature-aggregation-proposal.md).
+The exact next unit is a metadata-only source/schema preflight; it performs no raster
+pixel reads and no B2 writes.

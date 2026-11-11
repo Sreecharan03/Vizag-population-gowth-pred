@@ -12,7 +12,7 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 | 1 | Study boundary & configuration | Complete | 2/2 | **Yes** — boundary visual confirmed by user 2026-10-10 (`phase1_boundary_check.png`); Part 1.2 configs are plain config files with no separate visual gate per plan.md |
 | 2 | B2 inventory, reconciliation & acquisition | Complete | 6/6 | **Yes** — A1–A5 all confirmed 2026-10-10; nothing deleted/overwritten anywhere throughout |
 | 3 | Advanced Sentinel-2 preprocessing | Complete | 8/8 | Yes — user approved review evidence and the affected-index-only outlier exclusion rule on 2026-11-10; originals remain unchanged |
-| 4 | Grid construction & feature aggregation | Not started | 0/4 | No |
+| 4 | Grid construction & feature aggregation | In progress | 2/4 | No |
 | 5 | Label generation | Not started | 0/3 | No |
 | 6 | Dataset assembly & split | Not started | 0/4 | No |
 | 7 | Baseline model (E1) | Not started | 0/2 | No |
@@ -89,11 +89,33 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
   approved affected-index-only exclusion of already-flagged out-of-range values from future
   feature means. Preserve original COGs, carry per-cell exclusions/support counts, keep empty
   means missing; do not clip or drop whole cells automatically. Policy recorded separately
-  in `configs/feature_aggregation.yaml`; aggregation implementation remains Part 4.2.
-  Minimum nonzero cell-support policy remains a Part 4.2 preflight/approval item, not an
-  invented threshold or a promise of prediction accuracy.
-- **Next:** exact Part 4.1 grid workload in `docs/phase-4-prediction-quality-plan.md` awaits
-  approval. No Phase 4 grid construction, feature aggregation or model training has started.
+  in `configs/feature_aggregation.yaml`; Part 4.2 later implemented the rule. Final review
+  approved >=50% per-index/per-epoch support plus valid terrain; this is a data-eligibility
+  policy, not a promise of prediction accuracy.
+- **Part 4.1 complete and visually approved (2026-11-11):** Modal Python 3.12.10 restored and
+  hash-verified the pinned 32,768-byte boundary, built 6,371 fixed 500 m squares (5,912 full and
+  459 edge), and validated stable IDs, exact dimensions, EPSG:4326 interchange, zero AOI gap and
+  zero overlap. Four create-only B2 outputs totaling 2,936,091 bytes were exact-version/read-back/
+  hash verified. Full Modal suite: 367 passed, one existing warning. The user approved the preview.
+  Part 4.2 subsequently started under separately approved guarded units.
+- **Part 4.2a source preflight complete (2026-11-11):** 371 Modal tests passed, then the
+  metadata-only job read 52,147 bytes across three pinned small objects and pinned all 20 index
+  COGs plus both DEM object versions. Raster payload reads=0 and B2 writes=0. The two legacy DEM
+  uploads have correct single-version sizes (46,382,829 bytes combined) but no SHA-256 metadata.
+  The later approved version-pinned DEM gate passed; this preflight remains historical evidence.
+- **Part 4.2 DEM gate and satellite pilot passed (2026-11-11):** the corrected half-pixel-aligned
+  DEM contract passed exact-version hashes, strict COG/schema/seam checks and all 25,920,000 pixels
+  with zero B2 writes (`ap-XtNy5uLjfsykXJySgzFpbI`). The aggregation core then passed 381 Modal
+  tests. A create-only 2024 NDVI pilot (`ap-ESKgft4wckfIBJXclDGxns`) retained all 6,371 grid rows,
+  reconciled 15,353,996 AOI candidates, 15,257,709 usable and 96,287 nodata pixels, and found zero
+  out-of-range values. Three tiny edge cells have no 10 m pixel centre and remain missing. This
+  was a historical pilot gate; the subsequent full batch and policy review completed successfully.
+- **Part 4.2 complete (2026-11-11):** corrected full batch `ap-Dz1CfM1F43J7c3bAnkHkcH`
+  produced 25,484 satellite rows and 6,371 terrain rows. Six create-only outputs totaling
+  3,308,109 bytes were exact-version hash/read-back verified with the manifest last. Read-only
+  review `ap-wKjNJgIpGetKO9w1nqLs01` revalidated all outputs and the support map. Approved
+  eligibility is >=50% usable support for every required index/epoch plus valid elevation/slope,
+  retaining 6,355 cells across all epochs while preserving every evidence row.
 - **Part 3.3.1 validation history (2026-11-04):** accuracy-first float32 reflectance plus separate SCL
   COG design approved. Complete read-only Modal metadata/header scan passed for all 32 scenes and 224
   required assets. Baselines are 04.00/05.00/05.10; every required offset mapping and frozen grid invariant

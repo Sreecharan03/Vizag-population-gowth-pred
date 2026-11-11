@@ -1,0 +1,26 @@
+# Approved Part 4.2 DEM integrity/schema gate, 2026-11-11.
+contract_version: "4.2.0-dem-gate-v1"
+maximum_input_bytes: 46382829
+maximum_local_output_bytes: 262144
+expected_crs: EPSG:4326
+expected_band_count: 1
+expected_dtype: float32
+expected_pixel_size_degrees: 0.0002777777777777778
+pixel_size_tolerance_degrees: 0.000000000001
+sources:
+  - key: vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E082_00_DEM.tif
+    version_id: 4_z2250dbc1f968e033a7050713_f20004cc62dd58dfb_d20261010_m191329_c005_v0501050_t0057_u01791659609592
+    bytes: 37750448
+    sha256: 7959862a0f0dc6fb742d37dedd3dc47754a9dc32272dd3dae4c8d89b99095026
+    expected_bounds: [81.99986111111112, 17.000138888888888, 82.99986111111112, 18.000138888888888]
+  - key: vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E083_00_DEM.tif
+    version_id: 4_z2250dbc1f968e033a7050713_f2002970276968e1d_d20261010_m191330_c005_v0501041_t0049_u01791659610769
+    bytes: 8632381
+    sha256: fd8b5c09fc1f1d28deb78f287c830e1c0041ee7eabb813f8bc2b25456653fd29
+    expected_bounds: [82.99986111111112, 17.000138888888888, 83.99986111111112, 18.000138888888888]
+local_outputs:
+  json: dem_validation.json
+  markdown: dem_validation.md
+probe_outputs:
+  json: dem_header_probe.json
+  markdown: dem_header_probe.md

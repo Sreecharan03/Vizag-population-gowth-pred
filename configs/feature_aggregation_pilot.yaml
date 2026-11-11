@@ -1,0 +1,26 @@
+# Approved bounded Part 4.2b real-data pilot; no B2 outputs.
+contract_version: "4.2.0-pilot-v1"
+expected_cells: 6371
+expected_crs: EPSG:32644
+maximum_input_bytes: 68049624
+maximum_local_output_bytes: 262144
+index:
+  epoch: 2024
+  role: ndvi
+  key: vizag-geoai/v2/processed/sentinel2/indices/contract-3.6.0/2024/ndvi.tif
+  version_id: 4_z2250dbc1f968e033a7050713_f1046d9954157f90d_d20261110_m042832_c005_v0501051_t0057_u01794284912892
+  bytes: 65200844
+  sha256: b167b67822fe4eac9a1e79fc0ee56eafdf4cdeb41fdc9d4e96ef8608859d954f
+grid:
+  key: vizag-geoai/v2/derived/grid/contract-4.1.0/analysis_grid.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f10475e8a42d77e32_d20261111_m115845_c005_v0501051_t0054_u01794398325165
+  bytes: 2816012
+  sha256: e5739a996f51cabe0edbb976390bd0070cd2e0e333d90b1652847a0b6e4d2f8f
+boundary:
+  key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+  bytes: 32768
+  sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+local_outputs:
+  json: satellite_pilot_2024_ndvi.json
+  markdown: satellite_pilot_2024_ndvi.md

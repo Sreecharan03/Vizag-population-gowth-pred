@@ -35,8 +35,10 @@ fractions. The physical cause within individual source scenes is not established
 approved excluding only already-flagged values from each affected index's future mean, preserving
 originals, carrying counts/coverage, keeping empty means missing and not dropping whole cells.
 No clipping, broader negative-reflectance mask or new denominator threshold is authorized.
-Implementation remains Part 4.2. Minimum usable-cell support, date-safe population/OSM features,
-label validation and the six-year forecast method are still unresolved quality choices; do not guess.
+Part 4.2 implemented this rule and its final review approved at least 50% usable support for every
+required index and epoch plus valid elevation and slope. This retains 6,355 of 6,371 cells while
+preserving every evidence row. Date-safe population/OSM features, label validation and the six-year
+forecast method remain unresolved quality choices; do not guess.
 
 | Needed for | What's needed | Status |
 |---|---|---|

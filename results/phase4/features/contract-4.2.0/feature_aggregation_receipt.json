@@ -1,0 +1,316 @@
+{
+  "b2_writes": 6,
+  "input_bytes": 1358958178,
+  "new_bytes": 3308109,
+  "outputs": [
+    {
+      "bytes": 2643529,
+      "exact_version_readback_verified": true,
+      "key": "vizag-geoai/v2/derived/features/contract-4.2.0/satellite_cell_features.parquet",
+      "name": "satellite_cell_features.parquet",
+      "sha256": "02d0563c112b31ebb6072830f81bd4e2ec8a1118a09841f53b23374a7362cf4e",
+      "version_id": "4_z2250dbc1f968e033a7050713_f118d718ee722a4f8_d20261111_m152844_c005_v0501019_t0013_u01794410924921"
+    },
+    {
+      "bytes": 120167,
+      "exact_version_readback_verified": true,
+      "key": "vizag-geoai/v2/derived/features/contract-4.2.0/terrain_cell_features.parquet",
+      "name": "terrain_cell_features.parquet",
+      "sha256": "d2d0adc5800e72b6a66133eeb9d19ef5b0a1e126504f8eea6fd028b6910c74dc",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1101b30e82cb12af_d20261111_m152846_c005_v0501034_t0017_u01794410926781"
+    },
+    {
+      "bytes": 6978,
+      "exact_version_readback_verified": true,
+      "key": "vizag-geoai/v2/results/phase4/features/contract-4.2.0/support_summary.json",
+      "name": "support_summary.json",
+      "sha256": "8b45a558c922e906120ff7c7fdc8f18d2aac92cf0e191aa82f9a4a6d73044cb9",
+      "version_id": "4_z2250dbc1f968e033a7050713_f108770b95fd6ebfe_d20261111_m152847_c005_v0501037_t0009_u01794410927846"
+    },
+    {
+      "bytes": 1318,
+      "exact_version_readback_verified": true,
+      "key": "vizag-geoai/v2/results/phase4/features/contract-4.2.0/support_summary.csv",
+      "name": "support_summary.csv",
+      "sha256": "047ffa64b479d75b23472692c32987c36152fe441b2ac293e0a2508371e406e9",
+      "version_id": "4_z2250dbc1f968e033a7050713_f10572de7906de224_d20261111_m152848_c005_v0521006_t0020_u01794410928440"
+    },
+    {
+      "bytes": 534113,
+      "exact_version_readback_verified": true,
+      "key": "vizag-geoai/v2/results/phase4/features/contract-4.2.0/support_maps.png",
+      "name": "support_maps.png",
+      "sha256": "64e56b053604d44d3b1bd3b8e3a00be88926aa2ea71b466795fb498a054c72ec",
+      "version_id": "4_z2250dbc1f968e033a7050713_f10997391c9dae636_d20261111_m152849_c005_v0501052_t0045_u01794410929263"
+    },
+    {
+      "bytes": 2004,
+      "exact_version_readback_verified": true,
+      "key": "vizag-geoai/v2/manifests/feature_aggregation_manifest.contract-4.2.0.json",
+      "name": "feature_aggregation_manifest.contract-4.2.0.json",
+      "sha256": "245afeb6c3abd25de3af4c216738e3e38606ed1aa47d4ffd2c62a4bf34693b25",
+      "version_id": "4_z2250dbc1f968e033a7050713_f114bba10820cb232_d20261111_m152850_c005_v0501022_t0001_u01794410930347"
+    }
+  ],
+  "remote_python": "3.12.10",
+  "scientific_summary": {
+    "contract_version": "4.2.0",
+    "grid_cells": 6371,
+    "satellite": [
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2018,
+        "excluded_pixels": 1974,
+        "input_valid_pixels": 15303223,
+        "nodata_pixels": 50773,
+        "role": "bsi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9984,
+        "usable_pixels": 15301249
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2018,
+        "excluded_pixels": 4,
+        "input_valid_pixels": 15303223,
+        "nodata_pixels": 50773,
+        "role": "mndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9984,
+        "usable_pixels": 15303219
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2018,
+        "excluded_pixels": 11075,
+        "input_valid_pixels": 15303223,
+        "nodata_pixels": 50773,
+        "role": "ndbi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9952,
+        "usable_pixels": 15292148
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2018,
+        "excluded_pixels": 11300,
+        "input_valid_pixels": 15303206,
+        "nodata_pixels": 50790,
+        "role": "ndvi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9948,
+        "usable_pixels": 15291906
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2018,
+        "excluded_pixels": 11079,
+        "input_valid_pixels": 15303223,
+        "nodata_pixels": 50773,
+        "role": "ndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9952,
+        "usable_pixels": 15292144
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2020,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15340292,
+        "nodata_pixels": 13704,
+        "role": "bsi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 1.0,
+        "usable_pixels": 15340292
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2020,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15340292,
+        "nodata_pixels": 13704,
+        "role": "mndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 1.0,
+        "usable_pixels": 15340292
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2020,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15340292,
+        "nodata_pixels": 13704,
+        "role": "ndbi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 1.0,
+        "usable_pixels": 15340292
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2020,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15340292,
+        "nodata_pixels": 13704,
+        "role": "ndvi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 1.0,
+        "usable_pixels": 15340292
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2020,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15340292,
+        "nodata_pixels": 13704,
+        "role": "ndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 1.0,
+        "usable_pixels": 15340292
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2022,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15323080,
+        "nodata_pixels": 30916,
+        "role": "bsi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9968,
+        "usable_pixels": 15323080
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2022,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15323080,
+        "nodata_pixels": 30916,
+        "role": "mndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9968,
+        "usable_pixels": 15323080
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2022,
+        "excluded_pixels": 12,
+        "input_valid_pixels": 15323080,
+        "nodata_pixels": 30916,
+        "role": "ndbi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9968,
+        "usable_pixels": 15323068
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2022,
+        "excluded_pixels": 12,
+        "input_valid_pixels": 15323080,
+        "nodata_pixels": 30916,
+        "role": "ndvi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9968,
+        "usable_pixels": 15323068
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2022,
+        "excluded_pixels": 12,
+        "input_valid_pixels": 15323080,
+        "nodata_pixels": 30916,
+        "role": "ndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9968,
+        "usable_pixels": 15323068
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2024,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15257709,
+        "nodata_pixels": 96287,
+        "role": "bsi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9656,
+        "usable_pixels": 15257709
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2024,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15257709,
+        "nodata_pixels": 96287,
+        "role": "mndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9656,
+        "usable_pixels": 15257709
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2024,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15257709,
+        "nodata_pixels": 96287,
+        "role": "ndbi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9656,
+        "usable_pixels": 15257709
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2024,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15257709,
+        "nodata_pixels": 96287,
+        "role": "ndvi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9656,
+        "usable_pixels": 15257709
+      },
+      {
+        "candidate_pixels": 15353996,
+        "cells_without_usable": 3,
+        "epoch": 2024,
+        "excluded_pixels": 0,
+        "input_valid_pixels": 15257709,
+        "nodata_pixels": 96287,
+        "role": "ndwi",
+        "usable_fraction_median": 1.0,
+        "usable_fraction_p05": 0.9656,
+        "usable_pixels": 15257709
+      }
+    ],
+    "satellite_rows": 25484,
+    "status": "provisional_pending_support_policy_review",
+    "support_policy_status": "pending_user_approval",
+    "terrain": {
+      "cells_without_elevation": 15,
+      "elevation_max_m": 498.1053587969612,
+      "elevation_min_m": 0.0,
+      "slope_max_degrees": 33.01688773332253,
+      "slope_min_degrees": 0.0
+    },
+    "terrain_rows": 6371
+  },
+  "source_count": 24,
+  "source_hashes_verified": 24,
+  "status": "provisional_pending_support_policy_review"
+}

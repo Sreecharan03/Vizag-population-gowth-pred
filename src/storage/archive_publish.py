@@ -85,7 +85,8 @@ def _put_and_verify(client, bucket, key, body, contract):
     response = client.put_object(
         Bucket=bucket, Key=key, Body=body,
         Metadata={"sha256": digest, "contract-version": contract},
-        ContentType=("image/png" if key.endswith(".png") else
+        ContentType=("application/geo+json" if key.endswith(".geojson") else
+                     "image/png" if key.endswith(".png") else
                      "text/csv; charset=utf-8" if key.endswith(".csv") else
                      "application/json" if key.endswith(".json") else
                      "text/markdown; charset=utf-8" if key.endswith(".md") else "text/yaml; charset=utf-8"),

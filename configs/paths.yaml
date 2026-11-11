@@ -20,6 +20,9 @@ configs:
   archive_publication: configs/archive_publication.yaml
   gate_review: configs/gate_review.yaml
   feature_aggregation: configs/feature_aggregation.yaml
+  grid_build: configs/grid_build.yaml
+  feature_preflight: configs/feature_preflight.yaml
+  dem_validation: configs/dem_validation.yaml
 
 data:
   root: data
@@ -45,6 +48,8 @@ models: models
 predictions: predictions
 results: results
 phase3_gate_review: results/phase3
+phase4_grid_review: results/phase4/grid/contract-4.1.0
+phase4_feature_review: results/phase4/features/contract-4.2.0
 logs: logs
 
 docs:

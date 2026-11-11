@@ -1,0 +1,27 @@
+# Approved Part 4.2a metadata-only source preflight, 2026-11-11.
+contract_version: "4.2.0"
+maximum_payload_bytes: 65536
+maximum_local_output_bytes: 262144
+grid_manifest:
+  key: vizag-geoai/v2/manifests/analysis_grid_manifest.contract-4.1.0.json
+  version_id: 4_z2250dbc1f968e033a7050713_f107668eb973be40c_d20261111_m115846_c005_v0501044_t0007_u01794398326723
+  bytes: 1591
+  sha256: e91a5e855a61b14c3d6a51affce5f908d2afc0a1df7252c84fa3816b57057ccd
+index_manifest:
+  key: vizag-geoai/v2/manifests/indices_manifest.contract-3.6.0.jsonl
+  version_id: 4_z2250dbc1f968e033a7050713_f106f523b12a40a6e_d20261110_m043035_c005_v0501017_t0048_u01794285035687
+  bytes: 17788
+  sha256: 4fb908c22737c7fc8de60f6ac4a36a5522d3d1e538b1bc330e8b4bb951dd0fcb
+boundary:
+  key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+  bytes: 32768
+  sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+dem_sources:
+  - key: vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E082_00_DEM.tif
+    expected_bytes: 37750448
+  - key: vizag-geoai/data/raw/dem/Copernicus_DSM_COG_10_N17_00_E083_00_DEM.tif
+    expected_bytes: 8632381
+local_outputs:
+  json: source_preflight.json
+  markdown: source_preflight.md

@@ -1,0 +1,29 @@
+# Part 4.1 exact workload approved 2026-11-10; geometry only.
+contract_version: "4.1.0"
+approval_status: approved
+metric_crs: EPSG:32644
+interchange_crs: EPSG:4326
+anchor_m: [0, 0]
+maximum_candidates: 12862
+area_tolerance_m2: 0.0001
+roundtrip_tolerance_m: 0.001
+source:
+  key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+  bytes: 32768
+  sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+outputs:
+  analysis_grid.geojson: vizag-geoai/v2/derived/grid/contract-4.1.0/analysis_grid.geojson
+  grid_validation.json: vizag-geoai/v2/results/phase4/grid/contract-4.1.0/grid_validation.json
+  grid_preview.png: vizag-geoai/v2/results/phase4/grid/contract-4.1.0/grid_preview.png
+  analysis_grid_manifest.contract-4.1.0.json: vizag-geoai/v2/manifests/analysis_grid_manifest.contract-4.1.0.json
+file_caps:
+  analysis_grid.geojson: 8388608
+  grid_validation.json: 524288
+  grid_preview.png: 3145728
+  analysis_grid_manifest.contract-4.1.0.json: 262144
+maximum_new_bytes: 12582912
+maximum_output_transfer_bytes: 37748736
+reservation_name: vizag-phase4-grid-4-1-0
+reservation_key: grid
+local_receipt_name: grid_receipt.json

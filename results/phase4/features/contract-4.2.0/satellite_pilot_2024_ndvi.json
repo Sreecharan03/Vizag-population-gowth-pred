@@ -1,0 +1,187 @@
+{
+  "b2_writes": 0,
+  "candidate_pixels": 15353996,
+  "cells_with_usable_pixels": 6368,
+  "cells_without_usable_pixels": 3,
+  "contract_version": "4.2.0-pilot-v1",
+  "epoch": 2024,
+  "filtered_mean_distribution": {
+    "max": 0.807501254606247,
+    "median": 0.41699364518933,
+    "min": -0.3708984282016754,
+    "p05": -0.14241063631625353,
+    "p25": 0.1540473868313071,
+    "p75": 0.5149983543485404,
+    "p95": 0.7116368440332801
+  },
+  "full_aggregation_started": false,
+  "grid_cells": 6371,
+  "input_bytes": 68049624,
+  "input_valid_pixels": 15257709,
+  "lowest_support_cells": [
+    {
+      "aoi_pixel_count": 0,
+      "grid_id": "EPSG32644_E1468_N3956",
+      "usable_fraction": 0.0,
+      "usable_pixel_count": 0
+    },
+    {
+      "aoi_pixel_count": 0,
+      "grid_id": "EPSG32644_E1526_N3972",
+      "usable_fraction": 0.0,
+      "usable_pixel_count": 0
+    },
+    {
+      "aoi_pixel_count": 0,
+      "grid_id": "EPSG32644_E1528_N3967",
+      "usable_fraction": 0.0,
+      "usable_pixel_count": 0
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1481_N3913",
+      "usable_fraction": 0.5824,
+      "usable_pixel_count": 1456
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1471_N3898",
+      "usable_fraction": 0.6096,
+      "usable_pixel_count": 1524
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1473_N3930",
+      "usable_fraction": 0.6224,
+      "usable_pixel_count": 1556
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1471_N3897",
+      "usable_fraction": 0.6252,
+      "usable_pixel_count": 1563
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1520_N3962",
+      "usable_fraction": 0.6568,
+      "usable_pixel_count": 1642
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1471_N3905",
+      "usable_fraction": 0.6752,
+      "usable_pixel_count": 1688
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1482_N3913",
+      "usable_fraction": 0.6784,
+      "usable_pixel_count": 1696
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1476_N3907",
+      "usable_fraction": 0.6796,
+      "usable_pixel_count": 1699
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1519_N3963",
+      "usable_fraction": 0.6808,
+      "usable_pixel_count": 1702
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1481_N3917",
+      "usable_fraction": 0.6816,
+      "usable_pixel_count": 1704
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1472_N3901",
+      "usable_fraction": 0.6864,
+      "usable_pixel_count": 1716
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1468_N3895",
+      "usable_fraction": 0.688,
+      "usable_pixel_count": 1720
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1483_N3913",
+      "usable_fraction": 0.7008,
+      "usable_pixel_count": 1752
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1501_N3931",
+      "usable_fraction": 0.7084,
+      "usable_pixel_count": 1771
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1475_N3903",
+      "usable_fraction": 0.7088,
+      "usable_pixel_count": 1772
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1466_N3901",
+      "usable_fraction": 0.7144,
+      "usable_pixel_count": 1786
+    },
+    {
+      "aoi_pixel_count": 2500,
+      "grid_id": "EPSG32644_E1468_N3896",
+      "usable_fraction": 0.7216,
+      "usable_pixel_count": 1804
+    }
+  ],
+  "nodata_pixels": 96287,
+  "out_of_range_excluded_pixels": 0,
+  "part": "4.2b-pilot",
+  "raster": {
+    "bounds": [
+      706610.0,
+      1936220.0,
+      765270.0,
+      1990390.0
+    ],
+    "crs": "EPSG:32644",
+    "dtype": "float32",
+    "height": 5417,
+    "nodata": -9999.0,
+    "transform": [
+      10.0,
+      0.0,
+      706610.0,
+      0.0,
+      -10.0,
+      1990390.0
+    ],
+    "width": 5866
+  },
+  "remote_python": "3.12.10",
+  "role": "ndvi",
+  "source_hashes": {
+    "boundary": "afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49",
+    "grid": "e5739a996f51cabe0edbb976390bd0070cd2e0e333d90b1652847a0b6e4d2f8f",
+    "index": "b167b67822fe4eac9a1e79fc0ee56eafdf4cdeb41fdc9d4e96ef8608859d954f"
+  },
+  "status": "pilot_passed_pending_support_policy_review",
+  "support_policy_status": "pending_user_approval",
+  "unique_grid_ids": 6371,
+  "usable_fraction_distribution": {
+    "max": 1.0,
+    "median": 1.0,
+    "min": 0.0,
+    "p05": 0.9656,
+    "p25": 1.0,
+    "p75": 1.0,
+    "p95": 1.0
+  },
+  "usable_pixels": 15257709
+}

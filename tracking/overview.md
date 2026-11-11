@@ -6,15 +6,17 @@ it so a new session gets oriented fast.
 
 ## What this project is
 
-**Checkpoint reviewed 2026-11-10:** Parts 3.0–3.7 are complete. Four epoch composites/count pairs and
+**Checkpoint reviewed 2026-11-11:** Parts 3.0–3.7 and Parts 4.1-4.2 are complete. Four epoch composites/count pairs and
 20 spectral-index COGs passed independent B2 byte/COG/pixel auditing. Part 3.7 archived 16 approved
-snapshots plus a verified completion manifest (164,253 bytes); 357 regression tests pass.
+snapshots plus a verified completion manifest (164,253 bytes); 367 regression tests pass.
 The separately approved gate-review workload produced four figures and native diagnostics;
 eight artifacts were verified and originals remain unchanged. The user approved the Phase 3
 gate and affected-index-only exclusion of flagged outliers for future feature means. Part 4.1
-grid workload awaits exact approval; model-ready support thresholds, dated contextual inputs,
+created 6,371 validated 500 m cells and the user approved its preview. Part 4.2 added verified
+four-epoch satellite-index, elevation and slope features; >=50% support per required index/epoch
+plus valid terrain is approved, retaining 6,355 eligible cells while preserving every QC row. Dated contextual inputs,
 labels, independent evaluation and the forecast horizon remain explicit quality checkpoints.
-Research grid features, labels, trained models, SHAP and infrastructure-pressure outputs remain
+Population/OSM features, labels, trained models, SHAP and infrastructure-pressure outputs remain
 planned. A separate public dashboard demonstrates real geography with fictional analytics.
 
 Explainable multimodal GeoAI system for Visakhapatnam (Vizag), India, that predicts urban expansion and
