@@ -23,6 +23,13 @@ configs:
   grid_build: configs/grid_build.yaml
   feature_preflight: configs/feature_preflight.yaml
   dem_validation: configs/dem_validation.yaml
+  context_preflight: configs/context_preflight.yaml
+  context_validation: configs/context_validation.yaml
+  worldpop_acquisition: configs/worldpop_acquisition.yaml
+  worldpop_batch: configs/worldpop_batch.yaml
+  osm_history_probe: configs/osm_history_probe.yaml
+  osm_history_batch: configs/osm_history_batch.yaml
+  context_aggregation: configs/context_aggregation.yaml
 
 data:
   root: data
@@ -50,6 +57,7 @@ results: results
 phase3_gate_review: results/phase3
 phase4_grid_review: results/phase4/grid/contract-4.1.0
 phase4_feature_review: results/phase4/features/contract-4.2.0
+phase4_context_review: results/phase4/context/contract-4.3.0
 logs: logs
 
 docs:

@@ -1,0 +1,110 @@
+{
+  "aggregation_started": false,
+  "b2_writes": 0,
+  "contract_version": "4.3.0",
+  "known_payload_bytes": 36612590,
+  "metadata_only": true,
+  "object_count": 8,
+  "part": "4.3a",
+  "payload_bytes_read": 0,
+  "remote_python": "3.12.10",
+  "sources": [
+    {
+      "bytes": 741928,
+      "etag": "2a51032701997958db1f3d7082ea4ba8",
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2018/worldpop_2018.tif",
+      "last_modified": "2026-09-28T05:31:59+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f94828115f6_d20260928_m053159_c005_v0501048_t0044_u01790573519555"
+    },
+    {
+      "bytes": 739457,
+      "etag": "1790225746825e88de0ca58415897717",
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2020/worldpop_2020.tif",
+      "last_modified": "2026-09-28T05:31:59+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f9482811602_d20260928_m053159_c005_v0501048_t0027_u01790573519628"
+    },
+    {
+      "bytes": 739457,
+      "etag": "1790225746825e88de0ca58415897717",
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2022/worldpop_2022.tif",
+      "last_modified": "2026-09-28T05:31:59+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f948281160a_d20260928_m053159_c005_v0501048_t0020_u01790573519695"
+    },
+    {
+      "bytes": 739457,
+      "etag": "1790225746825e88de0ca58415897717",
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2024/worldpop_2024.tif",
+      "last_modified": "2026-09-28T05:31:59+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f948281160e_d20260928_m053159_c005_v0501048_t0027_u01790573519739"
+    },
+    {
+      "bytes": 30527488,
+      "etag": "1abeaaaccc08b1d7af1f6b45151d6167-4",
+      "key": "vizag-geoai/data/raw/osm/roads.gpkg",
+      "last_modified": "2026-10-10T19:16:38+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f20003e0a3b07d0e2_d20261010_m191638_c005_v0501043_t0007_u01791659798271"
+    },
+    {
+      "bytes": 307200,
+      "etag": "ea8a0ef66fb22ba5f96cd2c1d05b444e",
+      "key": "vizag-geoai/data/raw/osm/amenities.gpkg",
+      "last_modified": "2026-10-10T19:16:38+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": null,
+      "version_id": "4_z2250dbc1f968e033a7050713_f1119c10bd362886c_d20261010_m191638_c005_v0501051_t0005_u01791659798967"
+    },
+    {
+      "bytes": 1591,
+      "etag": "c858291ebf6b0cb1375970d6a5f5ffbb",
+      "key": "vizag-geoai/v2/manifests/analysis_grid_manifest.contract-4.1.0.json",
+      "last_modified": "2026-11-11T11:58:46+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": "e91a5e855a61b14c3d6a51affce5f908d2afc0a1df7252c84fa3816b57057ccd",
+      "version_id": "4_z2250dbc1f968e033a7050713_f107668eb973be40c_d20261111_m115846_c005_v0501044_t0007_u01794398326723"
+    },
+    {
+      "bytes": 2816012,
+      "etag": "9384d274a46e9494537360285dab0e8f",
+      "key": "vizag-geoai/v2/derived/grid/contract-4.1.0/analysis_grid.geojson",
+      "last_modified": "2026-11-11T11:58:45+00:00",
+      "payload_validation_required": true,
+      "sha256_metadata": "e5739a996f51cabe0edbb976390bd0070cd2e0e333d90b1652847a0b6e4d2f8f",
+      "version_id": "4_z2250dbc1f968e033a7050713_f10475e8a42d77e32_d20261111_m115845_c005_v0501051_t0054_u01794398325165"
+    }
+  ],
+  "status": "preflight_complete_payload_and_temporal_gates_pending",
+  "temporal_assessment": {
+    "osm": {
+      "future_relative_to_epochs": [
+        2018,
+        2020,
+        2022,
+        2024
+      ],
+      "may_aggregate_as_dated_context_evidence": true,
+      "may_use_as_2018_2024_predictor": false,
+      "snapshot_date": "2026-10-10",
+      "status": "blocked_for_historical_training_without_historical_snapshots"
+    },
+    "worldpop": {
+      "allowed_mapping": {
+        "2018": 2018,
+        "2020": 2020,
+        "2022": 2022,
+        "2024": 2024
+      },
+      "growth_rule": "only already-elapsed intervals; assertion required in Part 4.4",
+      "status": "year_matched_payload_provenance_pending"
+    }
+  }
+}

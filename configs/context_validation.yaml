@@ -1,0 +1,36 @@
+# Part 4.3b exact-version payload/schema/scientific gate. Read-only.
+contract_version: "4.3.0-context-gate-v1"
+maximum_input_bytes: 33794987
+maximum_local_output_bytes: 524288
+expected_worldpop_years: [2018, 2020, 2022, 2024]
+expected_worldpop_band_count: 1
+osm_snapshot_date: "2026-10-10"
+worldpop:
+  - year: 2018
+    key: vizag-geoai/data/raw/worldpop/clipped/2018/worldpop_2018.tif
+    version_id: 4_z2250dbc1f968e033a7050713_f105b5f94828115f6_d20260928_m053159_c005_v0501048_t0044_u01790573519555
+    bytes: 741928
+  - year: 2020
+    key: vizag-geoai/data/raw/worldpop/clipped/2020/worldpop_2020.tif
+    version_id: 4_z2250dbc1f968e033a7050713_f105b5f9482811602_d20260928_m053159_c005_v0501048_t0027_u01790573519628
+    bytes: 739457
+  - year: 2022
+    key: vizag-geoai/data/raw/worldpop/clipped/2022/worldpop_2022.tif
+    version_id: 4_z2250dbc1f968e033a7050713_f105b5f948281160a_d20260928_m053159_c005_v0501048_t0020_u01790573519695
+    bytes: 739457
+  - year: 2024
+    key: vizag-geoai/data/raw/worldpop/clipped/2024/worldpop_2024.tif
+    version_id: 4_z2250dbc1f968e033a7050713_f105b5f948281160e_d20260928_m053159_c005_v0501048_t0027_u01790573519739
+    bytes: 739457
+osm:
+  - role: roads
+    key: vizag-geoai/data/raw/osm/roads.gpkg
+    version_id: 4_z2250dbc1f968e033a7050713_f20003e0a3b07d0e2_d20261010_m191638_c005_v0501043_t0007_u01791659798271
+    bytes: 30527488
+  - role: amenities
+    key: vizag-geoai/data/raw/osm/amenities.gpkg
+    version_id: 4_z2250dbc1f968e033a7050713_f1119c10bd362886c_d20261010_m191638_c005_v0501051_t0005_u01791659798967
+    bytes: 307200
+local_outputs:
+  json: context_payload_validation.json
+  markdown: context_payload_validation.md

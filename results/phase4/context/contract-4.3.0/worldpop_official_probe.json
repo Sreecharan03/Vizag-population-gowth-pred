@@ -1,0 +1,72 @@
+{
+  "api_error": {
+    "body": {
+      "details": {
+        "value": 765261.8352807416
+      },
+      "error": "invalid_geometry",
+      "message": "Longitudes must be between -180 and 180 (got 765261.8353). Split shapes that cross longitude 180 into a MultiPolygon.",
+      "request_id": "ee777deb-b8b8-4523-ad31-ac31ab0640d0",
+      "timestamp": 1794466234.04077
+    },
+    "content_type": "application/json",
+    "request_id": "ee777deb-b8b8-4523-ad31-ac31ab0640d0",
+    "status_code": 422,
+    "year": 2018
+  },
+  "b2_writes": 0,
+  "boundary_sha256": "6c5226c1bbf857ec0c1d4091a5c594d5332419d96c606cf3eaaf9f576793c7cc",
+  "boundary_summary": {
+    "feature_count": 1,
+    "type": "FeatureCollection"
+  },
+  "contract_version": "4.3.0-worldpop-r2025a-v1",
+  "descriptions": [],
+  "legacy_objects_preserved": true,
+  "part": "4.3-worldpop-probe",
+  "payload_rasters_downloaded": 0,
+  "planned_output_prefix": "vizag-geoai/v2/raw/worldpop/global2-r2025a",
+  "remote_python": "3.12.10",
+  "source": {
+    "available_years": [
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+    ],
+    "citation": [
+      {
+        "dataset": "Population (total number of people per grid square)",
+        "doi": "10.5258/SOTON/WP00839",
+        "text": "Bondarenko M., Priyatikanto R., Tejedor-Garavito N., Zhang W., McKeen T., Cunningham A., Woods T., Hilton J., Cihan D., Nosatiuk B., Brinkhoff T., Tatem A., Sorichetta A.. 2025 Constrained estimates of 2015-2030 total number of people per grid square at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1. Global Demographic Data Project - Funded by The Bill and Melinda Gates Foundation (INV-045237). WorldPop - School of Geography and Environmental Science, University of Southampton. DOI:10.5258/SOTON/WP00839",
+        "url": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00839"
+      },
+      {
+        "dataset": "Age and sex (people per grid square by sex and age group)",
+        "doi": "10.5258/SOTON/WP00841",
+        "text": "Bondarenko M., Priyatikanto R., Tejedor-Garavito N., Zhang W., McKeen T., Cunningham A., Woods T., Hilton J., Cihan D., Nosatiuk B., Brinkhoff T., Tatem A., Sorichetta A.. 2025. Estimates of 2015-2030 total number of people per grid square broken down by gender and age groupings at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1. Global Demographic Data Project - Funded by The Bill and Melinda Gates Foundation (INV-045237). WorldPop - School of Geography and Environmental Science, University of Southampton. DOI:10.5258/SOTON/WP00841",
+        "url": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00841"
+      }
+    ],
+    "dataset": "WorldPop Global2",
+    "licence": {
+      "name": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "release": "R2025A",
+    "resolution_m": 100
+  },
+  "status": "official_api_probe_rejected_download_not_started"
+}

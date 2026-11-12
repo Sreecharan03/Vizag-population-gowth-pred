@@ -1,0 +1,25 @@
+contract_version: "4.3.0-osm-history-v1"
+api_root: https://api.heigit.org/ohsome-api/v2
+extraction_endpoint: extraction/features.parquet
+maximum_pilot_bytes: 67108864
+maximum_total_download_bytes: 268435456
+maximum_local_receipt_bytes: 1048576
+reservation_name: vizag-phase4-osm-history
+reservation_key: contract-4.3.0-osm-history-v1
+boundary:
+  key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+  bytes: 32768
+  sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+snapshots:
+  - {year: 2018, timestamp: "2018-12-31T23:59:59Z", feature_class: roads, filter: "highway=* and geometry:line", expected_rows: 8520}
+  - {year: 2018, timestamp: "2018-12-31T23:59:59Z", feature_class: amenities, filter: "amenity=*", expected_rows: 421}
+  - {year: 2020, timestamp: "2020-12-31T23:59:59Z", feature_class: roads, filter: "highway=* and geometry:line", expected_rows: 25042}
+  - {year: 2020, timestamp: "2020-12-31T23:59:59Z", feature_class: amenities, filter: "amenity=*", expected_rows: 837}
+  - {year: 2022, timestamp: "2022-12-31T23:59:59Z", feature_class: roads, filter: "highway=* and geometry:line", expected_rows: 27879}
+  - {year: 2022, timestamp: "2022-12-31T23:59:59Z", feature_class: amenities, filter: "amenity=*", expected_rows: 933}
+  - {year: 2024, timestamp: "2024-12-31T23:59:59Z", feature_class: roads, filter: "highway=* and geometry:line", expected_rows: 34472}
+  - {year: 2024, timestamp: "2024-12-31T23:59:59Z", feature_class: amenities, filter: "amenity=*", expected_rows: 1970}
+output_prefix: vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0
+manifest_key: vizag-geoai/v2/manifests/osm_history_manifest.contract-4.3.0.json
+local_receipt: osm_history_acquisition_receipt.json

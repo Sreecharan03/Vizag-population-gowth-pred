@@ -1,0 +1,74 @@
+{
+  "b2_writes": 5,
+  "contract_version": "4.3.0-worldpop-r2025a-v1",
+  "dataset": "WorldPop Global2",
+  "doi": "10.5258/SOTON/WP00839",
+  "licence": "CC BY 4.0",
+  "manifest": {
+    "bytes": 3054,
+    "key": "vizag-geoai/v2/manifests/worldpop_global2_r2025a.contract-4.3.0.json",
+    "sha256": "d5e3b6660cb4849fcb4ecbb11b437e0c4df0269d56116c83effaa3e8ba9f79c1",
+    "version_id": "4_z2250dbc1f968e033a7050713_f108795e99ec7d9f3_d20261112_m070346_c005_v0501017_t0010_u01794467026741"
+  },
+  "outputs": [
+    {
+      "bytes": 385336,
+      "key": "vizag-geoai/v2/raw/worldpop/global2-r2025a/2018/worldpop_2018_100m.tif",
+      "pixel_sha256": "0f53200b374563ff52e9e0b8dccb8625146b8d5a818d5f22a6448c105294eb3c",
+      "sha256": "ac44e7ade78f603e4eeba6dcff2fc8d0b35fca05589f47f8e27dbe73a305f541",
+      "total_population": 2607578.676989984,
+      "version_id": "4_z2250dbc1f968e033a7050713_f11247096bdf2ba23_d20261112_m070342_c005_v0501010_t0040_u01794467022678",
+      "year": 2018
+    },
+    {
+      "bytes": 391310,
+      "key": "vizag-geoai/v2/raw/worldpop/global2-r2025a/2020/worldpop_2020_100m.tif",
+      "pixel_sha256": "8dc8f5551de090496c01cb3939f270b507ae8f0b3310860c6a5b5f0b0c4f6817",
+      "sha256": "93a473f1d80054ea5291f34180bff5ada95cde26340b82dccdbae23b203312ed",
+      "total_population": 2643156.7030503564,
+      "version_id": "4_z2250dbc1f968e033a7050713_f116b7d171c3a6f7c_d20261112_m070344_c005_v0501051_t0024_u01794467024633",
+      "year": 2020
+    },
+    {
+      "bytes": 391075,
+      "key": "vizag-geoai/v2/raw/worldpop/global2-r2025a/2022/worldpop_2022_100m.tif",
+      "pixel_sha256": "75c1a625e642221d7c322dad81d38d5df99445c0504a1328aae7c4cf0cbbc9a3",
+      "sha256": "fee2cb8c3f628ed198f92f750b473223d2394357528e0ff1ac5c90154b5af6ad",
+      "total_population": 2671681.60898643,
+      "version_id": "4_z2250dbc1f968e033a7050713_f1110570cf215c5ce_d20261112_m070345_c005_v0501024_t0044_u01794467025652",
+      "year": 2022
+    },
+    {
+      "bytes": 392282,
+      "key": "vizag-geoai/v2/raw/worldpop/global2-r2025a/2024/worldpop_2024_100m.tif",
+      "pixel_sha256": "6b361a2008fe32ebc8ca3993b78b7763352a80a87402b7ede575099e8bf2135f",
+      "sha256": "198b6ecfb2fb622211bbba60733062d20312b9f1bcd685ac8fc874cfdcb5a8b9",
+      "total_population": 2702184.7580555677,
+      "version_id": "4_z2250dbc1f968e033a7050713_f1189b0e399c9ed66_d20261112_m070346_c005_v0501046_t0023_u01794467026195",
+      "year": 2024
+    }
+  ],
+  "provenance": {
+    "api": "https://api.worldpop.org/v3/raster",
+    "boundary_source": {
+      "bytes": 32768,
+      "key": "vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson",
+      "sha256": "afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49",
+      "version_id": "4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534"
+    },
+    "remote_python": "3.12.10",
+    "request_boundary_sha256": "e061a6c52bc827bda799e2990099c6a78bc1ac6f7180029765a1e98952031096",
+    "request_ids": {
+      "2018": "1440e51d-0d20-4890-a3dc-834cc5071b9f",
+      "2020": "2db6d37b-4321-4f84-a8f7-cd52f692bc5f",
+      "2022": "41bb6596-9670-4083-a241-6bf3697844c9",
+      "2024": "3481014a-54b0-47f1-b96b-9c6ea60d1247"
+    },
+    "request_layer": "population",
+    "request_resolution": "100m",
+    "retrieved_at": "2026-11-12T07:03:41.992684+00:00"
+  },
+  "release": "R2025A",
+  "remote_python": "3.12.10",
+  "status": "complete"
+}

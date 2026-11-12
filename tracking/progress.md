@@ -116,6 +116,13 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
   review `ap-wKjNJgIpGetKO9w1nqLs01` revalidated all outputs and the support map. Approved
   eligibility is >=50% usable support for every required index/epoch plus valid elevation/slope,
   retaining 6,355 cells across all epochs while preserving every evidence row.
+- **Part 4.3 complete (2026-11-12):** official WorldPop Global2 R2025A rasters and authentic
+  ohsome API v2 historical OSM snapshots were acquired for 2018/2020/2022/2024. Final Modal
+  aggregation `ap-jA33oh65sIRu9Q8hSSTujJ` produced 25,484 unique rows for all 6,371 cells and four
+  epochs with no missing, non-finite or negative metrics. Contract 4.3.1 supersedes the preserved
+  4.3.0 table after review replaced unstable tiny-edge road-density denominators with the fixed
+  0.25 km² analysis-cell denominator and retained `aoi_fraction`. Full regression: 402 passed,
+  one existing warning.
 - **Part 3.3.1 validation history (2026-11-04):** accuracy-first float32 reflectance plus separate SCL
   COG design approved. Complete read-only Modal metadata/header scan passed for all 32 scenes and 224
   required assets. Baselines are 04.00/05.00/05.10; every required offset mapping and frozen grid invariant

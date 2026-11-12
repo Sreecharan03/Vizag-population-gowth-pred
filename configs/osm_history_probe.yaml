@@ -1,0 +1,25 @@
+contract_version: "4.3.0-osm-history-probe-v1"
+api_root: https://api.heigit.org/ohsome-api/v2
+endpoint: /stats/features/count.json
+extraction_endpoint: extraction/features.parquet
+timeout_seconds: 180
+maximum_response_bytes: 1048576
+maximum_local_output_bytes: 2097152
+maximum_pilot_bytes: 67108864
+timestamps:
+  - "2018-12-31T23:59:59Z"
+  - "2020-12-31T23:59:59Z"
+  - "2022-12-31T23:59:59Z"
+  - "2024-12-31T23:59:59Z"
+filters:
+  roads: "highway=* and geometry:line"
+  amenities: "amenity=*"
+boundary:
+  key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+  bytes: 32768
+  sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+local_outputs:
+  json: osm_history_probe.json
+  markdown: osm_history_probe.md
+pilot_output: osm_history_2018_roads_pilot.json

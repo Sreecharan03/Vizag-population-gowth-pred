@@ -1,0 +1,42 @@
+contract_version: "4.3.0-worldpop-r2025a-v1"
+dataset: WorldPop Global2
+release: R2025A
+doi: 10.5258/SOTON/WP00839
+licence: CC BY 4.0
+raster_url: https://api.worldpop.org/v3/raster
+request_resolution: 100m
+request_layer: population
+timeout_seconds: 180
+maximum_single_raster_bytes: 16777216
+maximum_total_download_bytes: 67108864
+maximum_local_receipt_bytes: 524288
+reservation_name: vizag-phase4-worldpop-r2025a
+reservation_key: contract-4.3.0-worldpop-r2025a-v1
+boundary:
+  key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+  bytes: 32768
+  sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+expected:
+  width: 668
+  height: 583
+  crs: EPSG:4326
+  nodata: -99999.0
+  bounds: [82.947498948, 17.500833599, 83.504165613, 17.986666931]
+  bounds_tolerance_degrees: 0.00000001
+  years:
+    - year: 2018
+      total_population: 2607578.68
+    - year: 2020
+      total_population: 2643156.70
+    - year: 2022
+      total_population: 2671681.61
+    - year: 2024
+      total_population: 2702184.76
+outputs:
+  2018: vizag-geoai/v2/raw/worldpop/global2-r2025a/2018/worldpop_2018_100m.tif
+  2020: vizag-geoai/v2/raw/worldpop/global2-r2025a/2020/worldpop_2020_100m.tif
+  2022: vizag-geoai/v2/raw/worldpop/global2-r2025a/2022/worldpop_2022_100m.tif
+  2024: vizag-geoai/v2/raw/worldpop/global2-r2025a/2024/worldpop_2024_100m.tif
+manifest_key: vizag-geoai/v2/manifests/worldpop_global2_r2025a.contract-4.3.0.json
+local_receipt: worldpop_acquisition_receipt.json

@@ -1,0 +1,160 @@
+{
+  "api_error": null,
+  "b2_writes": 0,
+  "boundary_sha256": "e061a6c52bc827bda799e2990099c6a78bc1ac6f7180029765a1e98952031096",
+  "boundary_summary": null,
+  "contract_version": "4.3.0-worldpop-r2025a-probe-v2",
+  "descriptions": [
+    {
+      "description": {
+        "area_km2": 1534.4935,
+        "bands": [
+          "population"
+        ],
+        "bounds": [
+          82.947498948,
+          17.500833599,
+          83.504165613,
+          17.986666931
+        ],
+        "cells": 389444,
+        "data_year": 2018,
+        "filename": "worldpop_population_2018_100m_area.tif",
+        "height": 583,
+        "layer": "population",
+        "processing_time_ms": 77,
+        "resolution": "100m",
+        "total_population": 2607578.68,
+        "url": null,
+        "width": 668
+      },
+      "request_id": "5af00de9-a1bd-4ded-a112-2b418f617aa2",
+      "year": 2018
+    },
+    {
+      "description": {
+        "area_km2": 1534.4935,
+        "bands": [
+          "population"
+        ],
+        "bounds": [
+          82.947498948,
+          17.500833599,
+          83.504165613,
+          17.986666931
+        ],
+        "cells": 389444,
+        "data_year": 2020,
+        "filename": "worldpop_population_2020_100m_area.tif",
+        "height": 583,
+        "layer": "population",
+        "processing_time_ms": 72,
+        "resolution": "100m",
+        "total_population": 2643156.7,
+        "url": null,
+        "width": 668
+      },
+      "request_id": "585d5439-2afa-4dde-855a-3c3642bb43d7",
+      "year": 2020
+    },
+    {
+      "description": {
+        "area_km2": 1534.4935,
+        "bands": [
+          "population"
+        ],
+        "bounds": [
+          82.947498948,
+          17.500833599,
+          83.504165613,
+          17.986666931
+        ],
+        "cells": 389444,
+        "data_year": 2022,
+        "filename": "worldpop_population_2022_100m_area.tif",
+        "height": 583,
+        "layer": "population",
+        "processing_time_ms": 70,
+        "resolution": "100m",
+        "total_population": 2671681.61,
+        "url": null,
+        "width": 668
+      },
+      "request_id": "f70dafa8-2ed1-4e04-bf98-e12616c0beed",
+      "year": 2022
+    },
+    {
+      "description": {
+        "area_km2": 1534.4935,
+        "bands": [
+          "population"
+        ],
+        "bounds": [
+          82.947498948,
+          17.500833599,
+          83.504165613,
+          17.986666931
+        ],
+        "cells": 389444,
+        "data_year": 2024,
+        "filename": "worldpop_population_2024_100m_area.tif",
+        "height": 583,
+        "layer": "population",
+        "processing_time_ms": 63,
+        "resolution": "100m",
+        "total_population": 2702184.76,
+        "url": null,
+        "width": 668
+      },
+      "request_id": "57f8fb1a-55d4-475c-92d5-3ed819df85fa",
+      "year": 2024
+    }
+  ],
+  "legacy_objects_preserved": true,
+  "part": "4.3-worldpop-probe",
+  "payload_rasters_downloaded": 0,
+  "planned_output_prefix": "vizag-geoai/v2/raw/worldpop/global2-r2025a",
+  "remote_python": "3.12.10",
+  "source": {
+    "available_years": [
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+    ],
+    "citation": [
+      {
+        "dataset": "Population (total number of people per grid square)",
+        "doi": "10.5258/SOTON/WP00839",
+        "text": "Bondarenko M., Priyatikanto R., Tejedor-Garavito N., Zhang W., McKeen T., Cunningham A., Woods T., Hilton J., Cihan D., Nosatiuk B., Brinkhoff T., Tatem A., Sorichetta A.. 2025 Constrained estimates of 2015-2030 total number of people per grid square at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1. Global Demographic Data Project - Funded by The Bill and Melinda Gates Foundation (INV-045237). WorldPop - School of Geography and Environmental Science, University of Southampton. DOI:10.5258/SOTON/WP00839",
+        "url": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00839"
+      },
+      {
+        "dataset": "Age and sex (people per grid square by sex and age group)",
+        "doi": "10.5258/SOTON/WP00841",
+        "text": "Bondarenko M., Priyatikanto R., Tejedor-Garavito N., Zhang W., McKeen T., Cunningham A., Woods T., Hilton J., Cihan D., Nosatiuk B., Brinkhoff T., Tatem A., Sorichetta A.. 2025. Estimates of 2015-2030 total number of people per grid square broken down by gender and age groupings at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1. Global Demographic Data Project - Funded by The Bill and Melinda Gates Foundation (INV-045237). WorldPop - School of Geography and Environmental Science, University of Southampton. DOI:10.5258/SOTON/WP00841",
+        "url": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00841"
+      }
+    ],
+    "dataset": "WorldPop Global2",
+    "licence": {
+      "name": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "release": "R2025A",
+    "resolution_m": 100
+  },
+  "status": "official_api_probe_passed_download_not_started"
+}

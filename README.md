@@ -4,9 +4,9 @@
 A geospatial research pipeline for **Visakhapatnam, India**, designed to combine satellite
 observations, population, road accessibility and terrain for explainable urban-expansion modelling.
 
-**Current milestone:** Phase 3 and Phase 4 Parts 4.1-4.2 are complete. The fixed grid now has
-verified four-epoch satellite-index, elevation and slope features with an approved support policy.
-Population and OSM aggregation remain Part 4.3. The repository does not yet contain a trained prediction model. Feature engineering, labels,
+**Current milestone:** Phase 3 and Phase 4 Parts 4.1-4.3 are complete. The fixed grid now has
+verified four-epoch satellite-index, terrain, official WorldPop and historically dated OSM features.
+The repository does not yet contain a trained prediction model. Feature assembly, labels,
 model evaluation and infrastructure-pressure scenarios are the next research stages.
 
 [Public demo](https://vizag-growth-demo.mohan1401.chatgpt.site) ·
@@ -38,11 +38,11 @@ model evaluation and infrastructure-pressure scenarios are the next research sta
 
 ## Verified results
 
-Checkpoint: **11 November 2026**.
+Checkpoint: **12 November 2026**.
 
 | Measure | Verified result |
 |---|---|
-| Automated regression | **383 passed**, one existing warning; executed on Modal |
+| Automated regression | **402 passed**, one existing warning; executed on Modal |
 | Selected input scenes | **32**, eight per epoch: 2018, 2020, 2022, 2024 |
 | Scene products | 32 six-band reflectance stacks + 32 categorical SCL rasters |
 | Composite products | Four median composites + four valid-observation count rasters |
@@ -50,12 +50,13 @@ Checkpoint: **11 November 2026**.
 | Total production rasters | **92 COGs**, 13,419,102,871 bytes |
 | Analysis raster grid | 10 m, UTM zone 44N, EPSG:32644 |
 | Published archive | 16 frozen document/config snapshots + one completion manifest |
+| Context features | **25,484 rows**: 6,371 cells × 4 epochs, contract 4.3.1 |
 
 COG means Cloud Optimized GeoTIFF: a raster format supporting efficient partial reads.
 
 The latest recorded full-suite run is
-[available on Modal](https://modal.com/apps/sankar132095/main/ap-4TcjPhUUgw4Egcss0jMApg)
-(383 passed; one existing all-NaN synthetic-median warning).
+[available on Modal](https://modal.com/apps/sankar132095/main/ap-qM49ppnEZBbOXuah2lWjUF)
+(402 passed; one existing all-NaN synthetic-median warning).
 Automated tests validate implementation behaviour; separate real-data audits validate published
 outputs. Neither establishes prediction accuracy.
 
@@ -78,6 +79,8 @@ The implemented processing sequence is:
 7. Audit grids, formulas, hashes, coverage and anomalies; publish review evidence.
 8. Build and visually approve 6,371 stable 500 m analysis cells.
 9. Aggregate the five indices for four epochs plus elevation and slope, preserving per-cell support QC.
+10. Acquire one official WorldPop release and dated ohsome/OSM snapshots for every epoch.
+11. Aggregate population and infrastructure context into all 6,371 cells with exact-version provenance.
 
 See the [architecture and operational safeguards](tracking/architecture.md) for details.
 B2 publication protections depend on cooperative exclusive writers; ordinary object PUT is
@@ -92,8 +95,8 @@ around it. The buffered study area is larger than the administrative boundary.
 | Dataset | Role and current state |
 |---|---|
 | Sentinel-2 Level-2A | Four-epoch imagery; selected scenes processed through Phase 3 |
-| WorldPop | Acquired population inputs; temporal suitability and cell aggregation remain to be checked |
-| OpenStreetMap | Acquired roads and amenities; historical consistency must be checked before modelling |
+| WorldPop | Official Global2 R2025A, 100 m rasters for all four epochs; aggregated in Part 4.3 |
+| OpenStreetMap | ohsome API v2 historical roads and amenities for all four epochs; aggregated in Part 4.3 |
 | Copernicus GLO-30 DEM | Validated and aggregated to cell-level elevation and slope in Part 4.2 |
 | ESA WorldCover | Acquired land-cover input; suitability for label generation/cross-checking remains to be validated |
 
@@ -197,6 +200,7 @@ There is no production prediction CLI yet.
 | Satellite preprocessing, indices and archive | Phase 3 complete, gate-confirmed |
 | 500 m research grid | Part 4.1 complete and visually approved; 6,371 validated cells |
 | Cell-level satellite/terrain features | Part 4.2 complete; six outputs verified, 6,355 cells meet the approved support/terrain rule |
+| Cell-level population/infrastructure context | Part 4.3 complete; 25,484 validated cell-year rows under contract 4.3.1 |
 | Built-fraction change labels | Planned; data suitability and label validation required |
 | Logistic and tree-based baselines | Planned |
 | Temporal holdout, spatial robustness and calibration | Planned |
@@ -210,7 +214,7 @@ heuristic, not a measured infrastructure-capacity deficit.
 
 Phase 0 implementation is complete, with its historical formal gate still pending.
 The [quality plan](docs/phase-4-prediction-quality-plan.md) records the approved feature rule and
-the safeguards still required for later prediction work. Part 4.3 is the next planned unit; this
+the safeguards still required for later prediction work. Part 4.4 feature assembly is next; this
 README does not authorize further production processing.
 
 ## Documentation
@@ -218,6 +222,7 @@ README does not authorize further production processing.
 - [Authoritative build plan](plan.md) and [live progress](tracking/progress.md)
 - [Architecture and decisions](tracking/architecture.md)
 - [Read-strategy decision](docs/decisions/ADR-001-read-strategy.md)
+- [Part 4.3 completion and provenance](docs/phase-4.3-context-completion.md)
 - [Reviewed academic report — PDF](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.pdf)
 - [Editable academic report — Word](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.docx)
 - [Report scope and diagram notes](results/project_report/README.md)

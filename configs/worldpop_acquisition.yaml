@@ -1,0 +1,22 @@
+# Official WorldPop Global2 R2025A replacement contract. Existing legacy objects are immutable.
+contract_version: "4.3.0-worldpop-r2025a-probe-v2"
+catalog_url: https://api.worldpop.org/v3/catalog
+raster_url: https://api.worldpop.org/v3/raster
+expected_dataset: WorldPop Global2
+expected_release: R2025A
+expected_resolution_m: 100
+years: [2018, 2020, 2022, 2024]
+request_resolution: 100m
+request_layer: population
+timeout_seconds: 120
+boundary:
+  key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+  version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+  bytes: 32768
+  sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+maximum_probe_input_bytes: 32768
+maximum_probe_output_bytes: 524288
+output_prefix: vizag-geoai/v2/raw/worldpop/global2-r2025a
+local_probe_outputs:
+  json: worldpop_official_probe_wgs84.json
+  markdown: worldpop_official_probe_wgs84.md

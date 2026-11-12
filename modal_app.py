@@ -10,6 +10,7 @@ import modal
 
 APP_NAME = "vizag-geoai"
 B2_SECRET_NAME = "vizag-b2"
+OHSOME_SECRET_NAME = "vizag-ohsome"
 
 REMOTE_DEPENDENCIES = (
     "numpy>=2.0,<3.0", "pandas>=2.3,<3.0", "geopandas>=1.2,<2.0",
@@ -22,7 +23,7 @@ REMOTE_DEPENDENCIES = (
     "dask>=2026.1,<2027.0", "pyarrow>=26.0,<27.0",
     "rio-cogeo>=7.0,<8.0", "boto3>=1.43,<2.0",
     "python-dotenv>=1.0,<2.0", "mgrs>=1.5,<2.0",
-    "pytest>=8.0,<9.0", "pyyaml>=6.0,<7.0",
+    "pytest>=8.0,<9.0", "pyyaml>=6.0,<7.0", "requests>=2.32,<3.0",
 )
 
 image = (
@@ -40,6 +41,11 @@ b2_secret = modal.Secret.from_name(
     B2_SECRET_NAME,
     environment_name="main",
     required_keys=["B2_KEY_ID", "B2_APPLICATION_KEY"],
+)
+ohsome_secret = modal.Secret.from_name(
+    OHSOME_SECRET_NAME,
+    environment_name="main",
+    required_keys=["OHSOME_API_KEY"],
 )
 manifest_recovery_checkpoints = modal.Dict.from_name(
     "vizag-phase3-manifest-recovery-3-3-2", create_if_missing=True
@@ -3302,6 +3308,554 @@ def review_phase4_feature_aggregation_batch() -> dict:
     }}
 
 
+@app.function(secrets=[b2_secret], timeout=300, cpu=0.5, memory=1024,
+              max_containers=1, retries=0)
+def preflight_phase4_part3_sources() -> dict:
+    """Part 4.3a: pin context-source metadata and evaluate temporal eligibility."""
+    import json
+    import os
+    import platform
+
+    import boto3
+    from botocore.config import Config
+
+    from src.grid.context_preflight import build_report, pin_metadata, render_markdown
+    from src.utils.io import load_config
+
+    config, b2 = load_config("context_preflight"), load_config("b2")
+    specs = [*config["worldpop"], *config["osm"],
+             {"key": config["grid"]["manifest_key"],
+              "expected_bytes": config["grid"]["manifest_expected_bytes"]},
+             {"key": config["grid"]["data_key"],
+              "expected_bytes": config["grid"]["data_expected_bytes"]}]
+    if len(specs) != config["maximum_objects"] or config["maximum_payload_bytes"] != 0:
+        raise RuntimeError("Part 4.3a source count or zero-payload bound changed")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=45),
+    )
+
+    def reject_non_preflight_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject"}:
+            raise RuntimeError(f"Context preflight refused API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_preflight_api)
+    records = [pin_metadata(client, b2["bucket"], spec) for spec in specs]
+    report = build_report(config, records, platform.python_version())
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_local_output_bytes"]:
+        raise RuntimeError("Context preflight local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["local_outputs"]["json"]: json_body,
+        config["local_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret], timeout=900, cpu=2.0, memory=4096,
+              max_containers=1, retries=0)
+def validate_phase4_part3_context_payloads() -> dict:
+    """Part 4.3b: exact-version hash, schema and temporal-science gate."""
+    import json
+    import os
+    import platform
+    import tempfile
+    from pathlib import Path
+
+    import boto3
+    from botocore.config import Config
+
+    from src.grid.context_validation import (
+        build_report, download_and_hash, inspect_osm, inspect_worldpop, render_markdown,
+    )
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("context_validation"), load_config("b2")
+    specs = [*config["worldpop"], *config["osm"]]
+    if sum(int(item["bytes"]) for item in specs) != config["maximum_input_bytes"]:
+        raise RuntimeError("Context validation source bytes differ from approved bound")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=120),
+    )
+
+    def reject_non_validation_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject", "GetObject"}:
+            raise RuntimeError(f"Context validation refused API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_validation_api)
+    check_budget(config["maximum_input_bytes"])
+    staging = resolve_path("data.staging")
+    staging.mkdir(parents=True, exist_ok=True)
+    scratch = Path(tempfile.mkdtemp(prefix="context-4-3-gate-", dir=staging))
+    worldpop, osm = [], []
+    for position, spec in enumerate(config["worldpop"]):
+        path = scratch/f"worldpop-{spec['year']}.tif"
+        digest = download_and_hash(client, b2["bucket"], spec, path)
+        record = inspect_worldpop(path, spec, config)
+        record["payload_sha256"] = digest
+        worldpop.append(record)
+    for position, spec in enumerate(config["osm"]):
+        path = scratch/f"osm-{position}.gpkg"
+        digest = download_and_hash(client, b2["bucket"], spec, path)
+        record = inspect_osm(path, spec)
+        record["payload_sha256"] = digest
+        osm.append(record)
+    report = build_report(config, worldpop, osm)
+    report["remote_python"] = platform.python_version()
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_local_output_bytes"]:
+        raise RuntimeError("Context validation local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["local_outputs"]["json"]: json_body,
+        config["local_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret], timeout=600, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def probe_official_worldpop_replacements() -> dict:
+    """Probe one official WorldPop release for all four years; no raster download or write."""
+    import json
+    import os
+    import platform
+
+    import boto3
+    import requests
+    from botocore.config import Config
+
+    from src.grid.feature_preflight import read_pinned_small
+    from src.grid.worldpop_acquisition import (
+        build_probe_report, parse_boundary, probe_official_api, render_probe_markdown,
+    )
+    from src.utils.io import load_config
+
+    config, b2 = load_config("worldpop_acquisition"), load_config("b2")
+    if config["boundary"]["bytes"] != config["maximum_probe_input_bytes"]:
+        raise RuntimeError("WorldPop probe boundary byte bound changed")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=60),
+    )
+
+    def reject_non_probe_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "GetObject"}:
+            raise RuntimeError(f"WorldPop probe refused B2 API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_probe_api)
+    boundary_body = read_pinned_small(client, b2["bucket"], config["boundary"])
+    boundary = parse_boundary(boundary_body)
+    with requests.Session() as session:
+        api_result = probe_official_api(session, boundary, config)
+    report = build_probe_report(api_result, config, platform.python_version())
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_probe_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_probe_output_bytes"]:
+        raise RuntimeError("WorldPop probe local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["local_probe_outputs"]["json"]: json_body,
+        config["local_probe_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret], timeout=1200, cpu=2.0, memory=4096,
+              max_containers=1, retries=0)
+def acquire_official_worldpop_replacements() -> dict:
+    """Download, validate and create-only publish four official WorldPop rasters."""
+    import datetime
+    import hashlib
+    import json
+    import os
+    import platform
+    import tempfile
+    import uuid
+    from pathlib import Path
+
+    import boto3
+    import requests
+    from botocore.config import Config
+
+    from src.grid.feature_preflight import read_pinned_small
+    from src.grid.worldpop_acquisition import (
+        download_raster, inspect_official_raster, parse_boundary, publish_worldpop,
+        validate_raster_set,
+    )
+    from src.storage.archive_publish import require_new_keys
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("worldpop_batch"), load_config("b2")
+    output_keys = [*config["outputs"].values(), config["manifest_key"]]
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=120),
+    )
+
+    def reject_non_batch_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "GetObject", "PutObject"}:
+            raise RuntimeError(f"WorldPop batch refused B2 API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_batch_api)
+    require_new_keys(client, b2["bucket"], output_keys)
+    check_budget(config["maximum_total_download_bytes"] + config["boundary"]["bytes"])
+    ledger = modal.Dict.from_name(config["reservation_name"], create_if_missing=True)
+    run_id = uuid.uuid4().hex
+    existing = ledger.get(config["reservation_key"])
+    allowed_failure = (existing and existing.get("status") == "failed"
+                       and existing.get("error_type") == "KeyError"
+                       and existing.get("error") == "'2018'")
+    if existing and not allowed_failure:
+        raise RuntimeError("WorldPop acquisition reservation exists; inspect before any retry")
+    if allowed_failure:
+        ledger[config["reservation_key"]] = {
+            "status": "controlled_resume", "run_id": run_id,
+            "previous_run_id": existing.get("run_id"),
+            "previous_error_type": existing.get("error_type"),
+            "previous_error": existing.get("error"),
+        }
+    elif not ledger.put(config["reservation_key"], {"status": "reserved", "run_id": run_id},
+                        skip_if_exists=True):
+        raise RuntimeError("WorldPop acquisition reservation was concurrently created")
+
+    def checkpoint(status, **extra):
+        ledger[config["reservation_key"]] = {"status": status, "run_id": run_id, **extra}
+
+    try:
+        boundary_body = read_pinned_small(client, b2["bucket"], config["boundary"])
+        boundary = parse_boundary(boundary_body)
+        canonical_boundary_hash = hashlib.sha256(json.dumps(
+            boundary, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        staging = resolve_path("data.staging")
+        staging.mkdir(parents=True, exist_ok=True)
+        scratch = Path(tempfile.mkdtemp(prefix="worldpop-r2025a-", dir=staging))
+        records = []
+        with requests.Session() as session:
+            for expected in config["expected"]["years"]:
+                path = scratch/f"worldpop-{expected['year']}.tif"
+                transfer = download_raster(session, boundary, expected, config, path)
+                science = inspect_official_raster(path, expected, config)
+                if (transfer["header_total_population"] is not None
+                        and abs(transfer["header_total_population"]-science["total_population"])
+                            > max(1.0, science["total_population"]*1e-6)):
+                    raise RuntimeError(f"WorldPop response header total mismatch for {expected['year']}")
+                record = {**transfer, **science, "local_path": str(path)}
+                records.append(record)
+                if sum(item["bytes"] for item in records) > config["maximum_total_download_bytes"]:
+                    raise RuntimeError("WorldPop total download budget exceeded")
+                checkpoint("year_validated", completed_years=[item["year"] for item in records])
+        validate_raster_set(records, config)
+        provenance = {"retrieved_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                      "api": config["raster_url"], "boundary_source": config["boundary"],
+                      "request_boundary_sha256": canonical_boundary_hash,
+                      "request_resolution": config["request_resolution"],
+                      "request_layer": config["request_layer"],
+                      "request_ids": {str(item["year"]): item["request_id"] for item in records},
+                      "remote_python": platform.python_version()}
+        checkpoint("validated", total_bytes=sum(item["bytes"] for item in records))
+        result = publish_worldpop(client, b2["bucket"], records, config, provenance)
+        result["remote_python"] = platform.python_version()
+        checkpoint("complete", result=result)
+        return result
+    except Exception as exc:
+        checkpoint("failed", error_type=type(exc).__name__, error=str(exc))
+        raise
+
+
+@app.function(secrets=[b2_secret, ohsome_secret], timeout=600, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def probe_historical_osm() -> dict:
+    """Authenticate and count historical OSM features; no extraction or B2 write."""
+    import json
+    import os
+    import platform
+
+    import boto3
+    import requests
+    from botocore.config import Config
+
+    from src.grid.feature_preflight import read_pinned_small
+    from src.grid.osm_history import (
+        boundary_bbox, build_probe_report, probe_history, render_probe_markdown,
+    )
+    from src.grid.worldpop_acquisition import parse_boundary
+    from src.utils.io import load_config
+
+    config, b2 = load_config("osm_history_probe"), load_config("b2")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=60),
+    )
+
+    def reject_non_probe_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "GetObject"}:
+            raise RuntimeError(f"Historical OSM probe refused B2 API operation: {model.name}")
+
+    client.meta.events.register("before-call.s3.*", reject_non_probe_api)
+    boundary_body = read_pinned_small(client, b2["bucket"], config["boundary"])
+    boundary = parse_boundary(boundary_body)
+    bbox = boundary_bbox(boundary)
+    with requests.Session() as session:
+        records = probe_history(session, os.environ["OHSOME_API_KEY"], bbox, config)
+    report = build_probe_report(config, bbox, boundary, records, platform.python_version())
+    json_body = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    markdown_body = render_probe_markdown(report)
+    if len(json_body)+len(markdown_body) > config["maximum_local_output_bytes"]:
+        raise RuntimeError("Historical OSM probe local output budget exceeded")
+    return {**report, "local_payloads": {
+        config["local_outputs"]["json"]: json_body,
+        config["local_outputs"]["markdown"]: markdown_body,
+    }}
+
+
+@app.function(secrets=[b2_secret, ohsome_secret], timeout=600, cpu=2.0, memory=4096,
+              max_containers=1, retries=0)
+def pilot_historical_osm_extraction() -> dict:
+    """Download and inspect one historical road snapshot; no persistent write."""
+    import json
+    import os
+    import tempfile
+    from pathlib import Path
+
+    import boto3
+    import requests
+    from botocore.config import Config
+
+    from src.grid.feature_preflight import read_pinned_small
+    from src.grid.osm_history import boundary_bbox, download_snapshot, inspect_snapshot
+    from src.grid.worldpop_acquisition import parse_boundary
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("osm_history_probe"), load_config("b2")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"], aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=60),
+    )
+    def reject_non_probe_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "GetObject"}:
+            raise RuntimeError(f"Historical OSM pilot refused B2 API operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_non_probe_api)
+    boundary = parse_boundary(read_pinned_small(client, b2["bucket"], config["boundary"]))
+    staging = resolve_path("data.staging")
+    staging.mkdir(parents=True, exist_ok=True)
+    path = Path(tempfile.mkdtemp(prefix="osm-history-pilot-", dir=staging))/"roads-2018.parquet"
+    with requests.Session() as session:
+        transfer = download_snapshot(
+            session, os.environ["OHSOME_API_KEY"], boundary_bbox(boundary),
+            timestamp=config["timestamps"][0], osm_filter=config["filters"]["roads"],
+            config=config, destination=path,
+        )
+    science = inspect_snapshot(path, timestamp=config["timestamps"][0], expected_rows=8520)
+    return {"status": "pilot_passed", "b2_writes": 0, "payload_preserved": False,
+            "transfer": transfer, "science": science}
+
+
+@app.function(secrets=[b2_secret, ohsome_secret], timeout=1800, cpu=2.0, memory=4096,
+              max_containers=1, retries=0)
+def acquire_historical_osm_snapshots() -> dict:
+    """Download, validate and create-only publish eight historical OSM snapshots."""
+    import datetime
+    import os
+    import tempfile
+    import uuid
+    from pathlib import Path
+
+    import boto3
+    import requests
+    from botocore.config import Config
+
+    from src.grid.feature_preflight import read_pinned_small
+    from src.grid.osm_history import (
+        boundary_bbox, download_snapshot, inspect_snapshot, publish_snapshots, snapshot_key,
+    )
+    from src.grid.worldpop_acquisition import parse_boundary
+    from src.storage.archive_publish import require_new_keys
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("osm_history_batch"), load_config("b2")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"], aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=240),
+    )
+    def reject_non_batch_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "GetObject", "PutObject"}:
+            raise RuntimeError(f"Historical OSM batch refused B2 API operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_non_batch_api)
+    keys = [snapshot_key(config, spec) for spec in config["snapshots"]]
+    require_new_keys(client, b2["bucket"], [*keys, config["manifest_key"]])
+    check_budget(config["maximum_total_download_bytes"] + config["boundary"]["bytes"])
+    ledger = modal.Dict.from_name(config["reservation_name"], create_if_missing=True)
+    run_id = uuid.uuid4().hex
+    if not ledger.put(config["reservation_key"], {"status": "reserved", "run_id": run_id},
+                      skip_if_exists=True):
+        raise RuntimeError("Historical OSM acquisition reservation exists; inspect before retry")
+    def checkpoint(status, **extra):
+        ledger[config["reservation_key"]] = {"status": status, "run_id": run_id, **extra}
+    try:
+        boundary = parse_boundary(read_pinned_small(client, b2["bucket"], config["boundary"]))
+        bbox = boundary_bbox(boundary)
+        staging = resolve_path("data.staging")
+        staging.mkdir(parents=True, exist_ok=True)
+        scratch = Path(tempfile.mkdtemp(prefix="osm-history-batch-", dir=staging))
+        records = []
+        with requests.Session() as session:
+            for spec in config["snapshots"]:
+                path = scratch/f"{spec['feature_class']}-{spec['year']}.parquet"
+                transfer = download_snapshot(
+                    session, os.environ["OHSOME_API_KEY"], bbox,
+                    timestamp=spec["timestamp"], osm_filter=spec["filter"],
+                    config=config, destination=path,
+                )
+                science = inspect_snapshot(path, timestamp=spec["timestamp"],
+                                           expected_rows=spec["expected_rows"])
+                geometry_types = set(science["geometry_types"])
+                if (spec["feature_class"] == "roads"
+                        and not geometry_types.issubset({"LineString", "MultiLineString"})):
+                    raise RuntimeError(f"Historical roads contain non-linear geometry: {spec['year']}")
+                record = {**transfer, **science, "year": int(spec["year"]),
+                          "feature_class": spec["feature_class"], "filter": spec["filter"],
+                          "local_path": str(path)}
+                records.append(record)
+                total = sum(item["bytes"] for item in records)
+                if total > config["maximum_total_download_bytes"]:
+                    raise RuntimeError("Historical OSM batch exceeds total download cap")
+                checkpoint("snapshot_validated", completed=[
+                    [item["year"], item["feature_class"]] for item in records], total_bytes=total)
+        result = publish_snapshots(client, b2["bucket"], records, config, {
+            "api_root": config["api_root"], "retrieved_at": datetime.datetime.now(
+                datetime.timezone.utc).isoformat(), "boundary_source": config["boundary"],
+            "aoi_bbox": bbox,
+        })
+        checkpoint("complete", result=result)
+        return result
+    except Exception as exc:
+        checkpoint("failed", error_type=type(exc).__name__, error=str(exc))
+        raise
+
+
+@app.function(secrets=[b2_secret], timeout=1800, cpu=4.0, memory=8192,
+              max_containers=1, retries=0)
+def aggregate_phase4_context_features() -> dict:
+    """Aggregate validated WorldPop and historical OSM into all 6,371 grid cells."""
+    import hashlib
+    import io
+    import json
+    import os
+    import tempfile
+    from pathlib import Path
+
+    import boto3
+    import geopandas as gpd
+    import pandas as pd
+    from botocore.config import Config
+
+    from src.grid.context_aggregation import (
+        aggregate_osm, aggregate_population, summarize, validate_context_frame,
+    )
+    from src.grid.feature_preflight import read_pinned_small
+    from src.storage.archive_publish import exact_versions, require_new_keys
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config, resolve_path
+
+    config, b2 = load_config("context_aggregation"), load_config("b2")
+    client = boto3.client("s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=240))
+    def reject_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "GetObject", "PutObject"}:
+            raise RuntimeError(f"Context aggregation refused B2 API operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_api)
+    destinations = [config["output_key"], config["summary_key"], config["manifest_key"]]
+    require_new_keys(client, b2["bucket"], destinations)
+    check_budget(config["maximum_input_bytes"])
+    grid_body = read_pinned_small(client, b2["bucket"], config["grid"])
+    wp_manifest = json.loads(read_pinned_small(client, b2["bucket"], config["worldpop_manifest"]))
+    osm_manifest = json.loads(read_pinned_small(client, b2["bucket"], config["osm_manifest"]))
+    if ([item["year"] for item in wp_manifest["outputs"]] != config["years"]
+            or sorted({item["year"] for item in osm_manifest["outputs"]}) != config["years"]):
+        raise RuntimeError("Context source manifests do not cover exact epochs")
+    staging = resolve_path("data.staging")
+    staging.mkdir(parents=True, exist_ok=True)
+    scratch = Path(tempfile.mkdtemp(prefix="context-aggregation-", dir=staging))
+    grid = gpd.read_file(io.BytesIO(grid_body))
+    if len(grid) != config["expected_cells"] or grid.grid_id.duplicated().any():
+        raise RuntimeError("Pinned grid differs from 6,371-cell contract")
+    def fetch(spec, path):
+        versions = exact_versions(client, b2["bucket"], spec["key"])
+        if (len(versions) != 1 or versions[0].get("VersionId") != spec["version_id"]
+                or int(versions[0].get("Size", -1)) != spec["bytes"]):
+            raise RuntimeError(f"Context source identity changed: {spec['key']}")
+        stream = client.get_object(Bucket=b2["bucket"], Key=spec["key"],
+                                   VersionId=spec["version_id"])["Body"]
+        digest, total = hashlib.sha256(), 0
+        with path.open("xb") as output:
+            while block := stream.read(1024*1024):
+                digest.update(block); total += len(block); output.write(block)
+        stream.close()
+        if total != spec["bytes"] or digest.hexdigest() != spec["sha256"]:
+            raise RuntimeError(f"Context source hash changed: {spec['key']}")
+    frames = []
+    for year in config["years"]:
+        wp = next(item for item in wp_manifest["outputs"] if item["year"] == year)
+        osm = {item["feature_class"]: item for item in osm_manifest["outputs"] if item["year"] == year}
+        wp_path, roads_path, amenities_path = (scratch/f"wp-{year}.tif",
+                                                scratch/f"roads-{year}.parquet",
+                                                scratch/f"amenities-{year}.parquet")
+        fetch(wp, wp_path); fetch(osm["roads"], roads_path); fetch(osm["amenities"], amenities_path)
+        population = aggregate_population(grid, wp_path, year)
+        access = aggregate_osm(grid, gpd.read_parquet(roads_path),
+                               gpd.read_parquet(amenities_path), year)
+        frames.append(population.merge(access, on=["grid_id", "epoch"], validate="one_to_one"))
+    frame = pd.concat(frames, ignore_index=True)
+    validate_context_frame(frame, config)
+    parquet = io.BytesIO(); frame.to_parquet(parquet, index=False); table_body = parquet.getvalue()
+    summary = summarize(frame)
+    summary_body = (json.dumps(summary, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    if len(table_body)+len(summary_body) > config["maximum_output_bytes"]:
+        raise RuntimeError("Context aggregation outputs exceed byte cap")
+    published = []
+    def publish(key, body, content_type):
+        digest = hashlib.sha256(body).hexdigest()
+        response = client.put_object(Bucket=b2["bucket"], Key=key, Body=body,
+            ContentType=content_type, Metadata={"sha256": digest,
+                                                "contract-version": config["contract_version"]})
+        version = response.get("VersionId")
+        versions = exact_versions(client, b2["bucket"], key)
+        stream = client.get_object(Bucket=b2["bucket"], Key=key, VersionId=version)["Body"]
+        readback = stream.read(len(body)+1); stream.close()
+        if (len(versions) != 1 or versions[0].get("VersionId") != version
+                or readback != body or hashlib.sha256(readback).hexdigest() != digest):
+            raise RuntimeError(f"Context output verification failed: {key}")
+        item = {"key": key, "version_id": version, "bytes": len(body), "sha256": digest}
+        published.append(item); return item
+    table_item = publish(config["output_key"], table_body, "application/vnd.apache.parquet")
+    summary_item = publish(config["summary_key"], summary_body, "application/json")
+    manifest_record = {"status": "complete", "contract_version": config["contract_version"],
+        "rows": len(frame), "unique_cells": int(frame.grid_id.nunique()), "years": config["years"],
+        "sources": {"grid": config["grid"], "worldpop_manifest": config["worldpop_manifest"],
+                    "osm_manifest": config["osm_manifest"]},
+        "outputs": [table_item, summary_item], "validation": summary}
+    manifest_body = (json.dumps(manifest_record, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    manifest_item = publish(config["manifest_key"], manifest_body, "application/json")
+    return {**manifest_record, "manifest": manifest_item, "b2_writes": 3,
+            "total_output_bytes": sum(item["bytes"] for item in published)}
+
+
 @app.local_entrypoint()
 def main(action: str = "verify") -> None:
     """Dispatch a local control-plane command to a remote Modal function."""
@@ -3446,6 +4000,146 @@ def main(action: str = "verify") -> None:
             with (directory/name).open("xb") as output:
                 output.write(body)
         print("PHASE4_FEATURE_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-context-preflight":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("context_preflight")
+        directory = resolve_path("phase4_context_review")
+        names = list(config["local_outputs"].values())
+        if any((directory/name).exists() for name in names):
+            raise FileExistsError("Local context-preflight evidence exists; refusing overwrite")
+        result = preflight_phase4_part3_sources.remote()
+        payloads = result.pop("local_payloads")
+        if (set(payloads) != set(names)
+                or sum(map(len, payloads.values())) > config["maximum_local_output_bytes"]):
+            raise RuntimeError("Context-preflight payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_CONTEXT_PREFLIGHT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-context-validate":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("context_validation")
+        directory = resolve_path("phase4_context_review")
+        names = list(config["local_outputs"].values())
+        if any((directory/name).exists() for name in names):
+            raise FileExistsError("Local context-validation evidence exists; refusing overwrite")
+        result = validate_phase4_part3_context_payloads.remote()
+        payloads = result.pop("local_payloads")
+        if (set(payloads) != set(names)
+                or sum(map(len, payloads.values())) > config["maximum_local_output_bytes"]):
+            raise RuntimeError("Context-validation payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_CONTEXT_VALIDATION="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-worldpop-probe":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("worldpop_acquisition")
+        directory = resolve_path("phase4_context_review")
+        names = list(config["local_probe_outputs"].values())
+        if any((directory/name).exists() for name in names):
+            raise FileExistsError("Local WorldPop probe evidence exists; refusing overwrite")
+        result = probe_official_worldpop_replacements.remote()
+        payloads = result.pop("local_payloads")
+        if (set(payloads) != set(names)
+                or sum(map(len, payloads.values())) > config["maximum_probe_output_bytes"]):
+            raise RuntimeError("WorldPop probe payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_WORLDPOP_PROBE="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-worldpop-acquire":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("worldpop_batch")
+        directory = resolve_path("phase4_context_review")
+        receipt = directory/config["local_receipt"]
+        if receipt.exists():
+            raise FileExistsError("Local WorldPop acquisition receipt exists; refusing overwrite")
+        result = acquire_official_worldpop_replacements.remote()
+        body = (json.dumps(result, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+        if len(body) > config["maximum_local_receipt_bytes"]:
+            raise RuntimeError("WorldPop acquisition receipt exceeds approved cap")
+        directory.mkdir(parents=True, exist_ok=True)
+        with receipt.open("xb") as output:
+            output.write(body)
+        print("PHASE4_WORLDPOP_ACQUISITION="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-osm-history-probe":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("osm_history_probe")
+        directory = resolve_path("phase4_context_review")
+        names = list(config["local_outputs"].values())
+        if any((directory/name).exists() for name in names):
+            raise FileExistsError("Local historical OSM probe evidence exists; refusing overwrite")
+        result = probe_historical_osm.remote()
+        payloads = result.pop("local_payloads")
+        if (set(payloads) != set(names)
+                or sum(map(len, payloads.values())) > config["maximum_local_output_bytes"]):
+            raise RuntimeError("Historical OSM probe payload set/budget mismatch")
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, body in payloads.items():
+            with (directory/name).open("xb") as output:
+                output.write(body)
+        print("PHASE4_OSM_HISTORY_PROBE="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-osm-history-pilot":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("osm_history_probe")
+        output = resolve_path("phase4_context_review")/config["pilot_output"]
+        if output.exists():
+            raise FileExistsError("Local historical OSM pilot evidence exists; refusing overwrite")
+        result = pilot_historical_osm_extraction.remote()
+        body = (json.dumps(result, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+        if len(body) > config["maximum_local_output_bytes"]:
+            raise RuntimeError("Historical OSM pilot evidence exceeds output cap")
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with output.open("xb") as stream:
+            stream.write(body)
+        print("PHASE4_OSM_HISTORY_PILOT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-osm-history-acquire":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("osm_history_batch")
+        receipt = resolve_path("phase4_context_review")/config["local_receipt"]
+        if receipt.exists():
+            raise FileExistsError("Local historical OSM acquisition receipt exists; refusing overwrite")
+        result = acquire_historical_osm_snapshots.remote()
+        body = (json.dumps(result, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+        if len(body) > config["maximum_local_receipt_bytes"]:
+            raise RuntimeError("Historical OSM acquisition receipt exceeds cap")
+        receipt.parent.mkdir(parents=True, exist_ok=True)
+        with receipt.open("xb") as stream:
+            stream.write(body)
+        print("PHASE4_OSM_HISTORY_ACQUISITION="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-context-aggregate":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("context_aggregation")
+        receipt = resolve_path("phase4_context_review")/config["local_receipt"]
+        if receipt.exists():
+            raise FileExistsError("Local context aggregation receipt exists; refusing overwrite")
+        result = aggregate_phase4_context_features.remote()
+        body = (json.dumps(result, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+        if len(body) > 2*1024*1024:
+            raise RuntimeError("Context aggregation receipt exceeds cap")
+        with receipt.open("xb") as stream:
+            stream.write(body)
+        print("PHASE4_CONTEXT_AGGREGATION="+json.dumps(result, sort_keys=True), flush=True)
         return
     if action == "part3-gate-review":
         import hashlib

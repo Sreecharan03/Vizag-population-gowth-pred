@@ -1,0 +1,326 @@
+{
+  "aggregation_started": false,
+  "b2_writes": 0,
+  "blockers": [
+    "worldpop_duplicate_epoch_pixels",
+    "osm_snapshot_postdates_all_feature_epochs"
+  ],
+  "contract_version": "4.3.0-context-gate-v1",
+  "input_bytes": 33794987,
+  "osm": [
+    {
+      "bytes": 30527488,
+      "columns": [
+        "access",
+        "bridge",
+        "geometry",
+        "highway",
+        "junction",
+        "key",
+        "lanes",
+        "length",
+        "maxspeed",
+        "name",
+        "oneway",
+        "osmid",
+        "ref",
+        "reversed",
+        "tunnel",
+        "u",
+        "v",
+        "width"
+      ],
+      "crs": "EPSG:4326",
+      "feature_count": 116806,
+      "geometry_types": {
+        "LineString": 116806
+      },
+      "key": "vizag-geoai/data/raw/osm/roads.gpkg",
+      "payload_sha256": "db59286c4b05bbfa26326258be346e6721a48f39c6e1ba90c3d73ba88556bb92",
+      "role": "roads",
+      "version_id": "4_z2250dbc1f968e033a7050713_f20003e0a3b07d0e2_d20261010_m191638_c005_v0501043_t0007_u01791659798271"
+    },
+    {
+      "amenity_counts": {
+        "clinic": 76,
+        "college": 65,
+        "hospital": 306,
+        "school": 167,
+        "university": 13
+      },
+      "bytes": 307200,
+      "clinic_features": 76,
+      "columns": [
+        "abbr_name",
+        "addr:block",
+        "addr:city",
+        "addr:country",
+        "addr:district",
+        "addr:full",
+        "addr:housename",
+        "addr:housenumber",
+        "addr:place",
+        "addr:postcode",
+        "addr:state",
+        "addr:street",
+        "addr:subdistrict",
+        "address",
+        "alt_name",
+        "amenity",
+        "amenity:type",
+        "area",
+        "barrier",
+        "brand",
+        "brand:wikidata",
+        "building",
+        "building:levels",
+        "check_date",
+        "contact:email",
+        "contact:mobile",
+        "contact:phone",
+        "description",
+        "education",
+        "element",
+        "email",
+        "emergency",
+        "fax",
+        "fixme",
+        "geometry",
+        "grades",
+        "healthcare",
+        "healthcare:speciality",
+        "id",
+        "image",
+        "internet_access",
+        "internet_access:fee",
+        "medium",
+        "mobile",
+        "name",
+        "name:etymology:wikidata",
+        "name:te",
+        "not:name",
+        "official_name",
+        "opening_hours",
+        "operator",
+        "operator:type",
+        "operator:wikidata",
+        "phone",
+        "religion",
+        "short_name",
+        "smoking",
+        "source",
+        "type",
+        "website",
+        "wheelchair",
+        "wikidata",
+        "wikimedia_commons",
+        "wikipedia"
+      ],
+      "crs": "EPSG:4326",
+      "education_features": 245,
+      "feature_count": 627,
+      "geometry_types": {
+        "Point": 411,
+        "Polygon": 216
+      },
+      "hospital_features": 306,
+      "key": "vizag-geoai/data/raw/osm/amenities.gpkg",
+      "payload_sha256": "4d3f26049af5647a33920cb82e1baed36e7b8fbbb99fff38c0ce708287019548",
+      "role": "amenities",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1119c10bd362886c_d20261010_m191638_c005_v0501051_t0005_u01791659798967"
+    }
+  ],
+  "osm_assessment": {
+    "dated_context_aggregation_allowed": true,
+    "historical_training_allowed": false,
+    "snapshot_date": "2026-10-10",
+    "status": "blocked_future_snapshot_for_2018_2024_training"
+  },
+  "part": "4.3b",
+  "remote_python": "3.12.10",
+  "sources_hashed": 6,
+  "status": "validated_with_scientific_blockers",
+  "worldpop": [
+    {
+      "band_count": 1,
+      "bounds": [
+        82.94708301574626,
+        17.500416797676262,
+        83.50374968019102,
+        17.987083462396093
+      ],
+      "bytes": 741928,
+      "crs": "EPSG:4326",
+      "driver": "GTiff",
+      "dtype": "float32",
+      "height": 584,
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2018/worldpop_2018.tif",
+      "maximum": 405.19378662109375,
+      "mean": 16.844230145001987,
+      "minimum": 0.5899147987365723,
+      "nodata": -99999.0,
+      "nodata_pixels": 245697,
+      "payload_sha256": "7e9838b22fc3fc1f13e9b3e70a596473d9f7a2585f827e78328053655bd59011",
+      "pixel_sha256": "e4f078692fb97945c7dfe83f5752c17201e3a16b3000f721cde65cca9d113072",
+      "resolution": [
+        0.0008333333300071276,
+        0.0008333333299997101
+      ],
+      "sum": 2432559.496390462,
+      "tags": {
+        "AREA_OR_POINT": "Area"
+      },
+      "transform": [
+        0.0008333333300071276,
+        0.0,
+        82.94708301574626,
+        0.0,
+        -0.0008333333299997101,
+        17.987083462396093
+      ],
+      "valid_pixels": 144415,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f94828115f6_d20260928_m053159_c005_v0501048_t0044_u01790573519555",
+      "width": 668,
+      "year": 2018
+    },
+    {
+      "band_count": 1,
+      "bounds": [
+        82.94708301574626,
+        17.500416797676262,
+        83.50374968019102,
+        17.987083462396093
+      ],
+      "bytes": 739457,
+      "crs": "EPSG:4326",
+      "driver": "GTiff",
+      "dtype": "float32",
+      "height": 584,
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2020/worldpop_2020.tif",
+      "maximum": 400.3788757324219,
+      "mean": 17.237241613478993,
+      "minimum": 0.4853821098804474,
+      "nodata": -99999.0,
+      "nodata_pixels": 245697,
+      "payload_sha256": "81435b938bb469e53538bfc8c5145dc635cc122a443070b1c2f8a04b3f4a9b96",
+      "pixel_sha256": "99d230e72961b60a358c993832c5e5dce1ef70ce6e12dec41aacd13d8e8e918d",
+      "resolution": [
+        0.0008333333300071276,
+        0.0008333333299997101
+      ],
+      "sum": 2489316.247610569,
+      "tags": {
+        "AREA_OR_POINT": "Area"
+      },
+      "transform": [
+        0.0008333333300071276,
+        0.0,
+        82.94708301574626,
+        0.0,
+        -0.0008333333299997101,
+        17.987083462396093
+      ],
+      "valid_pixels": 144415,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f9482811602_d20260928_m053159_c005_v0501048_t0027_u01790573519628",
+      "width": 668,
+      "year": 2020
+    },
+    {
+      "band_count": 1,
+      "bounds": [
+        82.94708301574626,
+        17.500416797676262,
+        83.50374968019102,
+        17.987083462396093
+      ],
+      "bytes": 739457,
+      "crs": "EPSG:4326",
+      "driver": "GTiff",
+      "dtype": "float32",
+      "height": 584,
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2022/worldpop_2022.tif",
+      "maximum": 400.3788757324219,
+      "mean": 17.237241613478993,
+      "minimum": 0.4853821098804474,
+      "nodata": -99999.0,
+      "nodata_pixels": 245697,
+      "payload_sha256": "81435b938bb469e53538bfc8c5145dc635cc122a443070b1c2f8a04b3f4a9b96",
+      "pixel_sha256": "99d230e72961b60a358c993832c5e5dce1ef70ce6e12dec41aacd13d8e8e918d",
+      "resolution": [
+        0.0008333333300071276,
+        0.0008333333299997101
+      ],
+      "sum": 2489316.247610569,
+      "tags": {
+        "AREA_OR_POINT": "Area"
+      },
+      "transform": [
+        0.0008333333300071276,
+        0.0,
+        82.94708301574626,
+        0.0,
+        -0.0008333333299997101,
+        17.987083462396093
+      ],
+      "valid_pixels": 144415,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f948281160a_d20260928_m053159_c005_v0501048_t0020_u01790573519695",
+      "width": 668,
+      "year": 2022
+    },
+    {
+      "band_count": 1,
+      "bounds": [
+        82.94708301574626,
+        17.500416797676262,
+        83.50374968019102,
+        17.987083462396093
+      ],
+      "bytes": 739457,
+      "crs": "EPSG:4326",
+      "driver": "GTiff",
+      "dtype": "float32",
+      "height": 584,
+      "key": "vizag-geoai/data/raw/worldpop/clipped/2024/worldpop_2024.tif",
+      "maximum": 400.3788757324219,
+      "mean": 17.237241613478993,
+      "minimum": 0.4853821098804474,
+      "nodata": -99999.0,
+      "nodata_pixels": 245697,
+      "payload_sha256": "81435b938bb469e53538bfc8c5145dc635cc122a443070b1c2f8a04b3f4a9b96",
+      "pixel_sha256": "99d230e72961b60a358c993832c5e5dce1ef70ce6e12dec41aacd13d8e8e918d",
+      "resolution": [
+        0.0008333333300071276,
+        0.0008333333299997101
+      ],
+      "sum": 2489316.247610569,
+      "tags": {
+        "AREA_OR_POINT": "Area"
+      },
+      "transform": [
+        0.0008333333300071276,
+        0.0,
+        82.94708301574626,
+        0.0,
+        -0.0008333333299997101,
+        17.987083462396093
+      ],
+      "valid_pixels": 144415,
+      "version_id": "4_z2250dbc1f968e033a7050713_f105b5f948281160e_d20260928_m053159_c005_v0501048_t0027_u01790573519739",
+      "width": 668,
+      "year": 2024
+    }
+  ],
+  "worldpop_assessment": {
+    "duplicate_pixel_groups": [
+      [
+        2020,
+        2022,
+        2024
+      ]
+    ],
+    "growth_calculation_allowed": false,
+    "schema_compatible": true,
+    "status": "blocked_duplicate_epoch_pixels",
+    "unique_pixel_payloads": 2
+  }
+}

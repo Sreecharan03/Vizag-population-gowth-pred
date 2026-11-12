@@ -1,0 +1,58 @@
+{
+  "b2_writes": 0,
+  "payload_preserved": false,
+  "science": {
+    "bounds": [
+      82.94786573792125,
+      17.501023123013702,
+      83.4951824,
+      17.9866499729891
+    ],
+    "columns": [
+      "osm_type",
+      "osm_id",
+      "edit_timestamp",
+      "valid_to_timestamp",
+      "version",
+      "minor_version",
+      "edits",
+      "user_id",
+      "user_name",
+      "changeset_id",
+      "tags",
+      "geom_type",
+      "geom",
+      "clipped"
+    ],
+    "crs": "EPSG:4326",
+    "dtypes": {
+      "changeset_id": "int64",
+      "clipped": "bool",
+      "edit_timestamp": "datetime64[us, UTC]",
+      "edits": "int32",
+      "geom": "geometry",
+      "geom_type": "object",
+      "minor_version": "int32",
+      "osm_id": "int64",
+      "osm_type": "object",
+      "tags": "object",
+      "user_id": "int32",
+      "user_name": "object",
+      "valid_to_timestamp": "datetime64[us, UTC]",
+      "version": "int32"
+    },
+    "duplicate_geometries": 0,
+    "geometry_types": {
+      "LineString": 8519,
+      "MultiLineString": 1
+    },
+    "rows": 8520,
+    "timestamp": "2018-12-31T23:59:59Z"
+  },
+  "status": "pilot_passed",
+  "transfer": {
+    "bytes": 1522816,
+    "content_type": "application/vnd.apache.parquet",
+    "sha256": "c26f1301e852680b951a41fba22eedb18add91ca12839802aae38bc4519de646"
+  }
+}

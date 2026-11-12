@@ -1,0 +1,214 @@
+{
+  "aoi_bbox": [
+    82.94786573792125,
+    17.501023123013702,
+    83.50350180628975,
+    17.9866499729891
+  ],
+  "api_root": "https://api.heigit.org/ohsome-api/v2",
+  "b2_writes": 0,
+  "boundary_sha256": "e061a6c52bc827bda799e2990099c6a78bc1ac6f7180029765a1e98952031096",
+  "boundary_source": {
+    "bytes": 32768,
+    "key": "vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson",
+    "sha256": "afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49",
+    "version_id": "4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534"
+  },
+  "contract_version": "4.3.0-osm-history-probe-v1",
+  "payload_features_downloaded": 0,
+  "records": [
+    {
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2018-12-31T23:59:59Z"
+          ],
+          "value": [
+            8520
+          ]
+        }
+      },
+      "response_bytes": 178,
+      "response_sha256": "e121db11610ec4635865447740cd6d984583f421de80e982d97f57e5726913d3",
+      "timestamp": "2018-12-31T23:59:59Z"
+    },
+    {
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2018-12-31T23:59:59Z"
+          ],
+          "value": [
+            421
+          ]
+        }
+      },
+      "response_bytes": 177,
+      "response_sha256": "853df5ea8dd55285a188aae74fd810f07d211bb34cbf468f3b43dd548defc3a3",
+      "timestamp": "2018-12-31T23:59:59Z"
+    },
+    {
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2020-12-31T23:59:59Z"
+          ],
+          "value": [
+            25042
+          ]
+        }
+      },
+      "response_bytes": 179,
+      "response_sha256": "4d2e45e91b2ddf161602de14146798ff92a0c4d97935e2aa104d15ef789cbef8",
+      "timestamp": "2020-12-31T23:59:59Z"
+    },
+    {
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2020-12-31T23:59:59Z"
+          ],
+          "value": [
+            837
+          ]
+        }
+      },
+      "response_bytes": 177,
+      "response_sha256": "9a3aa6b2223aaee833e645c94b67bd2df2c791f94605e5da95d9766e3e60533a",
+      "timestamp": "2020-12-31T23:59:59Z"
+    },
+    {
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2022-12-31T23:59:59Z"
+          ],
+          "value": [
+            27879
+          ]
+        }
+      },
+      "response_bytes": 179,
+      "response_sha256": "8e48277d3c3d16f5b78ceff0a2ad13fdf4c9564113ac16219951686405cdfbf6",
+      "timestamp": "2022-12-31T23:59:59Z"
+    },
+    {
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2022-12-31T23:59:59Z"
+          ],
+          "value": [
+            933
+          ]
+        }
+      },
+      "response_bytes": 177,
+      "response_sha256": "39be73b33a29bcfda67945aee283199a216742a123984c30996937905bb882b1",
+      "timestamp": "2022-12-31T23:59:59Z"
+    },
+    {
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2024-12-31T23:59:59Z"
+          ],
+          "value": [
+            34472
+          ]
+        }
+      },
+      "response_bytes": 179,
+      "response_sha256": "5e5441f3b84462c3de6770c64c59f999df3274b2f3ec246370cc12c190b87602",
+      "timestamp": "2024-12-31T23:59:59Z"
+    },
+    {
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "request_id": null,
+      "response": {
+        "apiVersion": "2.1.0",
+        "attribution": {
+          "text": "\u00a9 OpenStreetMap contributors",
+          "url": "https://ohsome.org/copyrights"
+        },
+        "result": {
+          "timestamp": [
+            "2024-12-31T23:59:59Z"
+          ],
+          "value": [
+            1970
+          ]
+        }
+      },
+      "response_bytes": 178,
+      "response_sha256": "6a565bc8e1ca48d471ed345a00bfffa7a892caedf605207b9bc62f123275ae50",
+      "timestamp": "2024-12-31T23:59:59Z"
+    }
+  ],
+  "remote_python": "3.12.10",
+  "requests_made": 8,
+  "status": "historical_osm_probe_passed_extraction_not_started",
+  "timestamps": [
+    "2018-12-31T23:59:59Z",
+    "2020-12-31T23:59:59Z",
+    "2022-12-31T23:59:59Z",
+    "2024-12-31T23:59:59Z"
+  ]
+}

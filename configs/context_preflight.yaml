@@ -1,0 +1,35 @@
+# Part 4.3a metadata-only source preflight. No payload reads or B2 writes.
+contract_version: "4.3.0"
+feature_epochs: [2018, 2020, 2022, 2024]
+maximum_objects: 8
+maximum_payload_bytes: 0
+maximum_local_output_bytes: 262144
+osm_acquisition_date: "2026-10-10"
+worldpop:
+  - year: 2018
+    key: vizag-geoai/data/raw/worldpop/clipped/2018/worldpop_2018.tif
+    expected_bytes: 741928
+  - year: 2020
+    key: vizag-geoai/data/raw/worldpop/clipped/2020/worldpop_2020.tif
+    expected_bytes: 739457
+  - year: 2022
+    key: vizag-geoai/data/raw/worldpop/clipped/2022/worldpop_2022.tif
+    expected_bytes: 739457
+  - year: 2024
+    key: vizag-geoai/data/raw/worldpop/clipped/2024/worldpop_2024.tif
+    expected_bytes: 739457
+osm:
+  - role: roads
+    key: vizag-geoai/data/raw/osm/roads.gpkg
+    expected_bytes: 30527488
+  - role: amenities
+    key: vizag-geoai/data/raw/osm/amenities.gpkg
+    expected_bytes: 307200
+grid:
+  manifest_key: vizag-geoai/v2/manifests/analysis_grid_manifest.contract-4.1.0.json
+  manifest_expected_bytes: 1591
+  data_key: vizag-geoai/v2/derived/grid/contract-4.1.0/analysis_grid.geojson
+  data_expected_bytes: 2816012
+local_outputs:
+  json: context_source_preflight.json
+  markdown: context_source_preflight.md

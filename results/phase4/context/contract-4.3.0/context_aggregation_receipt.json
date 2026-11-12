@@ -1,0 +1,194 @@
+{
+  "b2_writes": 3,
+  "contract_version": "4.3.0-context-features-v1",
+  "manifest": {
+    "bytes": 5509,
+    "key": "vizag-geoai/v2/manifests/context_feature_manifest.contract-4.3.0.json",
+    "sha256": "72db1f51eecfb6906509c1151379d145ac86fbb33973bffcd21cd9863af3a7ba",
+    "version_id": "4_z2250dbc1f968e033a7050713_f1159641fbfda73c8_d20261112_m073744_c005_v0501034_t0048_u01794469064716"
+  },
+  "outputs": [
+    {
+      "bytes": 711581,
+      "key": "vizag-geoai/v2/derived/features/contract-4.3.0/context_cell_features.parquet",
+      "sha256": "c25b38ba2538934f0a78872f2878ff5841812cfe4270c82bcbfdb676d1efdab6",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1008990129e6dd7b_d20261112_m073740_c005_v0501048_t0031_u01794469060832"
+    },
+    {
+      "bytes": 3310,
+      "key": "vizag-geoai/v2/results/phase4/context/contract-4.3.0/context_feature_summary.json",
+      "sha256": "e1e59eb534302cc9ba3573a456f8aec438749eeea1925a458af64c0b0d2e093b",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1061d064e626f0d7_d20261112_m073743_c005_v0501051_t0001_u01794469063258"
+    }
+  ],
+  "rows": 25484,
+  "sources": {
+    "grid": {
+      "bytes": 2816012,
+      "key": "vizag-geoai/v2/derived/grid/contract-4.1.0/analysis_grid.geojson",
+      "sha256": "e5739a996f51cabe0edbb976390bd0070cd2e0e333d90b1652847a0b6e4d2f8f",
+      "version_id": "4_z2250dbc1f968e033a7050713_f10475e8a42d77e32_d20261111_m115845_c005_v0501051_t0054_u01794398325165"
+    },
+    "osm_manifest": {
+      "bytes": 11080,
+      "key": "vizag-geoai/v2/manifests/osm_history_manifest.contract-4.3.0.json",
+      "sha256": "e65b1943d788dd110a658cdf6297bbc566e2a90750f826364f55d126d93b8011",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1064eadcbdffdea1_d20261112_m073324_c005_v0501015_t0027_u01794468804688"
+    },
+    "worldpop_manifest": {
+      "bytes": 3054,
+      "key": "vizag-geoai/v2/manifests/worldpop_global2_r2025a.contract-4.3.0.json",
+      "sha256": "d5e3b6660cb4849fcb4ecbb11b437e0c4df0269d56116c83effaa3e8ba9f79c1",
+      "version_id": "4_z2250dbc1f968e033a7050713_f108795e99ec7d9f3_d20261112_m070346_c005_v0501017_t0010_u01794467026741"
+    }
+  },
+  "status": "complete",
+  "total_output_bytes": 720400,
+  "unique_cells": 6371,
+  "validation": {
+    "by_year": {
+      "2018": {
+        "amenity_count": {
+          "max": 18.0,
+          "mean": 0.0660806780725161,
+          "min": 0.0
+        },
+        "nearest_amenity_distance_m": {
+          "max": 15251.778634184971,
+          "mean": 4471.6847728725,
+          "min": 11.26521166036094
+        },
+        "population_density_per_km2": {
+          "max": 20633.050666809082,
+          "mean": 1650.6419340426771,
+          "min": 0.0
+        },
+        "population_total": {
+          "max": 5158.2626667022705,
+          "mean": 409.2887579642103,
+          "min": 0.0
+        },
+        "road_density_km_per_km2": {
+          "max": 159679.28649354578,
+          "mean": 27.346173387378524,
+          "min": 0.0
+        },
+        "road_length_m": {
+          "max": 8872.88903120498,
+          "mean": 452.86529622277607,
+          "min": 0.0
+        }
+      },
+      "2020": {
+        "amenity_count": {
+          "max": 30.0,
+          "mean": 0.12886517030293518,
+          "min": 0.0
+        },
+        "nearest_amenity_distance_m": {
+          "max": 13675.303824329672,
+          "mean": 3140.485195190374,
+          "min": 20.56573151383101
+        },
+        "population_density_per_km2": {
+          "max": 20873.91104888916,
+          "mean": 1673.1384696849948,
+          "min": 0.0
+        },
+        "population_total": {
+          "max": 5218.47776222229,
+          "mean": 414.87312871611306,
+          "min": 0.0
+        },
+        "road_density_km_per_km2": {
+          "max": 159679.28649354578,
+          "mean": 29.954497767766647,
+          "min": 0.0
+        },
+        "road_length_m": {
+          "max": 10057.862247461853,
+          "mean": 887.9992291651015,
+          "min": 0.0
+        }
+      },
+      "2022": {
+        "amenity_count": {
+          "max": 31.0,
+          "mean": 0.1437764872076597,
+          "min": 0.0
+        },
+        "nearest_amenity_distance_m": {
+          "max": 12879.137482839871,
+          "mean": 2965.7847941244354,
+          "min": 13.930480602679118
+        },
+        "population_density_per_km2": {
+          "max": 21060.005653381348,
+          "mean": 1691.176984425813,
+          "min": 0.0
+        },
+        "population_total": {
+          "max": 5265.001413345337,
+          "mean": 419.3504330539052,
+          "min": 0.0
+        },
+        "road_density_km_per_km2": {
+          "max": 159679.28649354578,
+          "mean": 30.40445890140517,
+          "min": 0.0
+        },
+        "road_length_m": {
+          "max": 10057.862247461853,
+          "mean": 971.4963632824858,
+          "min": 0.0
+        }
+      },
+      "2024": {
+        "amenity_count": {
+          "max": 39.0,
+          "mean": 0.2770365719667242,
+          "min": 0.0
+        },
+        "nearest_amenity_distance_m": {
+          "max": 8962.9997474358,
+          "mean": 2039.981503903313,
+          "min": 3.8799433907747733
+        },
+        "population_density_per_km2": {
+          "max": 21278.87759399414,
+          "mean": 1710.465350787432,
+          "min": 0.0
+        },
+        "population_total": {
+          "max": 5319.719398498535,
+          "mean": 424.13824486824166,
+          "min": 0.0
+        },
+        "road_density_km_per_km2": {
+          "max": 158860.65922651935,
+          "mean": 32.56855342493979,
+          "min": 0.0
+        },
+        "road_length_m": {
+          "max": 10803.569118794037,
+          "mean": 1092.046134050939,
+          "min": 0.0
+        }
+      }
+    },
+    "rows": 25484,
+    "unique_cells": 6371,
+    "years": [
+      2018,
+      2020,
+      2022,
+      2024
+    ]
+  },
+  "years": [
+    2018,
+    2020,
+    2022,
+    2024
+  ]
+}

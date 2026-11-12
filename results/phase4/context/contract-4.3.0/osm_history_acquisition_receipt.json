@@ -1,0 +1,354 @@
+{
+  "b2_writes": 9,
+  "contract_version": "4.3.0-osm-history-v1",
+  "manifest": {
+    "bytes": 11080,
+    "key": "vizag-geoai/v2/manifests/osm_history_manifest.contract-4.3.0.json",
+    "sha256": "e65b1943d788dd110a658cdf6297bbc566e2a90750f826364f55d126d93b8011",
+    "version_id": "4_z2250dbc1f968e033a7050713_f1064eadcbdffdea1_d20261112_m073324_c005_v0501015_t0027_u01794468804688"
+  },
+  "outputs": [
+    {
+      "bounds": [
+        82.94786573792125,
+        17.501023123013702,
+        83.4951824,
+        17.9866499729891
+      ],
+      "bytes": 1525556,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 0,
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "geometry_types": {
+        "LineString": 8519,
+        "MultiLineString": 1
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2018/roads_2018.parquet",
+      "rows": 8520,
+      "sha256": "d77b4ec43aa5407870da648b7c7c8143e17c0ffc7cd7957fcd911ab21f6827e5",
+      "timestamp": "2018-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f113c1c17875696dd_d20261112_m073321_c005_v0501042_t0046_u01794468801453",
+      "year": 2018
+    },
+    {
+      "bounds": [
+        82.9615711,
+        17.6296866,
+        83.4537789,
+        17.8922622
+      ],
+      "bytes": 73725,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 0,
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "geometry_types": {
+        "MultiPolygon": 3,
+        "Point": 221,
+        "Polygon": 197
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2018/amenities_2018.parquet",
+      "rows": 421,
+      "sha256": "3143f711af3dd89e4a6730ba23986fc4ba18e5104468a2096c7ca3eeb46668b9",
+      "timestamp": "2018-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f109f62c53e790020_d20261112_m073321_c005_v0501043_t0027_u01794468801733",
+      "year": 2018
+    },
+    {
+      "bounds": [
+        82.94786573792125,
+        17.501023123013702,
+        83.4951824,
+        17.9866499729891
+      ],
+      "bytes": 4344810,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 0,
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "geometry_types": {
+        "LineString": 25041,
+        "MultiLineString": 1
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2020/roads_2020.parquet",
+      "rows": 25042,
+      "sha256": "ca567ba7252fd64e7376794e283b433633103e6d68497db1c58d495968705e46",
+      "timestamp": "2020-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f11351af12be998da_d20261112_m073321_c005_v0501041_t0023_u01794468801864",
+      "year": 2020
+    },
+    {
+      "bounds": [
+        82.9523245,
+        17.5619762,
+        83.4537789,
+        17.9321277
+      ],
+      "bytes": 118208,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 2,
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "geometry_types": {
+        "MultiPolygon": 4,
+        "Point": 616,
+        "Polygon": 217
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2020/amenities_2020.parquet",
+      "rows": 837,
+      "sha256": "e0912ce54bbc1bd5064afbb53a36db635f2ff4736be604ebe3d3a42c20decb4b",
+      "timestamp": "2020-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1098ae436040c943_d20261112_m073322_c005_v0501038_t0047_u01794468802364",
+      "year": 2020
+    },
+    {
+      "bounds": [
+        82.94786573792125,
+        17.501023123013702,
+        83.4951824,
+        17.9866499729891
+      ],
+      "bytes": 4750094,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 0,
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "geometry_types": {
+        "LineString": 27878,
+        "MultiLineString": 1
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2022/roads_2022.parquet",
+      "rows": 27879,
+      "sha256": "eaa3db73320ff39ee47184b48077b0d5b21094ccf0a838538b6db2d7e3fe202e",
+      "timestamp": "2022-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f11339713ddfb4b09_d20261112_m073322_c005_v0501046_t0052_u01794468802771",
+      "year": 2022
+    },
+    {
+      "bounds": [
+        82.9523245,
+        17.5619762,
+        83.4537789,
+        17.9321277
+      ],
+      "bytes": 135803,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 2,
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "geometry_types": {
+        "MultiPolygon": 4,
+        "Point": 657,
+        "Polygon": 272
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2022/amenities_2022.parquet",
+      "rows": 933,
+      "sha256": "2275154255a7e57e25b775d264590d5e7fa2b497c51ddcccb886709d67ea1d74",
+      "timestamp": "2022-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f118966ec2df64fb2_d20261112_m073324_c005_v0501036_t0032_u01794468804133",
+      "year": 2022
+    },
+    {
+      "bounds": [
+        82.94786573792125,
+        17.501023123013702,
+        83.5021601,
+        17.9866499729891
+      ],
+      "bytes": 5781017,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 0,
+      "feature_class": "roads",
+      "filter": "highway=* and geometry:line",
+      "geometry_types": {
+        "LineString": 34469,
+        "MultiLineString": 3
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2024/roads_2024.parquet",
+      "rows": 34472,
+      "sha256": "245b50c34296d66d62daa9825f404f05629c63f4804e907e63026d4f09539678",
+      "timestamp": "2024-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f108c21f3487f4364_d20261112_m073324_c005_v0501024_t0031_u01794468804203",
+      "year": 2024
+    },
+    {
+      "bounds": [
+        82.9493103,
+        17.5152801,
+        83.4537789,
+        17.985877
+      ],
+      "bytes": 240861,
+      "content_type": "application/vnd.apache.parquet",
+      "crs": "EPSG:4326",
+      "dtypes": {
+        "changeset_id": "int64",
+        "clipped": "bool",
+        "edit_timestamp": "datetime64[us, UTC]",
+        "edits": "int32",
+        "geom": "geometry",
+        "geom_type": "object",
+        "minor_version": "int32",
+        "osm_id": "int64",
+        "osm_type": "object",
+        "tags": "object",
+        "user_id": "int32",
+        "user_name": "object",
+        "valid_to_timestamp": "datetime64[us, UTC]",
+        "version": "int32"
+      },
+      "duplicate_geometries": 1,
+      "feature_class": "amenities",
+      "filter": "amenity=*",
+      "geometry_types": {
+        "MultiPolygon": 4,
+        "Point": 1440,
+        "Polygon": 526
+      },
+      "key": "vizag-geoai/v2/raw/osm/ohsome-v2/contract-4.3.0/2024/amenities_2024.parquet",
+      "rows": 1970,
+      "sha256": "c84ca369541eac9352857da8871bdf866035dba16379b60750812f1970055a4a",
+      "timestamp": "2024-12-31T23:59:59Z",
+      "version_id": "4_z2250dbc1f968e033a7050713_f11150bb9ece6db86_d20261112_m073324_c005_v0501052_t0038_u01794468804525",
+      "year": 2024
+    }
+  ],
+  "provenance": {
+    "aoi_bbox": [
+      82.94786573792125,
+      17.501023123013702,
+      83.50350180628975,
+      17.9866499729891
+    ],
+    "api_root": "https://api.heigit.org/ohsome-api/v2",
+    "boundary_source": {
+      "bytes": 32768,
+      "key": "vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson",
+      "sha256": "afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49",
+      "version_id": "4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534"
+    },
+    "retrieved_at": "2026-11-12T07:33:21.235280+00:00"
+  },
+  "source": "ohsome API v2",
+  "status": "complete"
+}
