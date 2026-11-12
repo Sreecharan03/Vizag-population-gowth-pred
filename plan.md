@@ -483,7 +483,7 @@ tests/unit/test_grid_*.py
 1. **Part 4.1** — Grid construction over the buffered boundary at the configured cell size, each cell with a stable unique ID.
 2. **Part 4.2** — Satellite index aggregation (zonal mean per cell per epoch) + terrain aggregation (elevation, slope — computed once, static).
 3. **Part 4.3 — Complete (2026-11-12).** Official WorldPop Global2 R2025A and historical ohsome/OSM inputs for 2018, 2020, 2022 and 2024 were validated and aggregated into all 6,371 cells. Contract 4.3.1 contains 25,484 unique cell-year rows with population total/density, road length/density, amenity count, nearest-amenity distance and AOI fraction. The preserved 4.3.0 table is superseded because tiny edge-area denominators produced unstable road density.
-4. **Part 4.4** — Assemble the per-epoch feature table (join all sources on grid ID), with a leakage-safe rule: population growth rate as a feature must only use *already-elapsed* intervals, enforced by an assertion, not just convention.
+4. **Part 4.4 — Complete (2026-11-12).** Contract 4.4.0 joins the pinned satellite, terrain and context products without dropping evidence: 25,484 unique rows, 69 columns, 6,371 cells and four epochs. The approved support rule retains 6,355 model-eligible cells and explicitly flags 16 ineligible cells. Population growth uses only the immediately preceding observed epoch; the 2018 value is unavailable by construction, and a growth fraction is emitted only when the prior population is non-zero. Four create-only B2 outputs were exact-version/read-back/hash verified, with the manifest published last. See `docs/phase-4.4-completion.md`.
 
 **Edge cases & validations (Phase 4)**
 | Edge case | Handling |

@@ -123,6 +123,15 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
   4.3.0 table after review replaced unstable tiny-edge road-density denominators with the fixed
   0.25 km² analysis-cell denominator and retained `aoi_fraction`. Full regression: 402 passed,
   one existing warning.
+- **Part 4.4 technically complete; Phase 4 gate presented (2026-11-12):** corrected Modal production run
+  `ap-oVzU63TWtILbwHolnRgNCk` assembled the pinned Part 4.2 and 4.3.1 sources into 25,484
+  unique rows, 69 columns, 6,371 cells and four epochs. It retained 6,355 eligible and 16
+  explicitly ineligible cells. The first attempt stopped before writing because the validator
+  rejected legitimate zero-support source nulls; the corrected fail-closed rule accepts them
+  only when support is zero and the row is ineligible, with no imputation or row deletion.
+  Four create-only B2 objects totaling 3,832,563 bytes were exact-version/read-back/hash
+  verified with the manifest last. Leakage-safe growth uses only the immediately preceding
+  epoch. Full Modal regression: 405 passed, one existing warning.
 - **Part 3.3.1 validation history (2026-11-04):** accuracy-first float32 reflectance plus separate SCL
   COG design approved. Complete read-only Modal metadata/header scan passed for all 32 scenes and 224
   required assets. Baselines are 04.00/05.00/05.10; every required offset mapping and frozen grid invariant

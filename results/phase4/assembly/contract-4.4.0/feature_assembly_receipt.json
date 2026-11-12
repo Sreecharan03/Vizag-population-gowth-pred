@@ -1,0 +1,86 @@
+{
+  "b2_writes": 4,
+  "contract_version": "4.4.0-feature-assembly-v1",
+  "growth_rule": "immediately preceding observed epoch only; first epoch unavailable",
+  "manifest": {
+    "bytes": 3150,
+    "key": "vizag-geoai/v2/manifests/feature_assembly_manifest.contract-4.4.0.json",
+    "sha256": "ffc4005294979eb462286ab1716f7aa82d68681079329116fbece5d2cc2f4b5a",
+    "version_id": "4_z2250dbc1f968e033a7050713_f101fd9bb56b8be93_d20261112_m075303_c005_v0521006_t0010_u01794469983320"
+  },
+  "new_bytes": 3832563,
+  "outputs": [
+    {
+      "bytes": 3825959,
+      "key": "vizag-geoai/v2/derived/features/contract-4.4.0/assembled_cell_epoch_features.parquet",
+      "sha256": "426a7d21dbb1c33980f31dbf4c7a0d9e1d1d95aa16f5e67a27f72db427a2a9f5",
+      "version_id": "4_z2250dbc1f968e033a7050713_f108f6348ae37ac92_d20261112_m075300_c005_v0501051_t0046_u01794469980024"
+    },
+    {
+      "bytes": 808,
+      "key": "vizag-geoai/v2/results/phase4/assembly/contract-4.4.0/feature_summary.json",
+      "sha256": "078b34fe45cac1e2cb92027320a075345d49dbff11b954166b1db70af0388261",
+      "version_id": "4_z2250dbc1f968e033a7050713_f100235bdbc519de5_d20261112_m075301_c005_v0501036_t0043_u01794469981530"
+    },
+    {
+      "bytes": 2646,
+      "key": "vizag-geoai/v2/results/phase4/assembly/contract-4.4.0/null_report.csv",
+      "sha256": "2c61616b9f09e418317a5c184639c9c0e82970f76b7e726530f60bbb7f6740e5",
+      "version_id": "4_z2250dbc1f968e033a7050713_f117db4f20d88abcf_d20261112_m075302_c005_v0501051_t0042_u01794469982352"
+    }
+  ],
+  "part": "4.4",
+  "sources": {
+    "context": {
+      "bytes": 718196,
+      "key": "vizag-geoai/v2/derived/features/contract-4.3.1/context_cell_features.parquet",
+      "sha256": "114647b1004ffd5d092e936008009946ee8e2bd27bf8ef87de1b949d2467a053",
+      "version_id": "4_z2250dbc1f968e033a7050713_f10164c3aa46db5bc_d20261112_m074001_c005_v0501010_t0037_u01794469201353"
+    },
+    "satellite": {
+      "bytes": 2643529,
+      "key": "vizag-geoai/v2/derived/features/contract-4.2.0/satellite_cell_features.parquet",
+      "sha256": "02d0563c112b31ebb6072830f81bd4e2ec8a1118a09841f53b23374a7362cf4e",
+      "version_id": "4_z2250dbc1f968e033a7050713_f118d718ee722a4f8_d20261111_m152844_c005_v0501019_t0013_u01794410924921"
+    },
+    "terrain": {
+      "bytes": 120167,
+      "key": "vizag-geoai/v2/derived/features/contract-4.2.0/terrain_cell_features.parquet",
+      "sha256": "d2d0adc5800e72b6a66133eeb9d19ef5b0a1e126504f8eea6fd028b6910c74dc",
+      "version_id": "4_z2250dbc1f968e033a7050713_f1101b30e82cb12af_d20261111_m152846_c005_v0501034_t0017_u01794410926781"
+    }
+  },
+  "status": "complete",
+  "validation": {
+    "columns": 69,
+    "contract_version": "4.4.0-feature-assembly-v1",
+    "eligible_cells": 6355,
+    "epochs": [
+      2018,
+      2020,
+      2022,
+      2024
+    ],
+    "expected_source_nulls": {
+      "bsi_filtered_mean": 12,
+      "bsi_unfiltered_mean_diagnostic": 12,
+      "elevation_mean_m": 60,
+      "mndwi_filtered_mean": 12,
+      "mndwi_unfiltered_mean_diagnostic": 12,
+      "ndbi_filtered_mean": 12,
+      "ndbi_unfiltered_mean_diagnostic": 12,
+      "ndvi_filtered_mean": 12,
+      "ndvi_unfiltered_mean_diagnostic": 12,
+      "ndwi_filtered_mean": 12,
+      "ndwi_unfiltered_mean_diagnostic": 12,
+      "slope_mean_degrees": 60
+    },
+    "growth_fraction_rows_defined": 12632,
+    "growth_rows_available": 19113,
+    "ineligible_cells": 16,
+    "rows": 25484,
+    "status": "passed",
+    "unexpected_null_columns": [],
+    "unique_cells": 6371
+  }
+}

@@ -201,6 +201,7 @@ There is no production prediction CLI yet.
 | 500 m research grid | Part 4.1 complete and visually approved; 6,371 validated cells |
 | Cell-level satellite/terrain features | Part 4.2 complete; six outputs verified, 6,355 cells meet the approved support/terrain rule |
 | Cell-level population/infrastructure context | Part 4.3 complete; 25,484 validated cell-year rows under contract 4.3.1 |
+| Leakage-safe assembled feature table | Part 4.4 complete; 25,484 rows, 69 columns, 6,355 model-eligible cells under contract 4.4.0 |
 | Built-fraction change labels | Planned; data suitability and label validation required |
 | Logistic and tree-based baselines | Planned |
 | Temporal holdout, spatial robustness and calibration | Planned |
@@ -214,8 +215,10 @@ heuristic, not a measured infrastructure-capacity deficit.
 
 Phase 0 implementation is complete, with its historical formal gate still pending.
 The [quality plan](docs/phase-4-prediction-quality-plan.md) records the approved feature rule and
-the safeguards still required for later prediction work. Part 4.4 feature assembly is next; this
-README does not authorize further production processing.
+the safeguards still required for later prediction work. Phase 4 implementation is complete and
+its summary/null-report review is the remaining formal gate. The next logical
+work is Phase 5 label construction and validation; this README does not authorize that production
+processing or claim that a prediction model already exists.
 
 ## Documentation
 
@@ -223,6 +226,7 @@ README does not authorize further production processing.
 - [Architecture and decisions](tracking/architecture.md)
 - [Read-strategy decision](docs/decisions/ADR-001-read-strategy.md)
 - [Part 4.3 completion and provenance](docs/phase-4.3-context-completion.md)
+- [Part 4.4 completion, error correction and immutable outputs](docs/phase-4.4-completion.md)
 - [Reviewed academic report — PDF](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.pdf)
 - [Editable academic report — Word](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.docx)
 - [Report scope and diagram notes](results/project_report/README.md)

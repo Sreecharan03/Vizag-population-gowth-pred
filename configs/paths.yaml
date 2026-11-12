@@ -30,6 +30,7 @@ configs:
   osm_history_probe: configs/osm_history_probe.yaml
   osm_history_batch: configs/osm_history_batch.yaml
   context_aggregation: configs/context_aggregation.yaml
+  feature_assembly: configs/feature_assembly.yaml
 
 data:
   root: data
@@ -58,6 +59,7 @@ phase3_gate_review: results/phase3
 phase4_grid_review: results/phase4/grid/contract-4.1.0
 phase4_feature_review: results/phase4/features/contract-4.2.0
 phase4_context_review: results/phase4/context/contract-4.3.0
+phase4_assembly_review: results/phase4/assembly/contract-4.4.0
 logs: logs
 
 docs:

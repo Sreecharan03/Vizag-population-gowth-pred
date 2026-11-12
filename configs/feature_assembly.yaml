@@ -1,0 +1,32 @@
+contract_version: "4.4.0-feature-assembly-v1"
+expected_cells: 6371
+expected_rows: 25484
+epochs: [2018, 2020, 2022, 2024]
+roles: [ndvi, ndbi, ndwi, mndwi, bsi]
+minimum_usable_fraction: 0.50
+expected_eligible_cells: 6355
+maximum_input_bytes: 4194304
+maximum_output_bytes: 67108864
+maximum_local_receipt_bytes: 2097152
+sources:
+  satellite:
+    key: vizag-geoai/v2/derived/features/contract-4.2.0/satellite_cell_features.parquet
+    version_id: 4_z2250dbc1f968e033a7050713_f118d718ee722a4f8_d20261111_m152844_c005_v0501019_t0013_u01794410924921
+    bytes: 2643529
+    sha256: 02d0563c112b31ebb6072830f81bd4e2ec8a1118a09841f53b23374a7362cf4e
+  terrain:
+    key: vizag-geoai/v2/derived/features/contract-4.2.0/terrain_cell_features.parquet
+    version_id: 4_z2250dbc1f968e033a7050713_f1101b30e82cb12af_d20261111_m152846_c005_v0501034_t0017_u01794410926781
+    bytes: 120167
+    sha256: d2d0adc5800e72b6a66133eeb9d19ef5b0a1e126504f8eea6fd028b6910c74dc
+  context:
+    key: vizag-geoai/v2/derived/features/contract-4.3.1/context_cell_features.parquet
+    version_id: 4_z2250dbc1f968e033a7050713_f10164c3aa46db5bc_d20261112_m074001_c005_v0501010_t0037_u01794469201353
+    bytes: 718196
+    sha256: 114647b1004ffd5d092e936008009946ee8e2bd27bf8ef87de1b949d2467a053
+outputs:
+  table: vizag-geoai/v2/derived/features/contract-4.4.0/assembled_cell_epoch_features.parquet
+  summary_json: vizag-geoai/v2/results/phase4/assembly/contract-4.4.0/feature_summary.json
+  null_report_csv: vizag-geoai/v2/results/phase4/assembly/contract-4.4.0/null_report.csv
+  manifest: vizag-geoai/v2/manifests/feature_assembly_manifest.contract-4.4.0.json
+local_receipt: feature_assembly_receipt.json

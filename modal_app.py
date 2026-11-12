@@ -3856,6 +3856,96 @@ def aggregate_phase4_context_features() -> dict:
             "total_output_bytes": sum(item["bytes"] for item in published)}
 
 
+@app.function(secrets=[b2_secret], timeout=900, cpu=2.0, memory=4096,
+              max_containers=1, retries=0)
+def assemble_phase4_features() -> dict:
+    """Join exact-version Phase 4 sources and publish the leakage-safe final feature table."""
+    import hashlib
+    import io
+    import json
+    import os
+
+    import boto3
+    import pandas as pd
+    from botocore.config import Config
+
+    from src.grid.feature_assembly import assemble_features, build_reports, validate_assembled
+    from src.storage.archive_publish import exact_versions, require_new_keys
+    from src.storage.guard import check_budget
+    from src.utils.io import load_config
+
+    config, b2 = load_config("feature_assembly"), load_config("b2")
+    client = boto3.client("s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=180))
+    def reject_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "GetObject", "PutObject"}:
+            raise RuntimeError(f"Feature assembly refused B2 API operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_api)
+    destinations = list(config["outputs"].values())
+    require_new_keys(client, b2["bucket"], destinations)
+    total_input = sum(item["bytes"] for item in config["sources"].values())
+    if total_input > config["maximum_input_bytes"]:
+        raise RuntimeError("Feature assembly input contract exceeds byte cap")
+    check_budget(total_input)
+    def fetch(spec):
+        versions = exact_versions(client, b2["bucket"], spec["key"])
+        if (len(versions) != 1 or versions[0].get("VersionId") != spec["version_id"]
+                or int(versions[0].get("Size", -1)) != spec["bytes"]):
+            raise RuntimeError(f"Feature assembly source identity changed: {spec['key']}")
+        stream = client.get_object(Bucket=b2["bucket"], Key=spec["key"],
+                                   VersionId=spec["version_id"])["Body"]
+        try:
+            body = stream.read(spec["bytes"]+1)
+        finally:
+            stream.close()
+        if len(body) != spec["bytes"] or hashlib.sha256(body).hexdigest() != spec["sha256"]:
+            raise RuntimeError(f"Feature assembly source hash changed: {spec['key']}")
+        return body
+    satellite = pd.read_parquet(io.BytesIO(fetch(config["sources"]["satellite"])))
+    terrain = pd.read_parquet(io.BytesIO(fetch(config["sources"]["terrain"])))
+    context = pd.read_parquet(io.BytesIO(fetch(config["sources"]["context"])))
+    frame = assemble_features(satellite, terrain, context, config)
+    validate_assembled(frame, config)
+    summary, nulls = build_reports(frame, config)
+    buffer = io.BytesIO(); frame.to_parquet(buffer, index=False); table_body = buffer.getvalue()
+    summary_body = (json.dumps(summary, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    null_body = nulls.to_csv(index=False).encode()
+    if len(table_body)+len(summary_body)+len(null_body) > config["maximum_output_bytes"]:
+        raise RuntimeError("Feature assembly outputs exceed byte cap")
+    published = []
+    def publish(key, body, content_type):
+        digest = hashlib.sha256(body).hexdigest()
+        response = client.put_object(Bucket=b2["bucket"], Key=key, Body=body,
+            ContentType=content_type, Metadata={"sha256": digest,
+                                                "contract-version": config["contract_version"]})
+        version = response.get("VersionId")
+        versions = exact_versions(client, b2["bucket"], key)
+        stream = client.get_object(Bucket=b2["bucket"], Key=key, VersionId=version)["Body"]
+        try:
+            readback = stream.read(len(body)+1)
+        finally:
+            stream.close()
+        if (len(versions) != 1 or versions[0].get("VersionId") != version
+                or int(versions[0].get("Size", -1)) != len(body)
+                or readback != body or hashlib.sha256(readback).hexdigest() != digest):
+            raise RuntimeError(f"Feature assembly publication verification failed: {key}")
+        item = {"key": key, "bytes": len(body), "sha256": digest, "version_id": version}
+        published.append(item); return item
+    table_item = publish(config["outputs"]["table"], table_body, "application/vnd.apache.parquet")
+    summary_item = publish(config["outputs"]["summary_json"], summary_body, "application/json")
+    null_item = publish(config["outputs"]["null_report_csv"], null_body, "text/csv")
+    manifest_record = {"status": "complete", "part": "4.4",
+        "contract_version": config["contract_version"], "sources": config["sources"],
+        "outputs": [table_item, summary_item, null_item], "validation": summary,
+        "growth_rule": "immediately preceding observed epoch only; first epoch unavailable"}
+    manifest_body = (json.dumps(manifest_record, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+    manifest_item = publish(config["outputs"]["manifest"], manifest_body, "application/json")
+    return {**manifest_record, "manifest": manifest_item, "b2_writes": 4,
+            "new_bytes": sum(item["bytes"] for item in published)}
+
+
 @app.local_entrypoint()
 def main(action: str = "verify") -> None:
     """Dispatch a local control-plane command to a remote Modal function."""
@@ -4140,6 +4230,22 @@ def main(action: str = "verify") -> None:
         with receipt.open("xb") as stream:
             stream.write(body)
         print("PHASE4_CONTEXT_AGGREGATION="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part4-feature-assemble":
+        import json
+        from src.utils.io import load_config, resolve_path
+        config = load_config("feature_assembly")
+        receipt = resolve_path("phase4_assembly_review")/config["local_receipt"]
+        if receipt.exists():
+            raise FileExistsError("Local feature assembly receipt exists; refusing overwrite")
+        result = assemble_phase4_features.remote()
+        body = (json.dumps(result, indent=2, sort_keys=True, allow_nan=False)+"\n").encode()
+        if len(body) > config["maximum_local_receipt_bytes"]:
+            raise RuntimeError("Feature assembly receipt exceeds cap")
+        receipt.parent.mkdir(parents=True, exist_ok=True)
+        with receipt.open("xb") as stream:
+            stream.write(body)
+        print("PHASE4_FEATURE_ASSEMBLY="+json.dumps(result, sort_keys=True), flush=True)
         return
     if action == "part3-gate-review":
         import hashlib
