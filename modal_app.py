@@ -24,6 +24,7 @@ REMOTE_DEPENDENCIES = (
     "rio-cogeo>=7.0,<8.0", "boto3>=1.43,<2.0",
     "python-dotenv>=1.0,<2.0", "mgrs>=1.5,<2.0",
     "pytest>=8.0,<9.0", "pyyaml>=6.0,<7.0", "requests>=2.32,<3.0",
+    "earthengine-api>=1.7,<2.0",
 )
 
 image = (
@@ -46,6 +47,11 @@ ohsome_secret = modal.Secret.from_name(
     OHSOME_SECRET_NAME,
     environment_name="main",
     required_keys=["OHSOME_API_KEY"],
+)
+earthengine_secret = modal.Secret.from_name(
+    "vizag-earthengine",
+    environment_name="main",
+    required_keys=["EE_PROJECT_ID", "EE_SERVICE_ACCOUNT_JSON_B64"],
 )
 manifest_recovery_checkpoints = modal.Dict.from_name(
     "vizag-phase3-manifest-recovery-3-3-2", create_if_missing=True
@@ -3946,6 +3952,874 @@ def assemble_phase4_features() -> dict:
             "new_bytes": sum(item["bytes"] for item in published)}
 
 
+@app.function(secrets=[b2_secret], timeout=300, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def preflight_phase5_part1() -> dict:
+    """Pin Part 5.1 inputs without opening raster pixels or writing B2."""
+    import os
+    import boto3
+    from botocore.config import Config
+    from src.labels.built_up_preflight import approved_index_sources, build_preflight_report, pin_worldcover
+    from src.utils.io import load_config
+
+    config, gate, b2 = load_config("built_up_preflight"), load_config("gate_review"), load_config("b2")
+    client = boto3.client("s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 1}, connect_timeout=20, read_timeout=60))
+    def reject_api(model, **kwargs):
+        if model.name not in {"ListObjectVersions", "HeadObject"}:
+            raise RuntimeError(f"Part 5.1 preflight refused B2 operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_api)
+    indices = approved_index_sources(gate, config)
+    worldcover = pin_worldcover(client, b2["bucket"], config["worldcover"])
+    return build_preflight_report(config, indices, worldcover)
+
+
+@app.function(secrets=[b2_secret], timeout=1800, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def pilot_phase5_part1() -> dict:
+    """Full-pixel 2020/2022 WorldCover cross-check; read-only and exact-version pinned."""
+    import hashlib
+    import os
+    import tempfile
+    from pathlib import Path
+    from contextlib import ExitStack
+
+    import boto3
+    import numpy as np
+    import rasterio
+    from botocore.config import Config
+    from rasterio.enums import Resampling
+    from rasterio.vrt import WarpedVRT
+    from rasterio.windows import Window
+
+    from src.labels.built_up_classification import candidate_rules, classify, metrics, select_rule, valid_index_mask
+    from src.labels.built_up_preflight import approved_index_sources
+    from src.utils.io import load_config
+
+    config, gate, b2 = load_config("built_up_preflight"), load_config("gate_review"), load_config("b2")
+    client = boto3.client("s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"], aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"total_max_attempts": 2}, connect_timeout=20, read_timeout=180))
+    def reject_api(model, **kwargs):
+        if model.name not in {"GetObject"}:
+            raise RuntimeError(f"Part 5.1 pilot refused B2 operation: {model.name}")
+    client.meta.events.register("before-call.s3.*", reject_api)
+
+    approved = approved_index_sources(gate, config)
+    selected = [item for item in approved if item["epoch"] in config["crosscheck_epochs"]
+                and item["role"] in {"ndvi", "ndbi", "mndwi"}]
+    wc = config["worldcover"]
+    total = sum(item["bytes"] for item in selected) + wc["expected_bytes"]
+    if total > config["pilot"]["maximum_input_bytes"]:
+        raise RuntimeError("Part 5.1 pilot input budget exceeded")
+
+    def restore(spec, path, expected_bytes, expected_hash=None):
+        response = client.get_object(Bucket=b2["bucket"], Key=spec["key"], VersionId=spec["version_id"])
+        digest, count = hashlib.sha256(), 0
+        with path.open("xb") as target:
+            stream = response["Body"]
+            try:
+                for block in iter(lambda: stream.read(8*1024*1024), b""):
+                    count += len(block); digest.update(block); target.write(block)
+            finally:
+                stream.close()
+        if count != expected_bytes or (expected_hash and digest.hexdigest() != expected_hash):
+            raise RuntimeError(f"Part 5.1 exact-version payload verification failed: {spec['key']}")
+        return digest.hexdigest()
+
+    rules = candidate_rules(config)
+    accumulated = {rule["name"]: {year: {k: 0 for k in ("tp", "tn", "fp", "fn")}
+                                     for year in config["crosscheck_epochs"]} for rule in rules}
+    with tempfile.TemporaryDirectory(prefix="phase5-1-pilot-") as tmp:
+        root = Path(tmp)
+        wc_path = root/"worldcover.tif"
+        wc_hash = restore(wc, wc_path, wc["expected_bytes"])
+        for epoch in config["crosscheck_epochs"]:
+            specs = {item["role"]: item for item in selected if item["epoch"] == epoch}
+            paths = {}
+            for role, spec in specs.items():
+                path = root/f"{epoch}-{role}.tif"
+                restore(spec, path, spec["bytes"], spec["sha256"]); paths[role] = path
+            with ExitStack() as stack:
+                datasets = {role: stack.enter_context(rasterio.open(path)) for role, path in paths.items()}
+                reference = datasets["ndbi"]
+                schema = (reference.crs, reference.transform, reference.width, reference.height)
+                if any((ds.crs, ds.transform, ds.width, ds.height) != schema for ds in datasets.values()):
+                    raise RuntimeError("Part 5.1 indices do not share one frozen grid")
+                wc_src = stack.enter_context(rasterio.open(wc_path))
+                wc_vrt = stack.enter_context(WarpedVRT(wc_src, crs=reference.crs,
+                    transform=reference.transform, width=reference.width, height=reference.height,
+                    resampling=Resampling.nearest, nodata=wc["nodata_class"]))
+                step = int(config["pilot"]["chunk_size_pixels"])
+                for row in range(0, reference.height, step):
+                    for col in range(0, reference.width, step):
+                        window = Window(col, row, min(step, reference.width-col), min(step, reference.height-row))
+                        arrays = {role: ds.read(1, window=window) for role, ds in datasets.items()}
+                        valid = valid_index_mask(arrays, {role: ds.nodata for role, ds in datasets.items()})
+                        labels = wc_vrt.read(1, window=window)
+                        valid &= labels != wc["nodata_class"]
+                        ref_built = labels == wc["built_class"]
+                        if not valid.any(): continue
+                        for rule in rules:
+                            pred = classify(arrays, rule, valid)
+                            c = accumulated[rule["name"]][epoch]
+                            c["tp"] += int(np.count_nonzero(pred[valid] & ref_built[valid]))
+                            c["tn"] += int(np.count_nonzero(~pred[valid] & ~ref_built[valid]))
+                            c["fp"] += int(np.count_nonzero(pred[valid] & ~ref_built[valid]))
+                            c["fn"] += int(np.count_nonzero(~pred[valid] & ref_built[valid]))
+            for path in paths.values(): path.unlink()
+    evaluated = {name: {epoch: metrics(counts) for epoch, counts in epochs.items()}
+                 for name, epochs in accumulated.items()}
+    winner = select_rule(evaluated)
+    winner["definition"] = next(rule for rule in rules if rule["name"] == winner["name"])
+    return {"status": "pilot_complete_scientific_review_required", "part": "5.1",
+            "b2_writes": 0, "input_bytes": total, "worldcover_sha256": wc_hash,
+            "worldcover_temporal_caveat": "single 2021 reference cross-checks 2020 and 2022",
+            "candidate_count": len(rules), "selected": winner,
+            "selected_epoch_metrics": evaluated[winner["name"]], "all_candidates": evaluated}
+
+
+@app.function(secrets=[earthengine_secret], timeout=300, cpu=1.0, memory=1024,
+              max_containers=1, retries=0)
+def verify_phase5_earthengine_access() -> dict:
+    """Authenticate from Modal and inspect Dynamic World metadata without exports."""
+    import base64
+    import json
+    import os
+
+    import ee
+    from google.oauth2 import service_account
+
+    project = os.environ["EE_PROJECT_ID"]
+    encoded = os.environ["EE_SERVICE_ACCOUNT_JSON_B64"]
+    try:
+        info = json.loads(base64.b64decode(encoded, validate=True))
+    except Exception as exc:
+        raise RuntimeError("Earth Engine Modal secret is not valid Base64 JSON") from exc
+    expected_email = f"vizag-modal-ee@{project}.iam.gserviceaccount.com"
+    if info.get("project_id") != project or info.get("client_email") != expected_email:
+        raise RuntimeError("Earth Engine service-account identity differs from the approved project")
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/earthengine"])
+    ee.Initialize(credentials=credentials, project=project)
+    collection = ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1").filterDate(
+        "2018-01-01", "2019-01-01").limit(1)
+    count = int(collection.size().getInfo())
+    if count != 1:
+        raise RuntimeError("Dynamic World collection probe returned no 2018 observation")
+    first = ee.Image(collection.first())
+    bands = first.bandNames().getInfo()
+    expected_bands = {"water", "trees", "grass", "flooded_vegetation", "crops",
+                      "shrub_and_scrub", "built", "bare", "snow_and_ice", "label"}
+    if set(bands) != expected_bands:
+        raise RuntimeError("Dynamic World band schema differs from the approved V1 contract")
+    return {"status": "earthengine_access_verified", "project": project,
+            "service_account": expected_email, "collection": "GOOGLE/DYNAMICWORLD/V1",
+            "probe_year": 2018, "probe_images": count, "bands": bands,
+            "exports_started": 0, "b2_writes": 0}
+
+
+@app.function(secrets=[earthengine_secret], timeout=300, cpu=1.0, memory=1024,
+              max_containers=1, retries=0)
+def plan_phase5_dynamic_world_acquisition() -> dict:
+    """Count AOI/window observations and estimate workload without exports."""
+    import base64
+    import datetime as dt
+    import json
+    import os
+
+    import ee
+    from google.oauth2 import service_account
+    from pyproj import Transformer
+    from src.utils.io import load_config
+
+    project = os.environ["EE_PROJECT_ID"]
+    info = json.loads(base64.b64decode(os.environ["EE_SERVICE_ACCOUNT_JSON_B64"], validate=True))
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/earthengine"])
+    ee.Initialize(credentials=credentials, project=project)
+    preprocessing, temporal = load_config("preprocessing"), load_config("temporal")
+    bounds = preprocessing["extraction"]["output_bounds"]
+    transform = Transformer.from_crs(preprocessing["extraction"]["output_crs"], "EPSG:4326", always_xy=True)
+    west, south = transform.transform(bounds[0], bounds[1])
+    east, north = transform.transform(bounds[2], bounds[3])
+    aoi = ee.Geometry.Rectangle([west, south, east, north], proj="EPSG:4326", geodesic=False)
+    rows, total_observations = [], 0
+    for epoch in temporal["epochs"]:
+        start, end = f"{epoch}-01-01", f"{epoch}-04-01"
+        collection = (ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
+                      .filterBounds(aoi).filterDate(start, end).sort("system:time_start"))
+        times = collection.aggregate_array("system:time_start").getInfo()
+        if not times:
+            raise RuntimeError(f"No Dynamic World observations for {epoch} dry-season planning window")
+        dates = [dt.datetime.fromtimestamp(value/1000, tz=dt.timezone.utc).isoformat() for value in times]
+        total_observations += len(times)
+        rows.append({"epoch": epoch, "window_start": start, "window_end_exclusive": end,
+                     "observation_count": len(times), "first_observation": dates[0],
+                     "last_observation": dates[-1], "unique_dates": len(set(d[:10] for d in dates))})
+    width, height = preprocessing["extraction"]["output_width"], preprocessing["extraction"]["output_height"]
+    pixels = width * height
+    # Nine float32 probabilities + uint8 label per observation; excludes protocol/compression overhead.
+    raw_observation_bytes = total_observations * pixels * (9*4+1)
+    epoch_composite_bytes = len(temporal["epochs"]) * pixels * (9*4+1+2)
+    return {"status": "metadata_plan_complete_no_exports", "project": project,
+            "aoi_bounds_wgs84": [west, south, east, north], "raster_pixels": pixels,
+            "epochs": rows, "total_observations": total_observations,
+            "raw_observation_bytes_uncompressed": raw_observation_bytes,
+            "epoch_composite_bytes_uncompressed": epoch_composite_bytes,
+            "exports_started": 0, "b2_writes": 0,
+            "note": "Planning window is Jan 1-Mar 31; exact scene/date matching is the next gate."}
+
+
+@app.function(secrets=[b2_secret, earthengine_secret], timeout=600, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def match_phase5_dynamic_world_scenes() -> dict:
+    """Match approved Sentinel-2 scenes to Dynamic World without exports or writes."""
+    import base64
+    import hashlib
+    import json
+    import os
+
+    import boto3
+    import ee
+    from google.oauth2 import service_account
+    from src.labels.dynamic_world import selected_scene_identity, validate_exact_matches
+    from src.preprocessing.extraction_batch import validate_selected_scenes
+    from src.utils.io import load_config
+
+    b2, compute = load_config("b2"), load_config("compute")
+    key = f"{compute['b2_output_prefixes']['manifests']}selected_scenes.jsonl"
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+    )
+    response = client.get_object(Bucket=b2["bucket"], Key=key)
+    body = response["Body"].read()
+    rows = [json.loads(line) for line in body.decode("utf-8").splitlines() if line.strip()]
+    selected = [row for row in rows if row.get("selected", True)]
+    validate_selected_scenes(selected)
+
+    project = os.environ["EE_PROJECT_ID"]
+    info = json.loads(base64.b64decode(os.environ["EE_SERVICE_ACCOUNT_JSON_B64"], validate=True))
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/earthengine"])
+    ee.Initialize(credentials=credentials, project=project)
+    candidates = {}
+    collection = ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
+    for scene in selected:
+        identity = selected_scene_identity(scene)
+        start_ms = int(identity["sensing_time_ms"])
+        subset = (collection
+                  .filter(ee.Filter.gte("system:time_start", start_ms))
+                  .filter(ee.Filter.lt("system:time_start", start_ms + 15 * 60 * 1000))
+                  .filter(ee.Filter.stringStartsWith(
+                      "system:index", f'{identity["sensing_timestamp"]}_'))
+                  .filter(ee.Filter.stringEndsWith(
+                      "system:index", f'_T{identity["tile"]}')))
+        candidates[str(identity["product_id"])] = subset.reduceColumns(
+            ee.Reducer.toList(2), ["system:index", "system:time_start"]
+        ).get("list").getInfo()
+        candidates[str(identity["product_id"])] = [
+            {"system:index": row[0], "system:time_start": row[1]}
+            for row in candidates[str(identity["product_id"])]
+        ]
+    matches = validate_exact_matches(selected, candidates)
+    counts = {str(epoch): sum(int(row["epoch"]) == epoch for row in matches)
+              for epoch in (2018, 2020, 2022, 2024)}
+    return {
+        "status": "exact_scene_match_complete_no_exports",
+        "project": project,
+        "collection": "GOOGLE/DYNAMICWORLD/V1",
+        "selected_manifest": {
+            "key": key, "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(),
+            "version_id": response.get("VersionId"), "etag": response.get("ETag", "").strip('"'),
+        },
+        "match_count": len(matches), "match_counts_by_epoch": counts, "matches": matches,
+        "exports_started": 0, "b2_writes": 0,
+    }
+
+
+@app.function(secrets=[earthengine_secret], timeout=300, cpu=1.0, memory=1024,
+              max_containers=1, retries=0)
+def diagnose_phase5_dynamic_world_match() -> dict:
+    """Inspect a narrow candidate window for the first failed exact scene match."""
+    import base64
+    import datetime as dt
+    import json
+    import os
+
+    import ee
+    from google.oauth2 import service_account
+
+    project = os.environ["EE_PROJECT_ID"]
+    info = json.loads(base64.b64decode(os.environ["EE_SERVICE_ACCOUNT_JSON_B64"], validate=True))
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/earthengine"])
+    ee.Initialize(credentials=credentials, project=project)
+
+    approved_product = "S2A_MSIL2A_20180304T044701_N0500_R076_T44QQE_20230904T140422"
+    approved_time = dt.datetime(2018, 3, 4, 4, 47, 1, tzinfo=dt.timezone.utc)
+    start = approved_time - dt.timedelta(minutes=15)
+    end = approved_time + dt.timedelta(minutes=15)
+    collection = (ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
+                  .filterDate(start.isoformat(), end.isoformat())
+                  .filter(ee.Filter.stringContains("system:index", "44QQE"))
+                  .sort("system:time_start"))
+    count = int(collection.size().getInfo())
+    if count > 10:
+        raise RuntimeError(f"Diagnostic query returned an implausible {count} candidates")
+    indexes = collection.aggregate_array("system:index").getInfo()
+    times = collection.aggregate_array("system:time_start").getInfo()
+    candidates = []
+    for index, time_ms in zip(indexes, times, strict=True):
+        image = ee.Image(collection.filter(ee.Filter.eq("system:index", index)).first())
+        props = image.toDictionary().getInfo()
+        candidates.append({
+            "system_index": index,
+            "system_time_start": int(time_ms),
+            "time_utc": dt.datetime.fromtimestamp(time_ms / 1000, tz=dt.timezone.utc).isoformat(),
+            "offset_seconds": int(time_ms / 1000 - approved_time.timestamp()),
+            "properties": {key: props[key] for key in sorted(props)
+                           if key in {"MGRS_TILE", "PRODUCT_ID", "SOURCE_ID", "system:asset_size",
+                                      "system:version", "dynamicworld_algorithm_version",
+                                      "qa_algorithm_version"}},
+        })
+    return {
+        "status": "diagnostic_complete_no_exports",
+        "approved_product": approved_product,
+        "approved_time_utc": approved_time.isoformat(),
+        "query_window_utc": [start.isoformat(), end.isoformat()],
+        "candidate_count": count,
+        "candidates": candidates,
+        "exports_started": 0,
+        "b2_reads": 0,
+        "b2_writes": 0,
+    }
+
+
+@app.function(secrets=[earthengine_secret], timeout=900, cpu=1.0, memory=2048,
+              max_containers=1, retries=0)
+def audit_phase5_dynamic_world_tile_coverage() -> dict:
+    """Audit epoch/tile coverage and workload without starting an export."""
+    import base64
+    import datetime as dt
+    import json
+    import os
+
+    import ee
+    from google.oauth2 import service_account
+    from pyproj import Transformer
+    from src.utils.io import load_config
+
+    project = os.environ["EE_PROJECT_ID"]
+    info = json.loads(base64.b64decode(os.environ["EE_SERVICE_ACCOUNT_JSON_B64"], validate=True))
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/earthengine"])
+    ee.Initialize(credentials=credentials, project=project)
+
+    preprocessing, temporal = load_config("preprocessing"), load_config("temporal")
+    extraction = preprocessing["extraction"]
+    bounds = extraction["output_bounds"]
+    transformer = Transformer.from_crs(
+        extraction["output_crs"], "EPSG:4326", always_xy=True)
+    west, south = transformer.transform(bounds[0], bounds[1])
+    east, north = transformer.transform(bounds[2], bounds[3])
+    aoi = ee.Geometry.Rectangle([west, south, east, north], proj="EPSG:4326", geodesic=False)
+    base = ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
+    epochs = []
+    total_observations = 0
+    for epoch in temporal["epochs"]:
+        start, end = f"{epoch}-01-01", f"{epoch}-04-01"
+        collection = (base.filterBounds(aoi).filterDate(start, end)
+                      .filter(ee.Filter.stringEndsWith("system:index", "_T44QQE"))
+                      .sort("system:time_start"))
+        indexes = collection.aggregate_array("system:index").getInfo()
+        times = collection.aggregate_array("system:time_start").getInfo()
+        if not indexes or len(indexes) != len(times):
+            raise RuntimeError(f"Dynamic World tile coverage is absent or malformed for {epoch}")
+        if len(indexes) != len(set(indexes)):
+            raise RuntimeError(f"Dynamic World returned duplicate asset identities for {epoch}")
+        algorithm_versions = sorted(set(
+            str(value) for value in
+            collection.aggregate_array("dynamicworld_algorithm_version").getInfo()
+            if value is not None))
+        qa_versions = sorted(set(
+            str(value) for value in collection.aggregate_array("qa_algorithm_version").getInfo()
+            if value is not None))
+        count_image = collection.select("built").count().rename("observation_count")
+        valid_image = count_image.gt(0).rename("covered")
+        count_stats = count_image.reduceRegion(
+            reducer=ee.Reducer.minMax().combine(ee.Reducer.mean(), sharedInputs=True),
+            geometry=aoi, scale=100, crs=extraction["output_crs"], maxPixels=2_000_000,
+            bestEffort=False, tileScale=4).getInfo()
+        coverage = valid_image.reduceRegion(
+            reducer=ee.Reducer.mean(), geometry=aoi, scale=100,
+            crs=extraction["output_crs"], maxPixels=2_000_000,
+            bestEffort=False, tileScale=4).getInfo()
+        observations = [{
+            "system_index": index,
+            "time_utc": dt.datetime.fromtimestamp(time_ms / 1000, tz=dt.timezone.utc).isoformat(),
+        } for index, time_ms in zip(indexes, times, strict=True)]
+        total_observations += len(observations)
+        epochs.append({
+            "epoch": int(epoch), "window_start": start, "window_end_exclusive": end,
+            "tile": "T44QQE", "observation_count": len(observations),
+            "unique_dates": len({row["time_utc"][:10] for row in observations}),
+            "dynamicworld_algorithm_versions": algorithm_versions,
+            "qa_algorithm_versions": qa_versions,
+            "planning_scale_m": 100,
+            "aoi_coverage_fraction": coverage.get("covered"),
+            "observation_count_min": count_stats.get("observation_count_min"),
+            "observation_count_mean": count_stats.get("observation_count_mean"),
+            "observation_count_max": count_stats.get("observation_count_max"),
+            "observations": observations,
+        })
+    pixels = int(extraction["output_width"]) * int(extraction["output_height"])
+    # Proposed pilot bands: built median, built temporal stddev, valid count, and label mode.
+    bytes_per_pixel = 4 + 4 + 2 + 1
+    return {
+        "status": "tile_coverage_audit_complete_no_exports",
+        "project": project, "collection": "GOOGLE/DYNAMICWORLD/V1",
+        "aoi_bounds_wgs84": [west, south, east, north],
+        "raster_pixels": pixels, "epochs": epochs,
+        "total_tile_observations": total_observations,
+        "proposed_pilot_epoch": 2022,
+        "proposed_pilot_bands": ["built_median", "built_stddev", "valid_count", "label_mode"],
+        "estimated_pilot_bytes_uncompressed": pixels * bytes_per_pixel,
+        "estimated_four_epoch_bytes_uncompressed": pixels * bytes_per_pixel * len(epochs),
+        "estimate_excludes_compression_and_container_overhead": True,
+        "exports_started": 0, "b2_reads": 0, "b2_writes": 0,
+    }
+
+
+@app.function(secrets=[b2_secret, earthengine_secret], timeout=10800, cpu=4.0,
+              memory=16384, ephemeral_disk=524288, max_containers=1, retries=0)
+def build_phase5_dynamic_world_pilot() -> dict:
+    """Build, validate and create-only publish the approved 2022 Dynamic World pilot."""
+    import base64
+    import hashlib
+    import io
+    import json
+    import os
+    import tempfile
+    import zipfile
+    from pathlib import Path
+
+    import boto3
+    import ee
+    import numpy as np
+    import rasterio
+    import requests
+    from botocore.config import Config
+    from google.oauth2 import service_account
+    from rasterio.io import MemoryFile
+    from rasterio.transform import Affine
+    from rasterio.windows import Window
+    from rio_cogeo.cogeo import cog_translate, cog_validate
+    from rio_cogeo.profiles import cog_profiles
+    from src.preprocessing.index_products import require_absent, sha256_file
+    from src.preprocessing.read_strategy import vsis3_credentials
+    from src.labels.dynamic_world import built_statistics_qc
+    from src.utils.io import load_config
+
+    b2, preprocessing = load_config("b2"), load_config("preprocessing")
+    policy = load_config("built_up_preflight")["dynamic_world"]
+    extraction = preprocessing["extraction"]
+    epoch = int(policy["pilot_epoch"])
+    prefix = policy["output_prefix"]
+    output_keys = {name: prefix + filename for name, filename in policy["outputs"].items()}
+    bucket = b2["bucket"]
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+        config=Config(retries={"max_attempts": 1, "mode": "standard"}),
+    )
+    require_absent(client, bucket, list(output_keys.values()))
+
+    project = os.environ["EE_PROJECT_ID"]
+    info = json.loads(base64.b64decode(os.environ["EE_SERVICE_ACCOUNT_JSON_B64"], validate=True))
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/earthengine"])
+    ee.Initialize(credentials=credentials, project=project)
+    start = f'{epoch}-{policy["window_start_month_day"]}'
+    end = f'{epoch}-{policy["window_end_exclusive_month_day"]}'
+    collection = (ee.ImageCollection(policy["collection"]).filterDate(start, end)
+                  .filter(ee.Filter.stringEndsWith("system:index", f'_{policy["tile"]}'))
+                  .sort("system:time_start"))
+    indexes = collection.aggregate_array("system:index").getInfo()
+    if not indexes or len(indexes) > int(policy["maximum_observations"]):
+        raise RuntimeError(f"unexpected pilot observation count: {len(indexes)}")
+    acquisition_groups = {}
+    for index in indexes:
+        acquisition_groups.setdefault(index.split("_", 1)[0], []).append(index)
+    # Equal-weight acquisitions. If Earth Engine contains multiple assets for one
+    # sensing token, median/mode them first rather than overweighting that date.
+    per_acquisition = []
+    for token in sorted(acquisition_groups):
+        group = collection.filter(ee.Filter.inList("system:index", acquisition_groups[token]))
+        per_acquisition.append(
+            group.select("built").median().rename("built")
+            .addBands(group.select("label").mode().rename("label"))
+            .set("system:index", token)
+        )
+    normalized = ee.ImageCollection.fromImages(per_acquisition)
+    stats_image = (normalized.select("built").median().rename("built_median")
+                   .addBands(normalized.select("built").reduce(ee.Reducer.stdDev())
+                             .rename("built_stddev"))
+                   .toFloat())
+    count_image = normalized.select("built").count().rename("valid_count").toUint16()
+    label_image = normalized.select("label").mode().rename("label_mode").toUint8()
+    products = {
+        "built_statistics": {"image": stats_image.unmask(-9999), "count": 2,
+                             "dtype": "float32", "nodata": -9999.0,
+                             "descriptions": ("built_median", "built_stddev")},
+        "valid_count": {"image": count_image.unmask(0), "count": 1,
+                        "dtype": "uint16", "nodata": 0,
+                        "descriptions": ("valid_count",)},
+        "label_mode": {"image": label_image.unmask(255), "count": 1,
+                       "dtype": "uint8", "nodata": 255,
+                       "descriptions": ("label_mode",)},
+    }
+    width, height = int(extraction["output_width"]), int(extraction["output_height"])
+    bounds = [float(value) for value in extraction["output_bounds"]]
+    pixel = float(extraction["pixel_size_m"])
+    transform = Affine(pixel, 0, bounds[0], 0, -pixel, bounds[3])
+    if (bounds[0] + width * pixel != bounds[2]
+            or bounds[3] - height * pixel != bounds[1]):
+        raise RuntimeError("approved extraction grid bounds/dimensions are inconsistent")
+    tile_size = int(policy["download_tile_pixels"])
+
+    def decode_geotiff(payload: bytes) -> bytes:
+        if payload[:2] != b"PK":
+            return payload
+        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            names = [name for name in archive.namelist() if name.lower().endswith((".tif", ".tiff"))]
+            if len(names) != 1:
+                raise RuntimeError(f"Earth Engine tile archive contains {len(names)} GeoTIFFs")
+            return archive.read(names[0])
+
+    with tempfile.TemporaryDirectory() as temp_name:
+        temp = Path(temp_name)
+        source_paths, cog_paths = {}, {}
+        for name, spec in products.items():
+            source_path, cog_path = temp / f"{name}.source.tif", temp / f"{name}.tif"
+            source_paths[name], cog_paths[name] = source_path, cog_path
+            predictor = 3 if spec["dtype"] == "float32" else 2
+            with rasterio.open(
+                source_path, "w", driver="GTiff", width=width, height=height,
+                count=spec["count"], dtype=spec["dtype"], crs=extraction["output_crs"],
+                transform=transform, nodata=spec["nodata"], tiled=True,
+                blockxsize=512, blockysize=512, compress="deflate", predictor=predictor,
+                BIGTIFF="IF_SAFER",
+            ) as destination:
+                destination.descriptions = spec["descriptions"]
+                destination.update_tags(
+                    contract_version=policy["contract_version"], epoch=str(epoch),
+                    source_collection=policy["collection"], tile=policy["tile"],
+                    window_start=start, window_end_exclusive=end,
+                    asset_count=str(len(indexes)), acquisition_count=str(len(acquisition_groups)),
+                    duplicate_policy="median_probability_and_mode_label_per_sensing_token",
+                )
+                for row_off in range(0, height, tile_size):
+                    tile_height = min(tile_size, height - row_off)
+                    for col_off in range(0, width, tile_size):
+                        tile_width = min(tile_size, width - col_off)
+                        tile_transform = transform * Affine.translation(col_off, row_off)
+                        url = spec["image"].getDownloadURL({
+                            "name": f"{name}_{row_off}_{col_off}",
+                            "crs": extraction["output_crs"],
+                            "crs_transform": list(tile_transform)[:6],
+                            "dimensions": [tile_width, tile_height],
+                            "format": "GEO_TIFF",
+                        })
+                        response = requests.get(url, timeout=300)
+                        response.raise_for_status()
+                        tile_bytes = decode_geotiff(response.content)
+                        with MemoryFile(tile_bytes) as memory, memory.open() as tile:
+                            if (tile.count != spec["count"] or tile.width != tile_width
+                                    or tile.height != tile_height
+                                    or tile.crs != rasterio.crs.CRS.from_string(extraction["output_crs"])
+                                    or not tile.transform.almost_equals(tile_transform)):
+                                raise RuntimeError(f"{name}: Earth Engine tile grid/schema mismatch")
+                            values = tile.read().astype(spec["dtype"], copy=False)
+                        destination.write(values, window=Window(
+                            col_off, row_off, tile_width, tile_height))
+            profile = dict(cog_profiles.get("deflate"))
+            profile.update(blockxsize=512, blockysize=512, predictor=predictor,
+                           BIGTIFF="IF_SAFER")
+            cog_translate(str(source_path), str(cog_path), profile, quiet=True,
+                          in_memory=False, overview_resampling=(
+                              "average" if name == "built_statistics" else "nearest"))
+
+        qc = {}
+        reference_valid = None
+        for name, spec in products.items():
+            valid_cog, errors, warnings = cog_validate(
+                str(cog_paths[name]), strict=True, quiet=True)
+            if not valid_cog:
+                raise RuntimeError(f"{name}: strict COG validation failed: {errors}; {warnings}")
+            with rasterio.open(cog_paths[name]) as dataset:
+                if (dataset.shape != (height, width) or dataset.count != spec["count"]
+                        or dataset.crs != rasterio.crs.CRS.from_string(extraction["output_crs"])
+                        or dataset.transform != transform or dataset.dtypes != (spec["dtype"],) * spec["count"]
+                        or dataset.nodata != spec["nodata"]):
+                    raise RuntimeError(f"{name}: final COG grid/schema mismatch")
+                values = dataset.read()
+            if name == "built_statistics":
+                valid = np.all(values != spec["nodata"], axis=0)
+                statistics_qc = built_statistics_qc(values, nodata=spec["nodata"])
+                reference_valid = valid
+                qc[name] = statistics_qc
+            elif name == "valid_count":
+                if values.max() > len(acquisition_groups):
+                    raise RuntimeError("valid-count values exceed acquisition count")
+                qc[name] = {"minimum": int(values.min()), "maximum": int(values.max()),
+                            "mean": float(values.mean())}
+            else:
+                allowed = np.isin(values, np.arange(9, dtype="uint8")) | (values == 255)
+                if not allowed.all():
+                    raise RuntimeError("label-mode contains an invalid class")
+                qc[name] = {"valid_pixels": int((values != 255).sum())}
+        if reference_valid is None or float(reference_valid.mean()) < float(policy["minimum_coverage_fraction"]):
+            raise RuntimeError("pilot valid coverage is below the approved gate")
+
+        identities = {name: {"key": output_keys[name], "bytes": path.stat().st_size,
+                             "sha256": sha256_file(path), "strict_cog": True,
+                             "qc": qc[name]}
+                      for name, path in cog_paths.items()}
+        manifest = {
+            "contract_version": policy["contract_version"], "epoch": epoch,
+            "source_collection": policy["collection"], "tile": policy["tile"],
+            "window": {"start": start, "end_exclusive": end},
+            "source_assets": indexes, "source_asset_count": len(indexes),
+            "acquisition_count": len(acquisition_groups), "outputs": identities,
+            "grid": {"crs": extraction["output_crs"], "transform": list(transform)[:6],
+                     "width": width, "height": height},
+        }
+        manifest_body = (json.dumps(manifest, sort_keys=True, indent=2, allow_nan=False) + "\n").encode()
+        manifest_identity = {"key": output_keys["manifest"], "bytes": len(manifest_body),
+                             "sha256": hashlib.sha256(manifest_body).hexdigest()}
+        require_absent(client, bucket, list(output_keys.values()))
+        published = {}
+        for name in ("built_statistics", "valid_count", "label_mode"):
+            details = identities[name]
+            with cog_paths[name].open("rb") as stream:
+                response = client.put_object(
+                    Bucket=bucket, Key=details["key"], Body=stream,
+                    ContentType="image/tiff", Metadata={
+                        "sha256": details["sha256"], "epoch": str(epoch),
+                        "contract-version": policy["contract_version"],
+                    })
+            published[name] = {**details, "version_id": response.get("VersionId")}
+        response = client.put_object(
+            Bucket=bucket, Key=output_keys["manifest"], Body=manifest_body,
+            ContentType="application/json", Metadata={
+                "sha256": manifest_identity["sha256"], "epoch": str(epoch),
+                "contract-version": policy["contract_version"],
+            })
+        published["manifest"] = {**manifest_identity, "version_id": response.get("VersionId")}
+        with vsis3_credentials(os.environ["B2_KEY_ID"], os.environ["B2_APPLICATION_KEY"],
+                              b2["endpoint_url"]):
+            for name in ("built_statistics", "valid_count", "label_mode"):
+                with rasterio.open(f"/vsis3/{bucket}/{output_keys[name]}") as remote:
+                    if remote.shape != (height, width) or remote.transform != transform:
+                        raise RuntimeError(f"{name}: remote reopen grid mismatch")
+        return {
+            "status": "pilot_published_scientific_review_required", "epoch": epoch,
+            "source_asset_count": len(indexes), "acquisition_count": len(acquisition_groups),
+            "outputs": published, "exports_started": 0, "b2_writes": 4,
+            "qc": qc,
+        }
+
+
+@app.function(secrets=[earthengine_secret], timeout=300, cpu=1.0, memory=1024,
+              max_containers=1, retries=0)
+def probe_phase5_dynamic_world_download() -> dict:
+    """Verify least-privilege thumbnail download with a tiny in-memory tile."""
+    import base64
+    import io
+    import json
+    import os
+    import zipfile
+
+    import ee
+    import rasterio
+    import requests
+    from google.oauth2 import service_account
+    from rasterio.io import MemoryFile
+    from src.utils.io import load_config
+
+    project = os.environ["EE_PROJECT_ID"]
+    info = json.loads(base64.b64decode(os.environ["EE_SERVICE_ACCOUNT_JSON_B64"], validate=True))
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/earthengine"])
+    ee.Initialize(credentials=credentials, project=project)
+    extraction = load_config("preprocessing")["extraction"]
+    image = (ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
+             .filterDate("2022-01-01", "2022-04-01")
+             .filter(ee.Filter.stringEndsWith("system:index", "_T44QQE"))
+             .select("built").median().rename("built_median").toFloat().unmask(-9999))
+    transform = [10, 0, extraction["output_bounds"][0],
+                 0, -10, extraction["output_bounds"][3]]
+    url = image.getDownloadURL({
+        "name": "phase5_permission_probe", "crs": extraction["output_crs"],
+        "crs_transform": transform, "dimensions": [64, 64], "format": "GEO_TIFF",
+    })
+    response = requests.get(url, timeout=180)
+    response.raise_for_status()
+    payload = response.content
+    if payload[:2] == b"PK":
+        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            names = [name for name in archive.namelist() if name.lower().endswith((".tif", ".tiff"))]
+            if len(names) != 1:
+                raise RuntimeError("permission probe returned an unexpected archive")
+            payload = archive.read(names[0])
+    with MemoryFile(payload) as memory, memory.open() as dataset:
+        if (dataset.count != 1 or dataset.shape != (64, 64)
+                or dataset.dtypes != ("float32",)
+                or dataset.crs != rasterio.crs.CRS.from_string(extraction["output_crs"])):
+            raise RuntimeError("permission probe raster schema mismatch")
+        valid_pixels = int((dataset.read(1) != -9999).sum())
+    if valid_pixels == 0:
+        raise RuntimeError("permission probe returned no valid Dynamic World pixels")
+    return {"status": "thumbnail_download_verified", "pixels": 4096,
+            "valid_pixels": valid_pixels, "response_bytes": len(payload),
+            "exports_started": 0, "b2_reads": 0, "b2_writes": 0}
+
+
+@app.function(secrets=[b2_secret], timeout=3600, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def review_phase5_dynamic_world_pilot() -> dict:
+    """Scientifically review the published pilot without modifying storage."""
+    import json
+    import os
+
+    import boto3
+    import numpy as np
+    import rasterio
+    from rasterio.enums import Resampling
+    from rasterio.vrt import WarpedVRT
+    from src.preprocessing.read_strategy import vsis3_credentials
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    config = load_config("built_up_preflight")
+    policy, wc = config["dynamic_world"], config["worldcover"]
+    prefix = policy["output_prefix"]
+    keys = {name: prefix + filename for name, filename in policy["outputs"].items()}
+    bucket, endpoint = b2["bucket"], b2["endpoint_url"]
+    key_id, app_key = os.environ["B2_KEY_ID"], os.environ["B2_APPLICATION_KEY"]
+    client = boto3.client("s3", endpoint_url=endpoint,
+                          aws_access_key_id=key_id, aws_secret_access_key=app_key)
+    manifest = json.loads(client.get_object(Bucket=bucket, Key=keys["manifest"])["Body"].read())
+    if manifest.get("contract_version") != policy["contract_version"]:
+        raise RuntimeError("pilot manifest contract differs from configuration")
+    expected = {name: manifest["outputs"][name]["sha256"]
+                for name in ("built_statistics", "valid_count", "label_mode")}
+    for name in expected:
+        head = client.head_object(Bucket=bucket, Key=keys[name])
+        if head.get("Metadata", {}).get("sha256") != expected[name]:
+            raise RuntimeError(f"{name}: B2 metadata hash differs from pilot manifest")
+
+    label_counts = np.zeros(9, dtype="int64")
+    count_hist = np.zeros(65, dtype="int64")
+    built_hist = np.zeros(1000, dtype="int64")
+    built_mode_hist = np.zeros(1000, dtype="int64")
+    std_hist = np.zeros(1000, dtype="int64")
+    tp = tn = fp = fn = 0
+    compared = 0
+    with vsis3_credentials(key_id, app_key, endpoint), rasterio.open(
+        f"/vsis3/{bucket}/{keys['built_statistics']}"
+    ) as stats, rasterio.open(
+        f"/vsis3/{bucket}/{keys['valid_count']}"
+    ) as counts, rasterio.open(
+        f"/vsis3/{bucket}/{keys['label_mode']}"
+    ) as labels, rasterio.open(
+        f"/vsis3/{bucket}/{wc['key']}"
+    ) as worldcover:
+        if not (stats.shape == counts.shape == labels.shape
+                and stats.transform == counts.transform == labels.transform
+                and stats.crs == counts.crs == labels.crs):
+            raise RuntimeError("pilot products are not mutually aligned")
+        with WarpedVRT(
+            worldcover, crs=stats.crs, transform=stats.transform,
+            width=stats.width, height=stats.height,
+            resampling=Resampling.nearest, nodata=wc["nodata_class"],
+        ) as reference:
+            for _, window in stats.block_windows(1):
+                probability = stats.read(1, window=window)
+                uncertainty = stats.read(2, window=window)
+                valid_count = counts.read(1, window=window)
+                label = labels.read(1, window=window)
+                ref = reference.read(1, window=window)
+                valid = probability != stats.nodata
+                if not valid.any():
+                    continue
+                label_counts += np.bincount(label[valid], minlength=9)[:9]
+                count_hist += np.bincount(valid_count[valid], minlength=65)[:65]
+                built_hist += np.histogram(probability[valid], bins=1000, range=(0, 1))[0]
+                std_hist += np.histogram(uncertainty[valid], bins=1000, range=(0, 1))[0]
+                mode_built = valid & (label == 6)
+                built_mode_hist += np.histogram(probability[mode_built], bins=1000, range=(0, 1))[0]
+                compare = valid & (ref != wc["nodata_class"])
+                pred = label == 6
+                truth = ref == wc["built_class"]
+                tp += int(np.count_nonzero(compare & pred & truth))
+                tn += int(np.count_nonzero(compare & ~pred & ~truth))
+                fp += int(np.count_nonzero(compare & pred & ~truth))
+                fn += int(np.count_nonzero(compare & ~pred & truth))
+                compared += int(compare.sum())
+
+    total = int(label_counts.sum())
+    if total != int(manifest["grid"]["width"]) * int(manifest["grid"]["height"]):
+        raise RuntimeError("scientific review pixel count differs from manifest grid")
+
+    def histogram_quantile(histogram, quantile: float) -> float:
+        count = int(histogram.sum())
+        if not count:
+            return float("nan")
+        index = int(np.searchsorted(np.cumsum(histogram), quantile * (count - 1), side="right"))
+        return min(index, len(histogram) - 1) / len(histogram)
+
+    sensitivity = tp / (tp + fn) if tp + fn else 0.0
+    specificity = tn / (tn + fp) if tn + fp else 0.0
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    f1 = 2 * precision * sensitivity / (precision + sensitivity) if precision + sensitivity else 0.0
+    return {
+        "status": "pilot_scientific_review_complete_batch_approval_required",
+        "epoch": int(policy["pilot_epoch"]), "valid_pixels": total,
+        "class_counts": {str(index): int(value) for index, value in enumerate(label_counts)},
+        "mode_built_fraction": float(label_counts[6] / total),
+        "valid_count": {"minimum": int(np.flatnonzero(count_hist)[0]),
+                        "median": histogram_quantile(count_hist, 0.5) * len(count_hist),
+                        "maximum": int(np.flatnonzero(count_hist)[-1])},
+        "built_probability_quantiles": {
+            "p05": histogram_quantile(built_hist, 0.05),
+            "p50": histogram_quantile(built_hist, 0.50),
+            "p95": histogram_quantile(built_hist, 0.95),
+        },
+        "mode_built_probability_quantiles": {
+            "p05": histogram_quantile(built_mode_hist, 0.05),
+            "p50": histogram_quantile(built_mode_hist, 0.50),
+            "p95": histogram_quantile(built_mode_hist, 0.95),
+        },
+        "temporal_stddev_quantiles": {
+            "p50": histogram_quantile(std_hist, 0.50),
+            "p95": histogram_quantile(std_hist, 0.95),
+        },
+        "worldcover_2021_non_authoritative_audit": {
+            "temporal_caveat": "2021 WorldCover audits the 2022 pilot; it is not a training vote or final truth",
+            "compared_pixels": compared, "tp": tp, "tn": tn, "fp": fp, "fn": fn,
+            "balanced_accuracy": (sensitivity + specificity) / 2,
+            "precision": precision, "recall": sensitivity, "f1": f1,
+        },
+        "b2_writes": 0,
+    }
+
+
 @app.local_entrypoint()
 def main(action: str = "verify") -> None:
     """Dispatch a local control-plane command to a remote Modal function."""
@@ -4246,6 +5120,56 @@ def main(action: str = "verify") -> None:
         with receipt.open("xb") as stream:
             stream.write(body)
         print("PHASE4_FEATURE_ASSEMBLY="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-built-preflight":
+        import json
+        result = preflight_phase5_part1.remote()
+        print("PHASE5_BUILT_PREFLIGHT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-built-pilot":
+        import json
+        result = pilot_phase5_part1.remote()
+        print("PHASE5_BUILT_PILOT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-ee-verify":
+        import json
+        result = verify_phase5_earthengine_access.remote()
+        print("PHASE5_EE_VERIFY="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-plan":
+        import json
+        result = plan_phase5_dynamic_world_acquisition.remote()
+        print("PHASE5_DW_PLAN="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-match":
+        import json
+        result = match_phase5_dynamic_world_scenes.remote()
+        print("PHASE5_DW_MATCH="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-diagnose":
+        import json
+        result = diagnose_phase5_dynamic_world_match.remote()
+        print("PHASE5_DW_DIAGNOSE="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-coverage-audit":
+        import json
+        result = audit_phase5_dynamic_world_tile_coverage.remote()
+        print("PHASE5_DW_COVERAGE_AUDIT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-pilot":
+        import json
+        result = build_phase5_dynamic_world_pilot.remote()
+        print("PHASE5_DW_PILOT="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-download-probe":
+        import json
+        result = probe_phase5_dynamic_world_download.remote()
+        print("PHASE5_DW_DOWNLOAD_PROBE="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-pilot-review":
+        import json
+        result = review_phase5_dynamic_world_pilot.remote()
+        print("PHASE5_DW_PILOT_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
         return
     if action == "part3-gate-review":
         import hashlib

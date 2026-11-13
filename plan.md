@@ -284,6 +284,16 @@ tests/unit/test_boundary.py
 ```
 
 **Implementation steps**
+
+> **Approved Part 5.1 amendment (2026-11-13):** full-pixel testing rejected the
+> fixed Sentinel-2 multi-index rules. The current candidate is Dynamic World V1
+> as one time-aware primary source: compose all eligible `T44QQE` observations
+> in each January-March epoch window; reduce duplicate sensing tokens before
+> temporal composition; retain built probability, temporal uncertainty, valid
+> count and label mode. WorldCover is an independent audit only, never a second
+> vote or a copied epoch label. A stratified spatial review is required before
+> the four-epoch batch.
+
 1. **Part 1.1** — `boundary.yaml` (source of the GVMC boundary — user-supplied shapefile or official source URL, working CRS `EPSG:32644`, buffer distance) + `src/acquisition/boundary.py` to load, reproject, and buffer it, writing both files above.
 2. **Part 1.2** — `temporal.yaml` (epochs: 2018, 2020, 2022, 2024/25; training pairs; temporal holdout pair; prediction target 2030) and `grid.yaml` (500 m cell size; documented rationale as a comment, not just a number) and `label.yaml` (threshold values to sensitivity-test: 5%, 10%, 20%; primary = 10%).
 

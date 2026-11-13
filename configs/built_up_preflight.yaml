@@ -1,0 +1,38 @@
+contract_version: "5.1.0-built-up-preflight-v1"
+epochs: [2018, 2020, 2022, 2024]
+roles: [ndvi, ndbi, ndwi, mndwi, bsi]
+worldcover:
+  key: vizag-geoai/data/raw/worldcover/ESA_WorldCover_10m_2021_v200_N15E081_Map.tif
+  expected_bytes: 39539634
+  product_year: 2021
+  product_version: v200
+  version_id: 4_z2250dbc1f968e033a7050713_f2002970276968e28_d20261010_m191332_c005_v0501046_t0011_u01791659612896
+  built_class: 50
+  nodata_class: 0
+crosscheck_epochs: [2020, 2022]
+maximum_small_payload_bytes: 262144
+maximum_header_transfer_bytes: 67108864
+production_writes_allowed: false
+dynamic_world:
+  collection: GOOGLE/DYNAMICWORLD/V1
+  contract_version: 5.1.0-dynamic-world-v1
+  tile: T44QQE
+  pilot_epoch: 2022
+  window_start_month_day: "01-01"
+  window_end_exclusive_month_day: "04-01"
+  download_tile_pixels: 1024
+  output_prefix: vizag-geoai/v2/labels/dynamic_world/contract-5.1.0/2022/
+  outputs:
+    built_statistics: dynamic_world_2022_built_statistics.tif
+    valid_count: dynamic_world_2022_valid_count.tif
+    label_mode: dynamic_world_2022_label_mode.tif
+    manifest: dynamic_world_2022_pilot_manifest.json
+  minimum_coverage_fraction: 0.99
+  maximum_observations: 64
+pilot:
+  chunk_size_pixels: 512
+  ndbi_thresholds: [-0.10, -0.05, 0.00, 0.05, 0.10]
+  ndvi_caps: [0.20, 0.30, 0.40]
+  mndwi_caps: [0.00, 0.10]
+  require_ndbi_gt_ndvi: true
+  maximum_input_bytes: 805306368

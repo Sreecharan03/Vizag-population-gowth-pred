@@ -202,7 +202,7 @@ There is no production prediction CLI yet.
 | Cell-level satellite/terrain features | Part 4.2 complete; six outputs verified, 6,355 cells meet the approved support/terrain rule |
 | Cell-level population/infrastructure context | Part 4.3 complete; 25,484 validated cell-year rows under contract 4.3.1 |
 | Leakage-safe assembled feature table | Part 4.4 complete; 25,484 rows, 69 columns, 6,355 model-eligible cells under contract 4.4.0 |
-| Built-fraction change labels | Planned; data suitability and label validation required |
+| Built-fraction change labels | Phase 5.1 in progress: Dynamic World 2022 pilot published and reviewed; four-epoch batch blocked on stratified spatial validation |
 | Logistic and tree-based baselines | Planned |
 | Temporal holdout, spatial robustness and calibration | Planned |
 | Explanations and infrastructure-pressure scenarios | Planned |
@@ -215,10 +215,13 @@ heuristic, not a measured infrastructure-capacity deficit.
 
 Phase 0 implementation is complete, with its historical formal gate still pending.
 The [quality plan](docs/phase-4-prediction-quality-plan.md) records the approved feature rule and
-the safeguards still required for later prediction work. Phase 4 implementation is complete and
-its summary/null-report review is the remaining formal gate. The next logical
-work is Phase 5 label construction and validation; this README does not authorize that production
-processing or claim that a prediction model already exists.
+the safeguards still required for later prediction work. Phase 4 implementation is complete.
+Phase 5.1 rejected the original fixed spectral-rule classifier after it under-detected about
+85% of the WorldCover built pixels. A versioned Dynamic World 2022 pilot now covers all
+31,776,122 approved-grid pixels and passed COG, hash, grid, range and remote-reopen validation.
+Its independent WorldCover 2021 audit had 0.902 recall but only 0.451 precision, so the extra
+Dynamic World detections require stratified spatial review before the 2018/2020/2024 batch.
+No growth labels or prediction model exist yet.
 
 ## Documentation
 
@@ -227,6 +230,7 @@ processing or claim that a prediction model already exists.
 - [Read-strategy decision](docs/decisions/ADR-001-read-strategy.md)
 - [Part 4.3 completion and provenance](docs/phase-4.3-context-completion.md)
 - [Part 4.4 completion, error correction and immutable outputs](docs/phase-4.4-completion.md)
+- [Phase 5.1 method history, Dynamic World pilot and current gate](docs/phase-5.1-preflight.md)
 - [Reviewed academic report — PDF](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.pdf)
 - [Editable academic report — Word](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.docx)
 - [Report scope and diagram notes](results/project_report/README.md)

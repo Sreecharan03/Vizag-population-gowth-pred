@@ -132,6 +132,44 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
   Four create-only B2 objects totaling 3,832,563 bytes were exact-version/read-back/hash
   verified with the manifest last. Leakage-safe growth uses only the immediately preceding
   epoch. Full Modal regression: 405 passed, one existing warning.
+- **Part 5.1 source preflight passed (2026-11-12):** read-only Modal run
+  `ap-dU3AeibKf2cToxvrFA9dBU` pinned all 20 approved index COGs (1,309,726,569
+  bytes) and the single 39,539,634-byte WorldCover 2021 v200 object with zero
+  pixel reads and zero B2 writes. WorldCover lacks SHA-256 metadata, so its exact
+  version must be payload-hashed in the bounded header/pixel pilot. The 2021 map
+  will cross-check bracketing 2020/2022 classifications and will not be represented
+  as two dated references. Full Modal regression: 407 passed, one existing warning.
+- **Part 5.1 fixed-rule scientific pilot failed safely (2026-11-12):** full-pixel
+  Modal run `ap-RPrppXevOdvK4JnsyhgOpE` evaluated 30 multi-index rules against the
+  2021 WorldCover built class for both bracketing epochs. The best rule reached only
+  0.564/0.567 balanced accuracy, 0.227/0.234 F1 and 0.148/0.152 recall in 2020/2022,
+  predicting about 3.3% built versus WorldCover's 11.0%. This systematic undercount
+  fails the label-quality gate. The run wrote zero B2 objects; no classification or
+  labels were published, and Parts 5.2/5.3 remain unstarted. A time-aware validated
+  reference/classifier is required before Part 5.1 can complete.
+- **Part 5.1 Dynamic World design and access gate passed (2026-11-12/13):** primary-source
+  review selected `GOOGLE/DYNAMICWORLD/V1` as one time-aware label source, with WorldCover/GHSL
+  restricted to independent audits. Earth Engine project `vizag-geoai-ee-20261112` is registered
+  non-commercially. Metadata planning found 118 exact `T44QQE` observations across the four
+  January-March windows and 100% AOI coverage; sampled per-pixel valid-count minima were 5-6.
+  Exact matching to the eight Phase 3 scenes was abandoned after authentic Dynamic World gaps
+  proved that one-to-one substitution was invalid.
+- **Part 5.1 least-privilege download correction (2026-11-13):** the first pilot stopped before
+  writes because `roles/earthengine.viewer` lacks `earthengine.thumbnails.create`. Instead of
+  granting broad Writer access, custom role `vizagEarthEngineThumbnailCreator` contains only that
+  permission. A 64x64 Modal probe returned 4,096 valid pixels with zero B2 access and zero exports.
+- **Part 5.1 2022 Dynamic World pilot published (2026-11-13):** Modal run
+  `ap-wLyycPqfUrxigh2z2o9EyH` composed 32 equal-weight acquisitions and published three strict,
+  create-only COGs plus a manifest under `vizag-geoai/v2/labels/dynamic_world/contract-5.1.0/2022/`.
+  All 31,776,122 pixels are valid; valid count is 5-32 (mean 15.574); built median is
+  0.01657-0.77745 and temporal standard deviation 0.00023-0.30727. A prior attempt exposed a
+  two-band/2D-mask QC indexing bug before publication; the tested helper fix raised the suite to
+  414 passed, one known warning. No object was written by either failed attempt.
+- **Part 5.1 pilot scientific review requires a spatial gate (2026-11-13):** read-only run
+  `ap-5U2xu4joBNHGe8oBrYRHrH` measured an 11.859% Dynamic World mode-built fraction. The explicitly
+  non-authoritative WorldCover 2021 audit achieved 0.916 balanced accuracy, 0.902 recall, 0.451
+  precision and 0.602 F1. The next action is deterministic stratified spatial review. The
+  2018/2020/2024 batch, cell fractions, Phase 5.2 and Phase 5.3 remain unstarted.
 - **Part 3.3.1 validation history (2026-11-04):** accuracy-first float32 reflectance plus separate SCL
   COG design approved. Complete read-only Modal metadata/header scan passed for all 32 scenes and 224
   required assets. Baselines are 04.00/05.00/05.10; every required offset mapping and frozen grid invariant

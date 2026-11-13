@@ -31,6 +31,7 @@ configs:
   osm_history_batch: configs/osm_history_batch.yaml
   context_aggregation: configs/context_aggregation.yaml
   feature_assembly: configs/feature_assembly.yaml
+  built_up_preflight: configs/built_up_preflight.yaml
 
 data:
   root: data

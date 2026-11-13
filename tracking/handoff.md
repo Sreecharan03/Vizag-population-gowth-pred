@@ -29,8 +29,12 @@ recovered checkpoint to `origin/main` on 2026-11-09 and renewed that authorizati
 Verify the current commit and remote with Git;
 do not infer them from this historical note. Never force-push or include credentials or runtime data.
 
-Current checkpoint (2026-11-11): Phase 3 Parts 3.0–3.7 and Parts 4.1-4.2 are complete; full Modal
-regression **383 passed, one existing warning**. All 32 extraction pairs and four composite/count
+Current checkpoint (2026-11-13): Phases 3 and 4 are technically complete. Phase 5.1 rejected
+fixed multi-index rules, then published and scientifically reviewed the create-only 2022 Dynamic
+World pilot under contract 5.1.0. The current gate is stratified spatial review of Dynamic World
+versus WorldCover disagreements using dated project imagery. Do not run the 2018/2020/2024 batch,
+derive cell built fractions, or start Parts 5.2/5.3 before that gate is approved. Full Modal
+regression **414 passed, one known synthetic all-NaN warning**. All 32 extraction pairs and four composite/count
 pairs remain intact.
 User approved Part 3.6 and the production run created 20 index COGs (1,309,726,569 bytes), independently
 downloaded/hashed and fully pixel-audited them, then published one exact-byte-verified 17,788-byte manifest.
