@@ -1,5 +1,9 @@
 # Phase 5.1 built-up classification preflight
 
+> **Completion update — 2026-11-14:** Part 5.1 is complete under corrected contract 5.1.1.
+> Historical contract 5.1.0 sections below are preserved as method history but are superseded
+> because they covered the rectangular raster grid instead of masking to the approved AOI.
+
 ## Status
 
 The read-only Modal run `ap-dU3AeibKf2cToxvrFA9dBU` passed on 2026-11-12.
@@ -125,3 +129,26 @@ The next gate is a deterministic stratified review of agreement/disagreement, co
 uncertainty, coast, port/industrial, hillside and dense-urban samples using the project's
 own dated Sentinel-2 evidence. Do not run the 2018/2020/2024 batch until that review is
 approved. Cell built fractions and Parts 5.2/5.3 have not started.
+
+## Corrected contract 5.1.1 completion
+
+The stratified Sentinel-2 review exposed the missing AOI mask in contract 5.1.0. The corrected
+builder verifies the buffered boundary's key, version, byte count and SHA-256 before applying it.
+Each epoch contains exactly 15,353,996 valid AOI pixels, zero valid pixels outside the AOI and
+100% AOI coverage. The four-epoch read-only audit passed in Modal run
+`ap-odelFIugTPNraCSkdvsevv`.
+
+The cell aggregation published three create-only objects:
+
+| Object | Bytes | SHA-256 |
+|---|---:|---|
+| `built_cell_epoch_features.parquet` | 923,926 | `58c66fd51b752a0fe195bd9570cd186c66338f52a5c2c1e07565d1362126ecb2` |
+| `built_cell_epoch_summary.json` | 1,469 | `bdd26c4b608073770e4fa03eb2835d5c08b9963269a944a7ba693d83be8ffaeb` |
+| `built_cell_epoch_manifest.contract-5.1.1.json` | 5,614 | `addcebd135e471e4d9104f3089e9710ce628c5225dfbe288aa8e0d99b892ff96` |
+
+The table has 25,484 unique rows (`6,371 × 4`). It retains classified modal-built fraction,
+mean built probability, spatial probability variation, temporal uncertainty and observation
+support. All 6,371 grid cells remain present. Three boundary slivers contain no 10 m pixel centre;
+their rows carry `evidence_available=false`, zero counts and null evidence metrics rather than a
+fabricated value. Exact-version final review `ap-UIhfWQiQ18QWOb2OEsEJa4` passed. Parts 5.2 and
+5.3 have not started.

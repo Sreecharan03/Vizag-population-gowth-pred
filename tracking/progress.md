@@ -12,8 +12,8 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 | 1 | Study boundary & configuration | Complete | 2/2 | **Yes** — boundary visual confirmed by user 2026-10-10 (`phase1_boundary_check.png`); Part 1.2 configs are plain config files with no separate visual gate per plan.md |
 | 2 | B2 inventory, reconciliation & acquisition | Complete | 6/6 | **Yes** — A1–A5 all confirmed 2026-10-10; nothing deleted/overwritten anywhere throughout |
 | 3 | Advanced Sentinel-2 preprocessing | Complete | 8/8 | Yes — user approved review evidence and the affected-index-only outlier exclusion rule on 2026-11-10; originals remain unchanged |
-| 4 | Grid construction & feature aggregation | In progress | 2/4 | No |
-| 5 | Label generation | Not started | 0/3 | No |
+| 4 | Grid construction & feature aggregation | Complete | 4/4 | Yes — 25,484-row assembled feature table validated under contract 4.4.0 |
+| 5 | Label generation | In progress | 1/3 | No — Parts 5.2/5.3 and threshold gate remain |
 | 6 | Dataset assembly & split | Not started | 0/4 | No |
 | 7 | Baseline model (E1) | Not started | 0/2 | No |
 | 8 | Multimodal models & ablation (E2–E4) | Not started | 0/3 | No |
@@ -170,6 +170,15 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
   non-authoritative WorldCover 2021 audit achieved 0.916 balanced accuracy, 0.902 recall, 0.451
   precision and 0.602 F1. The next action is deterministic stratified spatial review. The
   2018/2020/2024 batch, cell fractions, Phase 5.2 and Phase 5.3 remain unstarted.
+- **Part 5.1 completed under corrected AOI contract (2026-11-14):** visual review exposed that
+  contract 5.1.0 had treated the full rectangular raster extent as valid. It remains preserved as
+  superseded evidence. Contract 5.1.1 applies the hash/version-pinned buffered GVMC boundary and
+  produced strict COGs for 2018/2020/2022/2024 with exactly 15,353,996 valid AOI pixels each,
+  zero outside-valid pixels and minimum observation support 5–6. Read-only four-epoch audit
+  `ap-odelFIugTPNraCSkdvsevv` passed. Cell aggregation run `ap-wVbMjqtgogtCFq4dh6e9A6`
+  published a 25,484-row table, summary and manifest, preserving all 6,371 cells; three sub-pixel
+  boundary slivers are explicitly unsupported rather than dropped or fabricated. Exact-version
+  review `ap-UIhfWQiQ18QWOb2OEsEJa4` passed. Modal regression: 422 passed, one known warning.
 - **Part 3.3.1 validation history (2026-11-04):** accuracy-first float32 reflectance plus separate SCL
   COG design approved. Complete read-only Modal metadata/header scan passed for all 32 scenes and 224
   required assets. Baselines are 04.00/05.00/05.10; every required offset mapping and frozen grid invariant
@@ -201,6 +210,7 @@ detail (what broke, what was decided) belongs in [`changelog.md`](changelog.md) 
 
 | Part | Date completed | Tests passing? | One-line result |
 |---|---|---|---|
+| 5.1 | 2026-11-14 | 422 passed, one existing warning in Modal | Four AOI-masked Dynamic World epochs and a hash/version-pinned 25,484-row cell-year evidence table passed final scientific review; all 6,371 cells retained, three zero-pixel boundary slivers explicitly unsupported. |
 | 3.6 | 2026-11-10 | 295 passed, one existing warning in Modal | Published and independently byte/pixel-audited 20 index COGs plus a verified manifest. Finite 2018 extremes and 12 slight 2022 outliers per affected index flagged for scientific review before downstream use. |
 | 3.5 | 2026-11-06 | Latest user-supplied regression `ExitCode.OK`, one warning; count omitted in excerpt; independent audit passed | Four contract-3.5.0 epoch composites plus count rasters passed strict COG, streamed hash, single-version, coverage and pixel-validity gates. |
 | 3.4 | 2026-11-05 | 266/266 passing in Modal | Configurable SCL validity and 20 m cloud/shadow dilation validated read-only across all 32 SCL COGs; zero unknown classes and no B2 writes. |

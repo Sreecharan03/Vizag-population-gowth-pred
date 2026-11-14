@@ -94,6 +94,13 @@ created once and exact-version/read-back/hash verified. The persistent reservati
 `results/phase4/grid/contract-4.1.0/`. The user approved the preview on 2026-11-11.
 Part 4.2 is complete. Do not rerun its populated six-output contract.
 
+**Phase 5 Part 5.1 is complete; do not rerun populated contract 5.1.1 outputs.** The original
+contract 5.1.0 rectangle-wide pilot is preserved but scientifically superseded. Contract 5.1.1
+applies the exact buffered GVMC AOI and contains four epoch COG sets. Final cell aggregation produced
+25,484 unique rows under `vizag-geoai/v2/derived/labels/contract-5.1.1/`; 6,368 cells have evidence
+and three tiny edge slivers are explicitly unsupported. Final read-only review run
+`ap-UIhfWQiQ18QWOb2OEsEJa4` passed. Part 5.2 is next; do not treat WorldCover as training truth.
+
 **Part 4.2a metadata-only preflight completed; do not mistake it for aggregation.** Run
 `ap-Aa5eCAKVU7wPh0pwIn3I4W` read 52,147 bytes from three pinned small objects, pinned all 20 index
 COGs and both DEM versions, read zero raster payload bytes and made zero B2 writes. Both legacy DEM

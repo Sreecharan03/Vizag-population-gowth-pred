@@ -3632,6 +3632,7 @@ def pilot_historical_osm_extraction() -> dict:
     import json
     import os
     import tempfile
+    import time
     from pathlib import Path
 
     import boto3
@@ -4396,40 +4397,50 @@ def audit_phase5_dynamic_world_tile_coverage() -> dict:
 
 @app.function(secrets=[b2_secret, earthengine_secret], timeout=10800, cpu=4.0,
               memory=16384, ephemeral_disk=524288, max_containers=1, retries=0)
-def build_phase5_dynamic_world_pilot() -> dict:
-    """Build, validate and create-only publish the approved 2022 Dynamic World pilot."""
+def build_phase5_dynamic_world_pilot(epoch_override: int | None = None) -> dict:
+    """Build, validate and create-only publish one approved Dynamic World epoch."""
     import base64
     import hashlib
     import io
     import json
     import os
     import tempfile
+    import time
     import zipfile
     from pathlib import Path
 
     import boto3
     import ee
+    import geopandas as gpd
     import numpy as np
     import rasterio
     import requests
     from botocore.config import Config
     from google.oauth2 import service_account
     from rasterio.io import MemoryFile
+    from rasterio.features import geometry_mask
     from rasterio.transform import Affine
     from rasterio.windows import Window
     from rio_cogeo.cogeo import cog_translate, cog_validate
     from rio_cogeo.profiles import cog_profiles
     from src.preprocessing.index_products import require_absent, sha256_file
     from src.preprocessing.read_strategy import vsis3_credentials
-    from src.labels.dynamic_world import built_statistics_qc
+    from src.labels.dynamic_world import (
+        apply_aoi_nodata, built_statistics_qc, fetch_transient_http,
+    )
     from src.utils.io import load_config
 
     b2, preprocessing = load_config("b2"), load_config("preprocessing")
     policy = load_config("built_up_preflight")["dynamic_world"]
     extraction = preprocessing["extraction"]
-    epoch = int(policy["pilot_epoch"])
-    prefix = policy["output_prefix"]
-    output_keys = {name: prefix + filename for name, filename in policy["outputs"].items()}
+    epoch = int(policy["pilot_epoch"] if epoch_override is None else epoch_override)
+    if epoch not in [int(value) for value in policy["batch_epochs"]]:
+        raise RuntimeError(f"epoch {epoch} is outside the approved Dynamic World batch")
+    prefix = policy["output_prefix_template"].format(epoch=epoch)
+    output_keys = {
+        name: prefix + filename.replace(str(policy["pilot_epoch"]), str(epoch))
+        for name, filename in policy["outputs"].items()
+    }
     bucket = b2["bucket"]
     client = boto3.client(
         "s3", endpoint_url=b2["endpoint_url"],
@@ -4438,6 +4449,17 @@ def build_phase5_dynamic_world_pilot() -> dict:
         config=Config(retries={"max_attempts": 1, "mode": "standard"}),
     )
     require_absent(client, bucket, list(output_keys.values()))
+    boundary_spec = policy["boundary"]
+    boundary_response = client.get_object(
+        Bucket=bucket, Key=boundary_spec["key"], VersionId=boundary_spec["version_id"])
+    boundary_body = boundary_response["Body"].read()
+    if (len(boundary_body) != int(boundary_spec["bytes"])
+            or hashlib.sha256(boundary_body).hexdigest() != boundary_spec["sha256"]
+            or boundary_response.get("VersionId") != boundary_spec["version_id"]):
+        raise RuntimeError("approved buffered boundary identity verification failed")
+    boundary = gpd.read_file(io.BytesIO(boundary_body)).to_crs(extraction["output_crs"])
+    if boundary.empty or boundary.geometry.is_empty.any() or not boundary.geometry.is_valid.all():
+        raise RuntimeError("approved buffered boundary geometry is empty or invalid")
 
     project = os.environ["EE_PROJECT_ID"]
     info = json.loads(base64.b64decode(os.environ["EE_SERVICE_ACCOUNT_JSON_B64"], validate=True))
@@ -4451,7 +4473,7 @@ def build_phase5_dynamic_world_pilot() -> dict:
                   .sort("system:time_start"))
     indexes = collection.aggregate_array("system:index").getInfo()
     if not indexes or len(indexes) > int(policy["maximum_observations"]):
-        raise RuntimeError(f"unexpected pilot observation count: {len(indexes)}")
+        raise RuntimeError(f"unexpected epoch observation count: {len(indexes)}")
     acquisition_groups = {}
     for index in indexes:
         acquisition_groups.setdefault(index.split("_", 1)[0], []).append(index)
@@ -4490,6 +4512,13 @@ def build_phase5_dynamic_world_pilot() -> dict:
     if (bounds[0] + width * pixel != bounds[2]
             or bounds[3] - height * pixel != bounds[1]):
         raise RuntimeError("approved extraction grid bounds/dimensions are inconsistent")
+    inside = geometry_mask(
+        boundary.geometry, out_shape=(height, width), transform=transform, invert=True)
+    inside_pixels = int(inside.sum())
+    if inside_pixels != int(policy["expected_aoi_pixels"]):
+        raise RuntimeError(
+            f"approved AOI mask pixel count changed: {inside_pixels} != "
+            f"{policy['expected_aoi_pixels']}")
     tile_size = int(policy["download_tile_pixels"])
 
     def decode_geotiff(payload: bytes) -> bytes:
@@ -4528,16 +4557,19 @@ def build_phase5_dynamic_world_pilot() -> dict:
                     for col_off in range(0, width, tile_size):
                         tile_width = min(tile_size, width - col_off)
                         tile_transform = transform * Affine.translation(col_off, row_off)
-                        url = spec["image"].getDownloadURL({
+                        request_parameters = {
                             "name": f"{name}_{row_off}_{col_off}",
                             "crs": extraction["output_crs"],
                             "crs_transform": list(tile_transform)[:6],
                             "dimensions": [tile_width, tile_height],
                             "format": "GEO_TIFF",
-                        })
-                        response = requests.get(url, timeout=300)
-                        response.raise_for_status()
-                        tile_bytes = decode_geotiff(response.content)
+                        }
+                        payload = fetch_transient_http(
+                            lambda: spec["image"].getDownloadURL(request_parameters),
+                            requests.get,
+                            time.sleep,
+                        )
+                        tile_bytes = decode_geotiff(payload)
                         with MemoryFile(tile_bytes) as memory, memory.open() as tile:
                             if (tile.count != spec["count"] or tile.width != tile_width
                                     or tile.height != tile_height
@@ -4545,6 +4577,12 @@ def build_phase5_dynamic_world_pilot() -> dict:
                                     or not tile.transform.almost_equals(tile_transform)):
                                 raise RuntimeError(f"{name}: Earth Engine tile grid/schema mismatch")
                             values = tile.read().astype(spec["dtype"], copy=False)
+                        tile_inside = inside[
+                            row_off:row_off + tile_height,
+                            col_off:col_off + tile_width,
+                        ]
+                        values = apply_aoi_nodata(
+                            values, tile_inside, nodata=spec["nodata"])
                         destination.write(values, window=Window(
                             col_off, row_off, tile_width, tile_height))
             profile = dict(cog_profiles.get("deflate"))
@@ -4571,19 +4609,36 @@ def build_phase5_dynamic_world_pilot() -> dict:
             if name == "built_statistics":
                 valid = np.all(values != spec["nodata"], axis=0)
                 statistics_qc = built_statistics_qc(values, nodata=spec["nodata"])
+                statistics_qc["grid_valid_fraction"] = statistics_qc.pop(
+                    "coverage_fraction")
+                if np.any(valid & ~inside):
+                    raise RuntimeError("built statistics contain valid pixels outside the AOI")
+                aoi_coverage = float(valid[inside].mean())
+                statistics_qc["aoi_pixels"] = inside_pixels
+                statistics_qc["coverage_fraction_aoi"] = aoi_coverage
                 reference_valid = valid
                 qc[name] = statistics_qc
             elif name == "valid_count":
                 if values.max() > len(acquisition_groups):
                     raise RuntimeError("valid-count values exceed acquisition count")
-                qc[name] = {"minimum": int(values.min()), "maximum": int(values.max()),
-                            "mean": float(values.mean())}
+                if np.any(values[:, ~inside] != spec["nodata"]):
+                    raise RuntimeError("valid-count contains non-nodata outside the AOI")
+                aoi_values = values[:, inside]
+                qc[name] = {"minimum": int(aoi_values.min()),
+                            "maximum": int(aoi_values.max()),
+                            "mean": float(aoi_values.mean()),
+                            "outside_aoi_nodata_pixels": int((~inside).sum())}
             else:
                 allowed = np.isin(values, np.arange(9, dtype="uint8")) | (values == 255)
                 if not allowed.all():
                     raise RuntimeError("label-mode contains an invalid class")
-                qc[name] = {"valid_pixels": int((values != 255).sum())}
-        if reference_valid is None or float(reference_valid.mean()) < float(policy["minimum_coverage_fraction"]):
+                if np.any(values[:, ~inside] != spec["nodata"]):
+                    raise RuntimeError("label-mode contains valid classes outside the AOI")
+                qc[name] = {"valid_pixels": int((values[:, inside] != 255).sum()),
+                            "outside_aoi_nodata_pixels": int((~inside).sum())}
+        if (reference_valid is None
+                or np.any(reference_valid & ~inside)
+                or float(reference_valid[inside].mean()) < float(policy["minimum_coverage_fraction"])):
             raise RuntimeError("pilot valid coverage is below the approved gate")
 
         identities = {name: {"key": output_keys[name], "bytes": path.stat().st_size,
@@ -4593,6 +4648,13 @@ def build_phase5_dynamic_world_pilot() -> dict:
         manifest = {
             "contract_version": policy["contract_version"], "epoch": epoch,
             "source_collection": policy["collection"], "tile": policy["tile"],
+            "supersedes_contract": policy["supersedes_contract"],
+            "supersession_reason": policy["supersession_reason"],
+            "boundary": {"key": boundary_spec["key"],
+                         "version_id": boundary_spec["version_id"],
+                         "bytes": boundary_spec["bytes"],
+                         "sha256": boundary_spec["sha256"],
+                         "aoi_pixels": inside_pixels},
             "window": {"start": start, "end_exclusive": end},
             "source_assets": indexes, "source_asset_count": len(indexes),
             "acquisition_count": len(acquisition_groups), "outputs": identities,
@@ -4628,7 +4690,7 @@ def build_phase5_dynamic_world_pilot() -> dict:
                     if remote.shape != (height, width) or remote.transform != transform:
                         raise RuntimeError(f"{name}: remote reopen grid mismatch")
         return {
-            "status": "pilot_published_scientific_review_required", "epoch": epoch,
+            "status": "epoch_published_scientific_review_required", "epoch": epoch,
             "source_asset_count": len(indexes), "acquisition_count": len(acquisition_groups),
             "outputs": published, "exports_started": 0, "b2_writes": 4,
             "qc": qc,
@@ -4694,13 +4756,17 @@ def probe_phase5_dynamic_world_download() -> dict:
               max_containers=1, retries=0)
 def review_phase5_dynamic_world_pilot() -> dict:
     """Scientifically review the published pilot without modifying storage."""
+    import hashlib
+    import io
     import json
     import os
 
     import boto3
+    import geopandas as gpd
     import numpy as np
     import rasterio
     from rasterio.enums import Resampling
+    from rasterio.features import geometry_mask
     from rasterio.vrt import WarpedVRT
     from src.preprocessing.read_strategy import vsis3_credentials
     from src.utils.io import load_config
@@ -4723,6 +4789,14 @@ def review_phase5_dynamic_world_pilot() -> dict:
         head = client.head_object(Bucket=bucket, Key=keys[name])
         if head.get("Metadata", {}).get("sha256") != expected[name]:
             raise RuntimeError(f"{name}: B2 metadata hash differs from pilot manifest")
+    boundary_spec = policy["boundary"]
+    boundary_response = client.get_object(
+        Bucket=bucket, Key=boundary_spec["key"], VersionId=boundary_spec["version_id"])
+    boundary_body = boundary_response["Body"].read()
+    if (len(boundary_body) != int(boundary_spec["bytes"])
+            or hashlib.sha256(boundary_body).hexdigest() != boundary_spec["sha256"]
+            or boundary_response.get("VersionId") != boundary_spec["version_id"]):
+        raise RuntimeError("scientific review boundary identity verification failed")
 
     label_counts = np.zeros(9, dtype="int64")
     count_hist = np.zeros(65, dtype="int64")
@@ -4731,6 +4805,7 @@ def review_phase5_dynamic_world_pilot() -> dict:
     std_hist = np.zeros(1000, dtype="int64")
     tp = tn = fp = fn = 0
     compared = 0
+    outside_valid = missing_inside = 0
     with vsis3_credentials(key_id, app_key, endpoint), rasterio.open(
         f"/vsis3/{bucket}/{keys['built_statistics']}"
     ) as stats, rasterio.open(
@@ -4744,6 +4819,11 @@ def review_phase5_dynamic_world_pilot() -> dict:
                 and stats.transform == counts.transform == labels.transform
                 and stats.crs == counts.crs == labels.crs):
             raise RuntimeError("pilot products are not mutually aligned")
+        boundary = gpd.read_file(io.BytesIO(boundary_body)).to_crs(stats.crs)
+        inside = geometry_mask(
+            boundary.geometry, out_shape=stats.shape, transform=stats.transform, invert=True)
+        if int(inside.sum()) != int(policy["expected_aoi_pixels"]):
+            raise RuntimeError("scientific review AOI mask pixel count differs from policy")
         with WarpedVRT(
             worldcover, crs=stats.crs, transform=stats.transform,
             width=stats.width, height=stats.height,
@@ -4756,6 +4836,16 @@ def review_phase5_dynamic_world_pilot() -> dict:
                 label = labels.read(1, window=window)
                 ref = reference.read(1, window=window)
                 valid = probability != stats.nodata
+                if (not np.array_equal(valid_count != counts.nodata, valid)
+                        or not np.array_equal(label != labels.nodata, valid)):
+                    raise RuntimeError("pilot products do not share an identical nodata mask")
+                row_start, column_start = int(window.row_off), int(window.col_off)
+                inside_block = inside[
+                    row_start:row_start + int(window.height),
+                    column_start:column_start + int(window.width),
+                ]
+                outside_valid += int(np.count_nonzero(valid & ~inside_block))
+                missing_inside += int(np.count_nonzero(~valid & inside_block))
                 if not valid.any():
                     continue
                 label_counts += np.bincount(label[valid], minlength=9)[:9]
@@ -4774,8 +4864,10 @@ def review_phase5_dynamic_world_pilot() -> dict:
                 compared += int(compare.sum())
 
     total = int(label_counts.sum())
-    if total != int(manifest["grid"]["width"]) * int(manifest["grid"]["height"]):
-        raise RuntimeError("scientific review pixel count differs from manifest grid")
+    if (total != int(policy["expected_aoi_pixels"])
+            or outside_valid != 0 or missing_inside != 0):
+        raise RuntimeError(
+            "scientific review requires valid pixels to equal the approved AOI exactly")
 
     def histogram_quantile(histogram, quantile: float) -> float:
         count = int(histogram.sum())
@@ -4791,6 +4883,9 @@ def review_phase5_dynamic_world_pilot() -> dict:
     return {
         "status": "pilot_scientific_review_complete_batch_approval_required",
         "epoch": int(policy["pilot_epoch"]), "valid_pixels": total,
+        "aoi_mask": {"expected_pixels": int(policy["expected_aoi_pixels"]),
+                     "outside_valid_pixels": outside_valid,
+                     "missing_inside_pixels": missing_inside},
         "class_counts": {str(index): int(value) for index, value in enumerate(label_counts)},
         "mode_built_fraction": float(label_counts[6] / total),
         "valid_count": {"minimum": int(np.flatnonzero(count_hist)[0]),
@@ -4818,6 +4913,714 @@ def review_phase5_dynamic_world_pilot() -> dict:
         },
         "b2_writes": 0,
     }
+
+
+@app.function(secrets=[b2_secret], timeout=7200, cpu=4.0, memory=16384,
+              max_containers=1, retries=0)
+def review_phase5_dynamic_world_batch() -> dict:
+    """Independently audit all approved Dynamic World epochs without writes."""
+    import hashlib
+    import io
+    import json
+    import os
+
+    import boto3
+    import geopandas as gpd
+    import numpy as np
+    import rasterio
+    from rasterio.enums import Resampling
+    from rasterio.features import geometry_mask
+    from rasterio.vrt import WarpedVRT
+    from src.preprocessing.read_strategy import vsis3_credentials
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    policy = load_config("built_up_preflight")["dynamic_world"]
+    wc = load_config("built_up_preflight")["worldcover"]
+    bucket, endpoint = b2["bucket"], b2["endpoint_url"]
+    key_id, app_key = os.environ["B2_KEY_ID"], os.environ["B2_APPLICATION_KEY"]
+    client = boto3.client("s3", endpoint_url=endpoint,
+                          aws_access_key_id=key_id, aws_secret_access_key=app_key)
+    boundary_spec = policy["boundary"]
+    response = client.get_object(Bucket=bucket, Key=boundary_spec["key"],
+                                 VersionId=boundary_spec["version_id"])
+    boundary_body = response["Body"].read()
+    if (len(boundary_body) != int(boundary_spec["bytes"])
+            or hashlib.sha256(boundary_body).hexdigest() != boundary_spec["sha256"]
+            or response.get("VersionId") != boundary_spec["version_id"]):
+        raise RuntimeError("batch audit boundary identity verification failed")
+
+    epoch_results, reference_grid = {}, None
+    crosscheck_epochs = set(int(value) for value in load_config(
+        "built_up_preflight")["crosscheck_epochs"])
+    with vsis3_credentials(key_id, app_key, endpoint):
+        for epoch in [int(value) for value in policy["batch_epochs"]]:
+            prefix = policy["output_prefix_template"].format(epoch=epoch)
+            keys = {
+                name: prefix + filename.replace(str(policy["pilot_epoch"]), str(epoch))
+                for name, filename in policy["outputs"].items()
+            }
+            manifest = json.loads(client.get_object(
+                Bucket=bucket, Key=keys["manifest"])["Body"].read())
+            if (manifest.get("contract_version") != policy["contract_version"]
+                    or int(manifest.get("epoch", -1)) != epoch):
+                raise RuntimeError(f"{epoch}: manifest contract/epoch mismatch")
+            for name in ("built_statistics", "valid_count", "label_mode"):
+                head = client.head_object(Bucket=bucket, Key=keys[name])
+                if head.get("Metadata", {}).get("sha256") != manifest["outputs"][name]["sha256"]:
+                    raise RuntimeError(f"{epoch} {name}: metadata hash mismatch")
+            with rasterio.open(f"/vsis3/{bucket}/{keys['built_statistics']}") as stats, \
+                    rasterio.open(f"/vsis3/{bucket}/{keys['valid_count']}") as counts, \
+                    rasterio.open(f"/vsis3/{bucket}/{keys['label_mode']}") as labels:
+                grid = (stats.crs.to_string(), tuple(stats.transform), stats.width, stats.height)
+                if reference_grid is None:
+                    reference_grid = grid
+                elif grid != reference_grid:
+                    raise RuntimeError(f"{epoch}: grid differs from other epochs")
+                if not (stats.count == 2 and counts.count == 1 and labels.count == 1
+                        and stats.shape == counts.shape == labels.shape
+                        and stats.transform == counts.transform == labels.transform
+                        and stats.crs == counts.crs == labels.crs):
+                    raise RuntimeError(f"{epoch}: product schema/alignment mismatch")
+                boundary = gpd.read_file(io.BytesIO(boundary_body)).to_crs(stats.crs)
+                inside = geometry_mask(boundary.geometry, out_shape=stats.shape,
+                                       transform=stats.transform, invert=True)
+                if int(inside.sum()) != int(policy["expected_aoi_pixels"]):
+                    raise RuntimeError(f"{epoch}: AOI pixel count mismatch")
+                built_sum = uncertainty_sum = 0.0
+                valid_total = built_mode_total = 0
+                support_min, support_max = 65535, 0
+                outside_valid = missing_inside = 0
+                compare_counts = np.zeros(4, dtype="int64")
+                worldcover_context = None
+                if epoch in crosscheck_epochs:
+                    worldcover_context = rasterio.open(f"/vsis3/{bucket}/{wc['key']}")
+                    reference = WarpedVRT(
+                        worldcover_context, crs=stats.crs, transform=stats.transform,
+                        width=stats.width, height=stats.height,
+                        resampling=Resampling.nearest, nodata=wc["nodata_class"])
+                else:
+                    reference = None
+                try:
+                    for _, window in stats.block_windows(1):
+                        probability = stats.read(1, window=window)
+                        uncertainty = stats.read(2, window=window)
+                        support = counts.read(1, window=window)
+                        label = labels.read(1, window=window)
+                        valid = probability != stats.nodata
+                        if (not np.array_equal(uncertainty != stats.nodata, valid)
+                                or not np.array_equal(support != counts.nodata, valid)
+                                or not np.array_equal(label != labels.nodata, valid)):
+                            raise RuntimeError(f"{epoch}: product nodata masks differ")
+                        r0, c0 = int(window.row_off), int(window.col_off)
+                        block_inside = inside[r0:r0 + int(window.height),
+                                              c0:c0 + int(window.width)]
+                        outside_valid += int(np.count_nonzero(valid & ~block_inside))
+                        missing_inside += int(np.count_nonzero(~valid & block_inside))
+                        if not valid.any():
+                            continue
+                        values = probability[valid]
+                        deviations = uncertainty[valid]
+                        if (not np.isfinite(values).all() or not np.isfinite(deviations).all()
+                                or np.any(values < 0) or np.any(values > 1)
+                                or np.any(deviations < 0) or np.any(deviations > 1)):
+                            raise RuntimeError(f"{epoch}: probability/uncertainty range failure")
+                        supports = support[valid]
+                        built_sum += float(values.sum(dtype="float64"))
+                        uncertainty_sum += float(deviations.sum(dtype="float64"))
+                        valid_total += int(valid.sum())
+                        built_mode_total += int(np.count_nonzero(valid & (label == 6)))
+                        support_min = min(support_min, int(supports.min()))
+                        support_max = max(support_max, int(supports.max()))
+                        if reference is not None:
+                            ref = reference.read(1, window=window)
+                            compare = valid & (ref != wc["nodata_class"])
+                            pred, truth = label == 6, ref == wc["built_class"]
+                            compare_counts += np.array([
+                                np.count_nonzero(compare & pred & truth),
+                                np.count_nonzero(compare & ~pred & ~truth),
+                                np.count_nonzero(compare & pred & ~truth),
+                                np.count_nonzero(compare & ~pred & truth),
+                            ], dtype="int64")
+                finally:
+                    if reference is not None:
+                        reference.close()
+                    if worldcover_context is not None:
+                        worldcover_context.close()
+                if (valid_total != int(policy["expected_aoi_pixels"])
+                        or outside_valid or missing_inside):
+                    raise RuntimeError(f"{epoch}: valid mask does not equal approved AOI")
+                result = {
+                    "source_assets": int(manifest["source_asset_count"]),
+                    "acquisitions": int(manifest["acquisition_count"]),
+                    "valid_pixels": valid_total,
+                    "mean_built_probability": built_sum / valid_total,
+                    "mode_built_fraction": built_mode_total / valid_total,
+                    "mean_temporal_stddev": uncertainty_sum / valid_total,
+                    "support_min": support_min, "support_max": support_max,
+                    "outside_valid_pixels": outside_valid,
+                    "missing_inside_pixels": missing_inside,
+                }
+                if epoch in crosscheck_epochs:
+                    tp, tn, fp, fn = [int(value) for value in compare_counts]
+                    sensitivity = tp / (tp + fn) if tp + fn else 0.0
+                    specificity = tn / (tn + fp) if tn + fp else 0.0
+                    precision = tp / (tp + fp) if tp + fp else 0.0
+                    result["worldcover_non_authoritative"] = {
+                        "tp": tp, "tn": tn, "fp": fp, "fn": fn,
+                        "balanced_accuracy": (sensitivity + specificity) / 2,
+                        "precision": precision, "recall": sensitivity,
+                    }
+                epoch_results[str(epoch)] = result
+    return {"status": "four_epoch_integrity_scientific_audit_passed",
+            "contract_version": policy["contract_version"],
+            "epochs": epoch_results, "b2_writes": 0}
+
+
+@app.function(secrets=[b2_secret], timeout=7200, cpu=4.0, memory=16384,
+              max_containers=1, retries=0)
+def aggregate_phase5_dynamic_world_cells() -> dict:
+    """Aggregate four validated epochs into 6,371 cells and publish create-only."""
+    import hashlib
+    import io
+    import json
+    import os
+
+    import boto3
+    import geopandas as gpd
+    import numpy as np
+    import pandas as pd
+    import rasterio
+    from botocore.config import Config
+    from src.grid.feature_aggregation_pilot import build_cell_labels
+    from src.labels.dynamic_world import aggregate_cell_evidence
+    from src.preprocessing.index_products import require_absent
+    from src.preprocessing.read_strategy import vsis3_credentials
+    from src.storage.archive_publish import exact_versions
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    policy = load_config("built_up_preflight")["dynamic_world"]
+    aggregation = policy["cell_aggregation"]
+    bucket, endpoint = b2["bucket"], b2["endpoint_url"]
+    key_id, app_key = os.environ["B2_KEY_ID"], os.environ["B2_APPLICATION_KEY"]
+    client = boto3.client(
+        "s3", endpoint_url=endpoint, aws_access_key_id=key_id,
+        aws_secret_access_key=app_key,
+        config=Config(retries={"max_attempts": 1, "mode": "standard"}),
+    )
+    require_absent(client, bucket, list(aggregation["outputs"].values()))
+
+    def pinned_bytes(spec: dict) -> bytes:
+        response = client.get_object(
+            Bucket=bucket, Key=spec["key"], VersionId=spec["version_id"])
+        body = response["Body"].read()
+        if (len(body) != int(spec["bytes"])
+                or hashlib.sha256(body).hexdigest() != spec["sha256"]
+                or response.get("VersionId") != spec["version_id"]):
+            raise RuntimeError(f"pinned source identity mismatch: {spec['key']}")
+        return body
+
+    grid_body = pinned_bytes(aggregation["grid"])
+    boundary_body = pinned_bytes(policy["boundary"])
+    grid = gpd.read_file(io.BytesIO(grid_body)).sort_values("grid_id").reset_index(drop=True)
+    boundary = gpd.read_file(io.BytesIO(boundary_body))
+    if (len(grid) != int(aggregation["expected_cells"])
+            or grid.grid_id.nunique() != int(aggregation["expected_cells"])):
+        raise RuntimeError("aggregation grid does not contain 6,371 unique cells")
+
+    frames, source_records = [], {}
+    canonical_ids, cell_labels = None, None
+    with vsis3_credentials(key_id, app_key, endpoint):
+        for epoch in [int(value) for value in policy["batch_epochs"]]:
+            prefix = policy["output_prefix_template"].format(epoch=epoch)
+            keys = {
+                name: prefix + filename.replace(str(policy["pilot_epoch"]), str(epoch))
+                for name, filename in policy["outputs"].items()
+            }
+            manifest_body = client.get_object(
+                Bucket=bucket, Key=keys["manifest"])["Body"].read()
+            manifest = json.loads(manifest_body)
+            if (manifest.get("contract_version") != policy["contract_version"]
+                    or int(manifest.get("epoch", -1)) != epoch):
+                raise RuntimeError(f"{epoch}: source manifest contract mismatch")
+            for name in ("built_statistics", "valid_count", "label_mode"):
+                versions = exact_versions(client, bucket, keys[name])
+                if len(versions) != 1 or not versions[0].get("IsLatest"):
+                    raise RuntimeError(f"{epoch} {name}: source version is not unique/current")
+                head = client.head_object(Bucket=bucket, Key=keys[name],
+                                          VersionId=versions[0]["VersionId"])
+                digest = manifest["outputs"][name]["sha256"]
+                if head.get("Metadata", {}).get("sha256") != digest:
+                    raise RuntimeError(f"{epoch} {name}: source metadata hash mismatch")
+                source_records[keys[name]] = {
+                    "version_id": versions[0]["VersionId"],
+                    "bytes": int(versions[0]["Size"]), "sha256": digest,
+                }
+            with rasterio.open(f"/vsis3/{bucket}/{keys['built_statistics']}") as stats, \
+                    rasterio.open(f"/vsis3/{bucket}/{keys['valid_count']}") as counts, \
+                    rasterio.open(f"/vsis3/{bucket}/{keys['label_mode']}") as labels:
+                if cell_labels is None:
+                    cell_labels, ordered = build_cell_labels(
+                        grid, boundary, out_shape=stats.shape, transform=stats.transform,
+                        raster_crs=stats.crs,
+                        expected_cells=int(aggregation["expected_cells"]))
+                    canonical_ids = ordered.grid_id.to_numpy()
+                    if int(np.count_nonzero(cell_labels)) != int(policy["expected_aoi_pixels"]):
+                        raise RuntimeError("cell rasterization does not equal approved AOI pixels")
+                if not (stats.shape == counts.shape == labels.shape == cell_labels.shape
+                        and stats.transform == counts.transform == labels.transform
+                        and stats.crs == counts.crs == labels.crs):
+                    raise RuntimeError(f"{epoch}: aggregation source grids differ")
+                evidence = aggregate_cell_evidence(
+                    stats.read(1), stats.read(2), counts.read(1), labels.read(1),
+                    cell_labels, expected_cells=int(aggregation["expected_cells"]),
+                    probability_nodata=float(stats.nodata),
+                    count_nodata=int(counts.nodata), label_nodata=int(labels.nodata))
+            frame = pd.DataFrame({"grid_id": canonical_ids, "epoch": epoch, **evidence})
+            frames.append(frame)
+    table = pd.concat(frames, ignore_index=True).sort_values(
+        ["grid_id", "epoch"]).reset_index(drop=True)
+    expected_rows = int(aggregation["expected_rows"])
+    metric_columns = [name for name in table.columns if name not in {
+        "grid_id", "epoch", "evidence_available"}]
+    if (len(table) != expected_rows or table[["grid_id", "epoch"]].duplicated().any()
+            or table.grid_id.nunique() != int(aggregation["expected_cells"])
+            or set(table.epoch.unique()) != set(int(value) for value in policy["batch_epochs"])):
+        raise RuntimeError("cell-epoch table completeness/uniqueness gate failed")
+    supported = table.evidence_available.astype(bool)
+    evidence_metrics = [
+        "mean_built_probability", "spatial_stddev_built_probability",
+        "modal_built_fraction", "mean_temporal_stddev",
+        "mean_valid_observation_count",
+    ]
+    if (table.loc[supported, metric_columns].isna().any().any()
+            or not np.isfinite(table.loc[supported, metric_columns].to_numpy(
+                dtype="float64")).all()
+            or table.loc[~supported, evidence_metrics].notna().any().any()
+            or (table.loc[~supported, "aoi_pixel_count"] != 0).any()
+            or (table.loc[~supported, "modal_built_pixel_count"] != 0).any()
+            or (table.loc[~supported, "minimum_valid_observation_count"] != 0).any()):
+        raise RuntimeError("cell-epoch support/null consistency gate failed")
+    fraction_columns = ["mean_built_probability", "modal_built_fraction",
+                        "mean_temporal_stddev", "spatial_stddev_built_probability"]
+    if any(((table.loc[supported, name] < 0)
+            | (table.loc[supported, name] > 1)).any() for name in fraction_columns):
+        raise RuntimeError("cell-epoch fraction/probability escaped [0,1]")
+
+    table_stream = io.BytesIO()
+    table.to_parquet(table_stream, index=False, compression="zstd")
+    table_body = table_stream.getvalue()
+    summary = {
+        "status": "cell_epoch_aggregation_validated",
+        "contract_version": aggregation["contract_version"],
+        "rows": len(table), "unique_cells": int(table.grid_id.nunique()),
+        "supported_cell_epoch_rows": int(supported.sum()),
+        "unsupported_cell_epoch_rows": int((~supported).sum()),
+        "unsupported_unique_cells": int(table.loc[~supported, "grid_id"].nunique()),
+        "epochs": [int(value) for value in policy["batch_epochs"]],
+        "metrics": {
+            str(epoch): {
+                "supported_cells": int(frame.evidence_available.sum()),
+                "unsupported_cells": int((~frame.evidence_available).sum()),
+                "modal_built_fraction_mean": float(frame.modal_built_fraction.mean()),
+                "mean_built_probability_mean": float(frame.mean_built_probability.mean()),
+                "mean_temporal_stddev_mean": float(frame.mean_temporal_stddev.mean()),
+                "minimum_cell_support": int(frame.minimum_valid_observation_count.min()),
+            }
+            for epoch, frame in table.groupby("epoch")
+        },
+    }
+    summary_body = (json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    payload_identities = {
+        "table": {"key": aggregation["outputs"]["table"], "bytes": len(table_body),
+                  "sha256": hashlib.sha256(table_body).hexdigest()},
+        "summary": {"key": aggregation["outputs"]["summary"], "bytes": len(summary_body),
+                    "sha256": hashlib.sha256(summary_body).hexdigest()},
+    }
+    manifest = {
+        "contract_version": aggregation["contract_version"],
+        "dynamic_world_contract": policy["contract_version"],
+        "grid": aggregation["grid"], "boundary": policy["boundary"],
+        "sources": source_records, "outputs": payload_identities,
+        "rows": len(table), "unique_cells": int(table.grid_id.nunique()),
+        "epochs": [int(value) for value in policy["batch_epochs"]],
+        "primary_classified_metric": "modal_built_fraction",
+        "soft_evidence_metric": "mean_built_probability",
+        "zero_pixel_edge_cell_policy": (
+            "preserve row; evidence_available=false; evidence metrics null; counts zero"),
+    }
+    manifest_body = (json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    manifest_identity = {
+        "key": aggregation["outputs"]["manifest"], "bytes": len(manifest_body),
+        "sha256": hashlib.sha256(manifest_body).hexdigest(),
+    }
+    require_absent(client, bucket, list(aggregation["outputs"].values()))
+    published = {}
+    for name, body, content_type in (
+        ("table", table_body, "application/vnd.apache.parquet"),
+        ("summary", summary_body, "application/json"),
+        ("manifest", manifest_body, "application/json"),
+    ):
+        identity = manifest_identity if name == "manifest" else payload_identities[name]
+        response = client.put_object(
+            Bucket=bucket, Key=identity["key"], Body=body, ContentType=content_type,
+            Metadata={"sha256": identity["sha256"],
+                      "contract": aggregation["contract_version"]})
+        published[name] = {**identity, "version_id": response.get("VersionId")}
+    return {**summary, "outputs": published, "b2_writes": 3}
+
+
+@app.function(secrets=[b2_secret], timeout=900, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def review_phase5_dynamic_world_cells() -> dict:
+    """Exact-version, read-only final scientific review for Part 5.1."""
+    import hashlib
+    import io
+    import json
+    import os
+
+    import boto3
+    import numpy as np
+    import pandas as pd
+    from src.storage.archive_publish import exact_versions
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    policy = load_config("built_up_preflight")["dynamic_world"]
+    aggregation = policy["cell_aggregation"]
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"])
+    payloads, identities = {}, {}
+    for name, key in aggregation["outputs"].items():
+        versions = exact_versions(client, b2["bucket"], key)
+        if len(versions) != 1 or not versions[0].get("IsLatest"):
+            raise RuntimeError(f"{name}: output version is not unique/current")
+        response = client.get_object(Bucket=b2["bucket"], Key=key,
+                                     VersionId=versions[0]["VersionId"])
+        body = response["Body"].read()
+        digest = hashlib.sha256(body).hexdigest()
+        if len(body) != int(versions[0]["Size"]):
+            raise RuntimeError(f"{name}: output size differs from version listing")
+        metadata = response.get("Metadata", {})
+        if metadata.get("sha256") != digest:
+            raise RuntimeError(f"{name}: output metadata hash mismatch")
+        payloads[name], identities[name] = body, {
+            "key": key, "version_id": versions[0]["VersionId"],
+            "bytes": len(body), "sha256": digest,
+        }
+    manifest = json.loads(payloads["manifest"])
+    summary = json.loads(payloads["summary"])
+    if (manifest.get("contract_version") != aggregation["contract_version"]
+            or summary.get("contract_version") != aggregation["contract_version"]
+            or manifest.get("outputs", {}).get("table", {}).get("sha256")
+            != identities["table"]["sha256"]
+            or manifest.get("outputs", {}).get("summary", {}).get("sha256")
+            != identities["summary"]["sha256"]):
+        raise RuntimeError("published manifest/summary identity or contract mismatch")
+    table = pd.read_parquet(io.BytesIO(payloads["table"]))
+    expected_epochs = [int(value) for value in policy["batch_epochs"]]
+    if (len(table) != int(aggregation["expected_rows"])
+            or table[["grid_id", "epoch"]].duplicated().any()
+            or table.grid_id.nunique() != int(aggregation["expected_cells"])
+            or set(table.epoch.unique()) != set(expected_epochs)):
+        raise RuntimeError("published table key coverage/uniqueness failure")
+    supported = table.evidence_available.astype(bool)
+    evidence_metrics = [
+        "mean_built_probability", "spatial_stddev_built_probability",
+        "modal_built_fraction", "mean_temporal_stddev",
+        "mean_valid_observation_count",
+    ]
+    if (table.loc[supported, evidence_metrics].isna().any().any()
+            or not np.isfinite(table.loc[supported, evidence_metrics].to_numpy()).all()
+            or table.loc[~supported, evidence_metrics].notna().any().any()
+            or (table.loc[~supported, "aoi_pixel_count"] != 0).any()):
+        raise RuntimeError("published table support/null policy failure")
+    unsupported_by_epoch = {
+        str(epoch): sorted(table.loc[(table.epoch == epoch) & ~supported,
+                                    "grid_id"].astype(str).tolist())
+        for epoch in expected_epochs
+    }
+    unsupported_sets = {tuple(value) for value in unsupported_by_epoch.values()}
+    if len(unsupported_sets) != 1:
+        raise RuntimeError("unsupported edge-cell identities change between epochs")
+    epoch_review = {}
+    for epoch in expected_epochs:
+        frame = table[(table.epoch == epoch) & table.evidence_available]
+        correlation = float(frame[["modal_built_fraction", "mean_built_probability"]]
+                            .corr().iloc[0, 1])
+        if not np.isfinite(correlation) or correlation < 0.80:
+            raise RuntimeError(f"{epoch}: classified/soft built evidence correlation is implausible")
+        epoch_review[str(epoch)] = {
+            "supported_cells": len(frame),
+            "modal_built_fraction_mean": float(frame.modal_built_fraction.mean()),
+            "mean_built_probability_mean": float(frame.mean_built_probability.mean()),
+            "classified_soft_correlation": correlation,
+            "temporal_uncertainty_p95": float(frame.mean_temporal_stddev.quantile(.95)),
+            "minimum_observation_support": int(frame.minimum_valid_observation_count.min()),
+        }
+    transitions = {}
+    wide = table[table.evidence_available].pivot(
+        index="grid_id", columns="epoch", values="modal_built_fraction")
+    for start, end in zip(expected_epochs[:-1], expected_epochs[1:]):
+        delta = wide[end] - wide[start]
+        transitions[f"{start}-{end}"] = {
+            "cells": int(delta.notna().sum()), "mean_delta": float(delta.mean()),
+            "negative_delta_cells": int((delta < 0).sum()),
+            "positive_delta_cells": int((delta > 0).sum()),
+        }
+    return {
+        "status": "phase5_part1_complete_scientific_review_passed",
+        "contract_version": aggregation["contract_version"],
+        "outputs": identities, "rows": len(table),
+        "unique_cells": int(table.grid_id.nunique()),
+        "supported_unique_cells": int(table.loc[supported, "grid_id"].nunique()),
+        "unsupported_edge_cells": next(iter(unsupported_sets)),
+        "epochs": epoch_review, "transition_diagnostics": transitions,
+        "caveat": ("Dynamic World is retained as classified plus probabilistic evidence; "
+                   "WorldCover remains a non-authoritative audit and negative deltas are noise diagnostics."),
+        "b2_writes": 0,
+    }
+
+
+@app.function(secrets=[b2_secret], timeout=3600, cpu=4.0, memory=16384,
+              max_containers=1, retries=0)
+def publish_phase5_dynamic_world_spatial_review() -> dict:
+    """Create deterministic Sentinel-2-backed review panels for the 2022 pilot."""
+    import csv
+    import hashlib
+    import io
+    import json
+    import os
+    import tempfile
+    from pathlib import Path
+
+    import boto3
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import rasterio
+    from botocore.config import Config
+    from rasterio.enums import Resampling
+    from rasterio.transform import xy
+    from rasterio.vrt import WarpedVRT
+    from rasterio.windows import Window
+    from src.labels.dynamic_world import spatially_distributed_samples
+    from src.preprocessing.index_products import require_absent
+    from src.preprocessing.read_strategy import vsis3_credentials
+    from src.utils.io import load_config
+
+    b2, config = load_config("b2"), load_config("built_up_preflight")
+    policy, wc = config["dynamic_world"], config["worldcover"]
+    prefix = policy["output_prefix"]
+    pilot_keys = {name: prefix + filename for name, filename in policy["outputs"].items()}
+    review_prefix = policy["review_prefix"]
+    strata = (
+        "agree_built", "dw_only_high_confidence", "dw_only_low_confidence",
+        "worldcover_only", "agree_nonbuilt", "temporally_uncertain",
+    )
+    review_keys = {name: f"{review_prefix}{name}.png" for name in strata}
+    review_keys.update({"overview": f"{review_prefix}disagreement_overview.png",
+                        "samples": f"{review_prefix}samples.csv",
+                        "manifest": f"{review_prefix}review_manifest.json"})
+    bucket, endpoint = b2["bucket"], b2["endpoint_url"]
+    key_id, app_key = os.environ["B2_KEY_ID"], os.environ["B2_APPLICATION_KEY"]
+    client = boto3.client(
+        "s3", endpoint_url=endpoint, aws_access_key_id=key_id,
+        aws_secret_access_key=app_key,
+        config=Config(retries={"max_attempts": 1, "mode": "standard"}),
+    )
+    require_absent(client, bucket, list(review_keys.values()))
+    composite_key = (
+        "vizag-geoai/v2/processed/sentinel2/composites/contract-3.5.0/"
+        "2022/composite.tif"
+    )
+
+    with tempfile.TemporaryDirectory() as temporary_name, vsis3_credentials(
+        key_id, app_key, endpoint
+    ):
+        temporary = Path(temporary_name)
+        with rasterio.open(f"/vsis3/{bucket}/{pilot_keys['built_statistics']}") as stats, \
+                rasterio.open(f"/vsis3/{bucket}/{pilot_keys['label_mode']}") as labels, \
+                rasterio.open(f"/vsis3/{bucket}/{wc['key']}") as worldcover, \
+                rasterio.open(f"/vsis3/{bucket}/{composite_key}") as sentinel:
+            probability = stats.read(1)
+            uncertainty = stats.read(2)
+            label = labels.read(1)
+            with WarpedVRT(
+                worldcover, crs=stats.crs, transform=stats.transform,
+                width=stats.width, height=stats.height,
+                resampling=Resampling.nearest, nodata=wc["nodata_class"],
+            ) as reference:
+                worldcover_label = reference.read(1)
+            if (sentinel.shape != stats.shape or sentinel.transform != stats.transform
+                    or sentinel.crs != stats.crs or sentinel.count < 3):
+                raise RuntimeError("2022 Sentinel-2 review composite is not aligned to the pilot")
+            valid = probability != stats.nodata
+            dw_built = label == 6
+            wc_valid = worldcover_label != wc["nodata_class"]
+            wc_built = worldcover_label == wc["built_class"]
+            masks = {
+                "agree_built": valid & wc_valid & dw_built & wc_built,
+                "dw_only_high_confidence": valid & wc_valid & dw_built & ~wc_built
+                    & (probability >= 0.60) & (uncertainty <= 0.10),
+                "dw_only_low_confidence": valid & wc_valid & dw_built & ~wc_built
+                    & ((probability < 0.40) | (uncertainty > 0.15)),
+                "worldcover_only": valid & wc_valid & ~dw_built & wc_built,
+                "agree_nonbuilt": valid & wc_valid & ~dw_built & ~wc_built
+                    & (probability <= 0.10),
+                "temporally_uncertain": valid & (uncertainty >= 0.15),
+            }
+            sample_rows = []
+            selected = {}
+            chip_size = 128
+            for name, mask in masks.items():
+                points = spatially_distributed_samples(mask, grid_rows=3, grid_columns=4)
+                selected[name] = points
+                figure, axes = plt.subplots(3, 4, figsize=(16, 12), constrained_layout=True)
+                for axis, (row, column) in zip(axes.flat, points):
+                    window = Window(column - chip_size // 2, row - chip_size // 2,
+                                    chip_size, chip_size)
+                    rgb = sentinel.read(
+                        [3, 2, 1], window=window, boundless=True,
+                        fill_value=sentinel.nodata,
+                    ).astype("float32")
+                    rgb = np.moveaxis(rgb, 0, -1)
+                    rgb[~np.isfinite(rgb)] = 0
+                    rgb = np.clip((rgb - 0.02) / 0.28, 0, 1) ** 0.8
+                    axis.imshow(rgb)
+                    axis.axvline(chip_size / 2, color="#ff00ff", linewidth=0.8)
+                    axis.axhline(chip_size / 2, color="#ff00ff", linewidth=0.8)
+                    axis.set_title(
+                        f"r{row} c{column}  p={probability[row,column]:.3f}  "
+                        f"sd={uncertainty[row,column]:.3f}\n"
+                        f"DW={int(label[row,column])} WC={int(worldcover_label[row,column])}",
+                        fontsize=8,
+                    )
+                    axis.axis("off")
+                    east, north = xy(stats.transform, row, column, offset="center")
+                    sample_rows.append({
+                        "stratum": name, "row": row, "column": column,
+                        "easting": east, "northing": north,
+                        "built_probability": float(probability[row, column]),
+                        "temporal_stddev": float(uncertainty[row, column]),
+                        "dynamic_world_label": int(label[row, column]),
+                        "worldcover_label": int(worldcover_label[row, column]),
+                    })
+                for axis in axes.flat[len(points):]:
+                    axis.axis("off")
+                figure.suptitle(
+                    f"Phase 5.1 2022 spatial review: {name} (Sentinel-2 RGB, magenta centre)",
+                    fontsize=14,
+                )
+                figure.savefig(temporary / f"{name}.png", dpi=140)
+                plt.close(figure)
+
+            category = np.zeros(stats.shape, dtype="uint8")
+            category[valid & wc_valid & ~dw_built & ~wc_built] = 1
+            category[valid & wc_valid & dw_built & wc_built] = 2
+            category[valid & wc_valid & dw_built & ~wc_built] = 3
+            category[valid & wc_valid & ~dw_built & wc_built] = 4
+            figure, axis = plt.subplots(figsize=(13, 11), constrained_layout=True)
+            image = axis.imshow(category[::5, ::5], cmap=matplotlib.colors.ListedColormap(
+                ["#202020", "#e6e6e6", "#1b9e77", "#d95f02", "#7570b3"]),
+                vmin=0, vmax=4, interpolation="nearest")
+            labels_text = ["No reference", "Agree non-built", "Agree built",
+                           "Dynamic World only", "WorldCover only"]
+            colourbar = figure.colorbar(image, ax=axis, ticks=range(5), shrink=0.75)
+            colourbar.ax.set_yticklabels(labels_text)
+            axis.set_title("2022 Dynamic World / WorldCover spatial audit (50 m display sampling)")
+            axis.set_xlabel("Grid column / 5")
+            axis.set_ylabel("Grid row / 5")
+            figure.savefig(temporary / "disagreement_overview.png", dpi=160)
+            plt.close(figure)
+
+        csv_buffer = io.StringIO(newline="")
+        writer = csv.DictWriter(csv_buffer, fieldnames=list(sample_rows[0]))
+        writer.writeheader()
+        writer.writerows(sample_rows)
+        (temporary / "samples.csv").write_text(csv_buffer.getvalue(), encoding="utf-8")
+        identities = {}
+        for name in (*strata, "overview", "samples"):
+            filename = (f"{name}.png" if name in strata else
+                        "disagreement_overview.png" if name == "overview" else "samples.csv")
+            path = temporary / filename
+            body = path.read_bytes()
+            identities[name] = {"key": review_keys[name], "bytes": len(body),
+                                "sha256": hashlib.sha256(body).hexdigest()}
+        manifest = {
+            "contract_version": policy["contract_version"], "epoch": 2022,
+            "source_pilot_manifest": pilot_keys["manifest"],
+            "source_sentinel_composite": composite_key,
+            "worldcover_key": wc["key"], "strata": list(strata),
+            "samples_per_stratum": {name: len(selected[name]) for name in strata},
+            "outputs": identities,
+        }
+        manifest_body = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode()
+        identities["manifest"] = {
+            "key": review_keys["manifest"], "bytes": len(manifest_body),
+            "sha256": hashlib.sha256(manifest_body).hexdigest(),
+        }
+        require_absent(client, bucket, list(review_keys.values()))
+        published = {}
+        for name in (*strata, "overview", "samples"):
+            filename = (f"{name}.png" if name in strata else
+                        "disagreement_overview.png" if name == "overview" else "samples.csv")
+            content_type = "image/png" if filename.endswith(".png") else "text/csv"
+            with (temporary / filename).open("rb") as stream:
+                response = client.put_object(
+                    Bucket=bucket, Key=review_keys[name], Body=stream,
+                    ContentType=content_type,
+                    Metadata={"sha256": identities[name]["sha256"], "epoch": "2022"},
+                )
+            published[name] = {**identities[name], "version_id": response.get("VersionId")}
+        response = client.put_object(
+            Bucket=bucket, Key=review_keys["manifest"], Body=manifest_body,
+            ContentType="application/json",
+            Metadata={"sha256": identities["manifest"]["sha256"], "epoch": "2022"},
+        )
+        published["manifest"] = {**identities["manifest"],
+                                 "version_id": response.get("VersionId")}
+        urls = {name: client.generate_presigned_url(
+            "get_object", Params={"Bucket": bucket, "Key": review_keys[name]}, ExpiresIn=3600)
+                for name in (*strata, "overview")}
+        return {"status": "spatial_review_package_published", "sample_count": len(sample_rows),
+                "outputs": published, "preview_urls": urls, "b2_writes": len(published)}
+
+
+@app.function(secrets=[b2_secret], timeout=300, cpu=1.0, memory=1024,
+              max_containers=1, retries=0)
+def fetch_phase5_dynamic_world_review_images() -> dict:
+    """Return the small immutable review PNGs for local visual inspection."""
+    import base64
+    import os
+
+    import boto3
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    policy = load_config("built_up_preflight")["dynamic_world"]
+    names = (
+        "agree_built", "dw_only_high_confidence", "dw_only_low_confidence",
+        "worldcover_only", "agree_nonbuilt", "temporally_uncertain",
+        "disagreement_overview",
+    )
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"],
+    )
+    payloads = {}
+    for name in names:
+        key = f'{policy["review_prefix"]}{name}.png'
+        body = client.get_object(Bucket=b2["bucket"], Key=key)["Body"].read()
+        if not body.startswith(b"\x89PNG\r\n\x1a\n"):
+            raise RuntimeError(f"{name}: review object is not a PNG")
+        payloads[name] = base64.b64encode(body).decode("ascii")
+    return {"status": "review_images_fetched", "images": payloads, "b2_writes": 0}
 
 
 @app.local_entrypoint()
@@ -5161,6 +5964,29 @@ def main(action: str = "verify") -> None:
         result = build_phase5_dynamic_world_pilot.remote()
         print("PHASE5_DW_PILOT="+json.dumps(result, sort_keys=True), flush=True)
         return
+    if action == "part5-dw-batch-remaining":
+        import json
+        from src.utils.io import load_config
+        policy = load_config("built_up_preflight")["dynamic_world"]
+        pilot_epoch = int(policy["pilot_epoch"])
+        results = []
+        for epoch in [int(value) for value in policy["batch_epochs"]]:
+            if epoch == pilot_epoch:
+                continue
+            result = build_phase5_dynamic_world_pilot.remote(epoch)
+            results.append(result)
+            print("PHASE5_DW_EPOCH="+json.dumps(result, sort_keys=True), flush=True)
+        print("PHASE5_DW_BATCH="+json.dumps({
+            "status": "remaining_epochs_published", "epochs": results,
+            "b2_writes": sum(int(row["b2_writes"]) for row in results),
+        }, sort_keys=True), flush=True)
+        return
+    if action in {"part5-dw-epoch-2020", "part5-dw-epoch-2024"}:
+        import json
+        epoch = int(action.rsplit("-", 1)[1])
+        result = build_phase5_dynamic_world_pilot.remote(epoch)
+        print("PHASE5_DW_EPOCH="+json.dumps(result, sort_keys=True), flush=True)
+        return
     if action == "part5-dw-download-probe":
         import json
         result = probe_phase5_dynamic_world_download.remote()
@@ -5170,6 +5996,42 @@ def main(action: str = "verify") -> None:
         import json
         result = review_phase5_dynamic_world_pilot.remote()
         print("PHASE5_DW_PILOT_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-batch-review":
+        import json
+        result = review_phase5_dynamic_world_batch.remote()
+        print("PHASE5_DW_BATCH_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-cell-aggregate":
+        import json
+        result = aggregate_phase5_dynamic_world_cells.remote()
+        print("PHASE5_DW_CELL_AGGREGATION="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-cell-review":
+        import json
+        result = review_phase5_dynamic_world_cells.remote()
+        print("PHASE5_DW_CELL_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-spatial-review":
+        import json
+        result = publish_phase5_dynamic_world_spatial_review.remote()
+        print("PHASE5_DW_SPATIAL_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-dw-review-fetch":
+        import base64
+        from src.utils.io import load_config, resolve_path
+        result = fetch_phase5_dynamic_world_review_images.remote()
+        contract_slug = str(load_config("built_up_preflight")["dynamic_world"][
+            "contract_version"]).replace(".", "_").replace("-", "_")
+        directory = resolve_path("results") / f"phase5_spatial_review_{contract_slug}"
+        if directory.exists():
+            raise FileExistsError("Local Phase 5 spatial-review directory already exists")
+        directory.mkdir(parents=True, exist_ok=False)
+        for name, encoded in result["images"].items():
+            with (directory / f"{name}.png").open("xb") as stream:
+                stream.write(base64.b64decode(encoded, validate=True))
+        print({"status": result["status"], "directory": str(directory),
+               "image_count": len(result["images"]), "b2_writes": result["b2_writes"]})
         return
     if action == "part3-gate-review":
         import hashlib

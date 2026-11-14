@@ -15,13 +15,17 @@ maximum_header_transfer_bytes: 67108864
 production_writes_allowed: false
 dynamic_world:
   collection: GOOGLE/DYNAMICWORLD/V1
-  contract_version: 5.1.0-dynamic-world-v1
+  contract_version: 5.1.1-dynamic-world-aoi-mask
+  supersedes_contract: 5.1.0-dynamic-world-v1
+  supersession_reason: contract-5.1.0 covered the rectangular raster grid instead of masking to the approved buffered GVMC AOI
   tile: T44QQE
   pilot_epoch: 2022
+  batch_epochs: [2018, 2020, 2022, 2024]
   window_start_month_day: "01-01"
   window_end_exclusive_month_day: "04-01"
   download_tile_pixels: 1024
-  output_prefix: vizag-geoai/v2/labels/dynamic_world/contract-5.1.0/2022/
+  output_prefix: vizag-geoai/v2/labels/dynamic_world/contract-5.1.1/2022/
+  output_prefix_template: vizag-geoai/v2/labels/dynamic_world/contract-5.1.1/{epoch}/
   outputs:
     built_statistics: dynamic_world_2022_built_statistics.tif
     valid_count: dynamic_world_2022_valid_count.tif
@@ -29,6 +33,26 @@ dynamic_world:
     manifest: dynamic_world_2022_pilot_manifest.json
   minimum_coverage_fraction: 0.99
   maximum_observations: 64
+  expected_aoi_pixels: 15353996
+  boundary:
+    key: vizag-geoai/data/boundaries/gvmc_boundary_buffered.geojson
+    version_id: 4_z2250dbc1f968e033a7050713_f114e6b26c000f3d2_d20260927_m183835_c005_v0501031_t0014_u01790534315534
+    bytes: 32768
+    sha256: afe9ed8aad6f3f37d628f8ecb3b772bc4ae051d8251517d0cdea6ca8ded9df49
+  review_prefix: vizag-geoai/v2/results/phase5/dynamic_world_2022_spatial_review/contract-5.1.1/
+  cell_aggregation:
+    contract_version: 5.1.1-cell-built-fraction-v1
+    expected_cells: 6371
+    expected_rows: 25484
+    grid:
+      key: vizag-geoai/v2/derived/grid/contract-4.1.0/analysis_grid.geojson
+      version_id: 4_z2250dbc1f968e033a7050713_f10475e8a42d77e32_d20261111_m115845_c005_v0501051_t0054_u01794398325165
+      bytes: 2816012
+      sha256: e5739a996f51cabe0edbb976390bd0070cd2e0e333d90b1652847a0b6e4d2f8f
+    outputs:
+      table: vizag-geoai/v2/derived/labels/contract-5.1.1/built_cell_epoch_features.parquet
+      summary: vizag-geoai/v2/results/phase5/contract-5.1.1/built_cell_epoch_summary.json
+      manifest: vizag-geoai/v2/manifests/built_cell_epoch_manifest.contract-5.1.1.json
 pilot:
   chunk_size_pixels: 512
   ndbi_thresholds: [-0.10, -0.05, 0.00, 0.05, 0.10]

@@ -6,6 +6,7 @@ in the code/tests themselves, and status belongs in [`progress.md`](progress.md)
 
 | Date | Entry |
 |---|---|
+| 2026-11-14 | Completed Part 5.1 under corrected contract 5.1.1: four AOI-masked Dynamic World epochs, exact four-epoch audit, and 25,484 cell-year evidence rows. Preserved three zero-pixel boundary slivers with explicit unsupported flags; 422 Modal tests and final exact-version review passed. |
 | 2026-11-13 | Phase 5.1 Dynamic World 2022 pilot published three strict create-only COGs and a manifest after least-privilege Earth Engine download verification and 414 passing Modal tests. Read-only review found 11.859% mode-built, 0.902 WorldCover-audit recall and 0.451 precision; four-epoch processing waits on stratified spatial review. |
 | 2026-11-13 | Replaced forced one-to-one scene matching with independent January-March Dynamic World epoch collections after authentic source gaps were confirmed. A custom project role adds only `earthengine.thumbnails.create`; broad Earth Engine Writer access was not granted. |
 | 2026-11-12 | Phase 5.1 fixed multi-index rules failed safely: the best candidate recalled only about 15% of WorldCover built pixels, so no label raster or cell fraction was published. |

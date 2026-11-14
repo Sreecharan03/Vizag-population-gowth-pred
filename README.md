@@ -202,7 +202,7 @@ There is no production prediction CLI yet.
 | Cell-level satellite/terrain features | Part 4.2 complete; six outputs verified, 6,355 cells meet the approved support/terrain rule |
 | Cell-level population/infrastructure context | Part 4.3 complete; 25,484 validated cell-year rows under contract 4.3.1 |
 | Leakage-safe assembled feature table | Part 4.4 complete; 25,484 rows, 69 columns, 6,355 model-eligible cells under contract 4.4.0 |
-| Built-fraction change labels | Phase 5.1 in progress: Dynamic World 2022 pilot published and reviewed; four-epoch batch blocked on stratified spatial validation |
+| Built-fraction change labels | Part 5.1 complete: four AOI-masked Dynamic World epochs and 25,484 validated cell-year evidence rows; Parts 5.2–5.3 remain |
 | Logistic and tree-based baselines | Planned |
 | Temporal holdout, spatial robustness and calibration | Planned |
 | Explanations and infrastructure-pressure scenarios | Planned |
@@ -217,11 +217,12 @@ Phase 0 implementation is complete, with its historical formal gate still pendin
 The [quality plan](docs/phase-4-prediction-quality-plan.md) records the approved feature rule and
 the safeguards still required for later prediction work. Phase 4 implementation is complete.
 Phase 5.1 rejected the original fixed spectral-rule classifier after it under-detected about
-85% of the WorldCover built pixels. A versioned Dynamic World 2022 pilot now covers all
-31,776,122 approved-grid pixels and passed COG, hash, grid, range and remote-reopen validation.
-Its independent WorldCover 2021 audit had 0.902 recall but only 0.451 precision, so the extra
-Dynamic World detections require stratified spatial review before the 2018/2020/2024 batch.
-No growth labels or prediction model exist yet.
+85% of the WorldCover built pixels. Corrected Dynamic World contract 5.1.1 masks all four epochs
+to the approved buffered GVMC AOI: 15,353,996 valid 10 m pixels per epoch and zero valid pixels
+outside it. The final table contains 25,484 unique `(grid_id, epoch)` rows. It preserves all
+6,371 cells; 6,368 have raster evidence and three tiny boundary slivers are explicitly unsupported.
+Both classified built fraction and soft probability/uncertainty evidence are retained. No growth
+label or prediction model exists yet; Parts 5.2 and 5.3 remain.
 
 ## Documentation
 
