@@ -7,8 +7,41 @@
 # confirms (or revises) it as the right choice — not assumed final here.
 sensitivity_thresholds_pct: [5, 10, 20]
 primary_threshold_pct: 10
+primary_threshold_confirmed: true
+primary_threshold_confirmed_date: "2026-11-14"
+primary_threshold_confirmation_basis: "Phase 5.3 sensitivity review and explicit user gate approval"
 
 # A cell already this built-up at t1 is excluded from the positive-label
 # candidate pool entirely (it can't meaningfully "grow" further) — plan.md
 # Phase 5 edge case. Separate from the growth threshold itself.
 already_built_exclusion_pct: 90
+
+part5_2:
+  contract_version: "5.2.0-growth-transition-labels-v1"
+  expected_cells: 6371
+  expected_rows: 19113
+  transitions:
+    - [2018, 2020, training]
+    - [2020, 2022, training]
+    - [2022, 2024, temporal_holdout]
+  candidate_threshold_pct: 10
+  water_class: 0
+  water_fraction_exclusion_threshold: 0.50
+  protected_area_status: unavailable
+  outputs:
+    table: vizag-geoai/v2/derived/labels/contract-5.2.0/growth_transition_labels.parquet
+    summary: vizag-geoai/v2/results/phase5/contract-5.2.0/growth_transition_summary.json
+    exclusions: vizag-geoai/v2/results/phase5/contract-5.2.0/exclusion_report.csv
+    manifest: vizag-geoai/v2/manifests/growth_transition_manifest.contract-5.2.0.json
+
+part5_3:
+  contract_version: "5.3.0-threshold-sensitivity-v1"
+  expected_cells: 6371
+  expected_source_rows: 19113
+  expected_rows: 57339
+  imbalance_warning_fraction: 0.05
+  outputs:
+    table: vizag-geoai/v2/derived/labels/contract-5.3.0/threshold_sensitivity_labels.parquet
+    comparison: vizag-geoai/v2/results/phase5/contract-5.3.0/phase5_threshold_sensitivity.csv
+    summary: vizag-geoai/v2/results/phase5/contract-5.3.0/threshold_sensitivity_summary.json
+    manifest: vizag-geoai/v2/manifests/threshold_sensitivity_manifest.contract-5.3.0.json

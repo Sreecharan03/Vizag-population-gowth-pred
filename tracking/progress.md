@@ -13,7 +13,7 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
 | 2 | B2 inventory, reconciliation & acquisition | Complete | 6/6 | **Yes** — A1–A5 all confirmed 2026-10-10; nothing deleted/overwritten anywhere throughout |
 | 3 | Advanced Sentinel-2 preprocessing | Complete | 8/8 | Yes — user approved review evidence and the affected-index-only outlier exclusion rule on 2026-11-10; originals remain unchanged |
 | 4 | Grid construction & feature aggregation | Complete | 4/4 | Yes — 25,484-row assembled feature table validated under contract 4.4.0 |
-| 5 | Label generation | In progress | 1/3 | No — Parts 5.2/5.3 and threshold gate remain |
+| 5 | Label generation | Complete | 3/3 | **Yes** — 5%/10%/20% sensitivity reviewed; user confirmed 10 percentage points on 2026-11-14 |
 | 6 | Dataset assembly & split | Not started | 0/4 | No |
 | 7 | Baseline model (E1) | Not started | 0/2 | No |
 | 8 | Multimodal models & ablation (E2–E4) | Not started | 0/3 | No |
@@ -179,6 +179,14 @@ Statuses: `Not started` / `In progress` / `Blocked` / `Gate pending` / `Complete
   published a 25,484-row table, summary and manifest, preserving all 6,371 cells; three sub-pixel
   boundary slivers are explicitly unsupported rather than dropped or fabricated. Exact-version
   review `ap-UIhfWQiQ18QWOb2OEsEJa4` passed. Modal regression: 422 passed, one known warning.
+- **Part 5.2 complete (2026-11-14):** contract 5.2.0 preserves 19,113 rows across all 6,371
+  cells and three transitions. Endpoint-only deltas, missing-evidence, analysis-eligibility,
+  already-built and majority-water exclusions passed exact-version scientific review. The
+  2022–2024 transition remains isolated as temporal holdout. Regression: 431 passed.
+- **Part 5.3 complete and gate-approved (2026-11-14):** contract 5.3.0 contains 57,339 rows
+  spanning 5%, 10% and 20% thresholds. Nested positive sets, class balance and label changes
+  were independently recomputed. The user explicitly confirmed the predeclared 10-percentage-point
+  primary threshold. Regression: 436 passed; Phase 6 is next.
 - **Part 3.3.1 validation history (2026-11-04):** accuracy-first float32 reflectance plus separate SCL
   COG design approved. Complete read-only Modal metadata/header scan passed for all 32 scenes and 224
   required assets. Baselines are 04.00/05.00/05.10; every required offset mapping and frozen grid invariant
@@ -210,6 +218,8 @@ detail (what broke, what was decided) belongs in [`changelog.md`](changelog.md) 
 
 | Part | Date completed | Tests passing? | One-line result |
 |---|---|---|---|
+| 5.3 | 2026-11-14 | 436 passed, one existing warning in Modal | Validated 57,339 sensitivity rows at 5%/10%/20%; user confirmed 10 percentage points as primary and closed the Phase 5 gate. |
+| 5.2 | 2026-11-14 | 431 passed, one existing warning in Modal | Published and independently reviewed 19,113 leakage-safe cell-transition rows with auditable exclusions and a separate temporal holdout. |
 | 5.1 | 2026-11-14 | 422 passed, one existing warning in Modal | Four AOI-masked Dynamic World epochs and a hash/version-pinned 25,484-row cell-year evidence table passed final scientific review; all 6,371 cells retained, three zero-pixel boundary slivers explicitly unsupported. |
 | 3.6 | 2026-11-10 | 295 passed, one existing warning in Modal | Published and independently byte/pixel-audited 20 index COGs plus a verified manifest. Finite 2018 extremes and 12 slight 2022 outliers per affected index flagged for scientific review before downstream use. |
 | 3.5 | 2026-11-06 | Latest user-supplied regression `ExitCode.OK`, one warning; count omitted in excerpt; independent audit passed | Four contract-3.5.0 epoch composites plus count rasters passed strict COG, streamed hash, single-version, coverage and pixel-validity gates. |

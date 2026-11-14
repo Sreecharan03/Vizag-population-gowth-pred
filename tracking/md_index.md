@@ -40,6 +40,8 @@ markdown file is added, moved, or removed anywhere in the repo — not just unde
 | `results/project_report/README.md` | Reviewed academic report, architecture assets, regeneration instructions and draft limitations | Student, guide and contributors |
 | `results/phase4/grid/contract-4.1.0/README.md` | Part 4.1 verified grid summary, preview meaning and Modal run identities | Anyone reviewing or consuming the 500 m grid |
 | `docs/phase-4.2-feature-aggregation-proposal.md` | Part 4.2 preflight, DEM correction, full-batch publication, scientific review and approved support policy | Phase 4 implementers and reviewers |
+| `docs/phase-5.2-completion.md` | Phase 5.2 transition-label method, exclusions, immutable outputs, validation and error correction | Label and dataset-assembly reviewers |
+| `docs/phase-5.3-completion.md` | Threshold-sensitivity results, immutable outputs, 10-percentage-point recommendation and confirmed Phase 5 gate | Dataset-assembly and modeling reviewers |
 | `results/phase4/features/contract-4.2.0/part4_2_completion.md` | Final Part 4.2 execution, corrected error, verified outputs and 50% support/terrain eligibility rule | Downstream feature consumers |
 | `results/final_report.md` | *(not yet created — Phase 11)* Final write-up assembled from metrics/figures/SHAP plots | Humans, final deliverable |
 

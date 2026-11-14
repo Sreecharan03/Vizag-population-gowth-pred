@@ -5387,6 +5387,484 @@ def review_phase5_dynamic_world_cells() -> dict:
 
 @app.function(secrets=[b2_secret], timeout=3600, cpu=4.0, memory=16384,
               max_containers=1, retries=0)
+def build_phase5_growth_transition_labels() -> dict:
+    """Build and publish the create-only Phase 5.2 transition-label contract."""
+    import csv
+    import hashlib
+    import io
+    import json
+    import os
+    import boto3
+    import geopandas as gpd
+    import pandas as pd
+    import rasterio
+    from botocore.config import Config
+    from src.grid.feature_aggregation_pilot import build_cell_labels
+    from src.labels.growth_labels import (
+        aggregate_class_fraction, build_transition_labels, manifest_output_identity,
+        validate_transition_labels,
+    )
+    from src.preprocessing.index_products import require_absent
+    from src.preprocessing.read_strategy import vsis3_credentials
+    from src.storage.archive_publish import exact_versions
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    label_config = load_config("label")
+    policy = {**label_config["part5_2"],
+              "already_built_exclusion_pct": label_config["already_built_exclusion_pct"]}
+    dynamic = load_config("built_up_preflight")["dynamic_world"]
+    aggregation = dynamic["cell_aggregation"]
+    feature_config = load_config("feature_assembly")
+    bucket, endpoint = b2["bucket"], b2["endpoint_url"]
+    key_id, app_key = os.environ["B2_KEY_ID"], os.environ["B2_APPLICATION_KEY"]
+    client = boto3.client(
+        "s3", endpoint_url=endpoint, aws_access_key_id=key_id,
+        aws_secret_access_key=app_key,
+        config=Config(retries={"max_attempts": 1, "mode": "standard"}))
+    require_absent(client, bucket, list(policy["outputs"].values()))
+
+    def unique_object(key: str) -> tuple[bytes, dict]:
+        versions = exact_versions(client, bucket, key)
+        if len(versions) != 1 or not versions[0].get("IsLatest"):
+            raise RuntimeError(f"source is not unique/current: {key}")
+        response = client.get_object(
+            Bucket=bucket, Key=key, VersionId=versions[0]["VersionId"])
+        body = response["Body"].read()
+        digest = hashlib.sha256(body).hexdigest()
+        if len(body) != int(versions[0]["Size"]):
+            raise RuntimeError(f"source size mismatch: {key}")
+        metadata_digest = response.get("Metadata", {}).get("sha256")
+        if metadata_digest and metadata_digest != digest:
+            raise RuntimeError(f"source metadata hash mismatch: {key}")
+        return body, {"key": key, "version_id": versions[0]["VersionId"],
+                      "bytes": len(body), "sha256": digest}
+
+    built_body, built_identity = unique_object(aggregation["outputs"]["table"])
+    built_manifest_body, built_manifest_identity = unique_object(
+        aggregation["outputs"]["manifest"])
+    built_manifest = json.loads(built_manifest_body)
+    if (built_manifest.get("contract_version") != aggregation["contract_version"]
+            or built_manifest.get("outputs", {}).get("table", {}).get("sha256")
+            != built_identity["sha256"]):
+        raise RuntimeError("Phase 5.1 source manifest does not pin the built table")
+    feature_body, feature_identity = unique_object(feature_config["outputs"]["table"])
+    feature_manifest_body, feature_manifest_identity = unique_object(
+        feature_config["outputs"]["manifest"])
+    feature_manifest = json.loads(feature_manifest_body)
+    feature_table_record = manifest_output_identity(
+        feature_manifest, feature_config["outputs"]["table"])
+    if (feature_manifest.get("contract_version") != feature_config["contract_version"]
+            or feature_table_record["sha256"] != feature_identity["sha256"]
+            or int(feature_table_record["bytes"]) != feature_identity["bytes"]):
+        raise RuntimeError("Phase 4.4 source manifest does not pin the feature table")
+
+    built = pd.read_parquet(io.BytesIO(built_body))
+    features = pd.read_parquet(io.BytesIO(feature_body),
+                               columns=["grid_id", "epoch", "model_eligible_cell"])
+    grid_body, grid_identity = unique_object(aggregation["grid"]["key"])
+    boundary_body, boundary_identity = unique_object(dynamic["boundary"]["key"])
+    for actual, pinned, name in ((grid_identity, aggregation["grid"], "grid"),
+                                 (boundary_identity, dynamic["boundary"], "boundary")):
+        if any(actual[field] != pinned[field] for field in ("version_id", "bytes", "sha256")):
+            raise RuntimeError(f"pinned {name} identity mismatch")
+    grid = gpd.read_file(io.BytesIO(grid_body)).sort_values("grid_id").reset_index(drop=True)
+    boundary = gpd.read_file(io.BytesIO(boundary_body))
+
+    start_epochs = sorted({int(row[0]) for row in policy["transitions"]})
+    water_frames, raster_sources = [], {}
+    cell_labels, canonical_ids = None, None
+    with vsis3_credentials(key_id, app_key, endpoint):
+        for epoch in start_epochs:
+            prefix = dynamic["output_prefix_template"].format(epoch=epoch)
+            label_key = prefix + dynamic["outputs"]["label_mode"].replace(
+                str(dynamic["pilot_epoch"]), str(epoch))
+            manifest_key = prefix + dynamic["outputs"]["manifest"].replace(
+                str(dynamic["pilot_epoch"]), str(epoch))
+            manifest_body, manifest_identity = unique_object(manifest_key)
+            manifest = json.loads(manifest_body)
+            label_versions = exact_versions(client, bucket, label_key)
+            if len(label_versions) != 1 or not label_versions[0].get("IsLatest"):
+                raise RuntimeError(f"{epoch}: label-mode raster is not unique/current")
+            label_identity = {
+                "key": label_key, "version_id": label_versions[0]["VersionId"],
+                "bytes": int(label_versions[0]["Size"]),
+                "sha256": manifest["outputs"]["label_mode"]["sha256"]}
+            head = client.head_object(Bucket=bucket, Key=label_key,
+                                      VersionId=label_identity["version_id"])
+            if (manifest.get("contract_version") != dynamic["contract_version"]
+                    or int(manifest.get("epoch", -1)) != epoch
+                    or head.get("Metadata", {}).get("sha256") != label_identity["sha256"]):
+                raise RuntimeError(f"{epoch}: label-mode source identity mismatch")
+            raster_sources[str(epoch)] = {
+                "label_mode": label_identity, "manifest": manifest_identity}
+            with rasterio.open(f"/vsis3/{bucket}/{label_key}") as labels:
+                if cell_labels is None:
+                    cell_labels, ordered = build_cell_labels(
+                        grid, boundary, out_shape=labels.shape, transform=labels.transform,
+                        raster_crs=labels.crs,
+                        expected_cells=int(policy["expected_cells"]))
+                    canonical_ids = ordered.grid_id.astype(str).to_numpy()
+                if labels.shape != cell_labels.shape:
+                    raise RuntimeError(f"{epoch}: label-mode grid shape changed")
+                evidence = aggregate_class_fraction(
+                    labels.read(1), cell_labels,
+                    expected_cells=int(policy["expected_cells"]),
+                    target_class=int(policy["water_class"]), nodata=int(labels.nodata))
+            water_frames.append(pd.DataFrame({
+                "grid_id": canonical_ids, "epoch": epoch, **evidence}))
+    water = pd.concat(water_frames, ignore_index=True)
+    table = build_transition_labels(built, features, water, policy)
+    validate_transition_labels(table, policy)
+
+    exclusion_columns = [
+        "excluded_missing_evidence", "excluded_analysis_ineligible",
+        "excluded_already_built", "excluded_majority_water"]
+    transition_summary, exclusion_rows = {}, []
+    for (start, end), frame in table.groupby(["start_epoch", "end_epoch"], sort=True):
+        eligible = frame[frame["label_eligible"]]
+        labels = eligible["growth_label_candidate"].astype(int)
+        transition = f"{start}-{end}"
+        transition_summary[transition] = {
+            "rows": len(frame), "eligible_rows": len(eligible),
+            "excluded_rows": int((~frame["label_eligible"]).sum()),
+            "positive_labels": int(labels.eq(1).sum()),
+            "negative_labels": int(labels.eq(0).sum()),
+            "positive_fraction": float(labels.mean()) if len(labels) else None,
+            "negative_delta_rows": int(frame["negative_delta_flag"].sum())}
+        for column in exclusion_columns:
+            exclusion_rows.append({"transition": transition, "reason": column,
+                                   "rows": int(frame[column].sum())})
+    summary = {
+        "status": "phase5_part2_candidate_labels_validated",
+        "contract_version": policy["contract_version"],
+        "rows": len(table), "unique_cells": int(table.grid_id.nunique()),
+        "candidate_threshold_fraction": float(policy["candidate_threshold_pct"]) / 100,
+        "already_built_exclusion_fraction": float(policy["already_built_exclusion_pct"]) / 100,
+        "water_fraction_exclusion_threshold": float(policy["water_fraction_exclusion_threshold"]),
+        "protected_area_status": policy["protected_area_status"],
+        "transitions": transition_summary}
+    table_stream = io.BytesIO()
+    table.to_parquet(table_stream, index=False, compression="zstd")
+    table_body = table_stream.getvalue()
+    summary_body = (json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    exclusions_stream = io.StringIO(newline="")
+    writer = csv.DictWriter(exclusions_stream, fieldnames=["transition", "reason", "rows"])
+    writer.writeheader()
+    writer.writerows(exclusion_rows)
+    exclusions_body = exclusions_stream.getvalue().encode()
+    payloads = {"table": table_body, "summary": summary_body, "exclusions": exclusions_body}
+    identities = {
+        name: {"key": policy["outputs"][name], "bytes": len(body),
+               "sha256": hashlib.sha256(body).hexdigest()}
+        for name, body in payloads.items()}
+    manifest = {
+        "contract_version": policy["contract_version"],
+        "candidate_not_final_until_part5_3": True,
+        "transition_policy": policy["transitions"],
+        "candidate_threshold_pct": policy["candidate_threshold_pct"],
+        "already_built_exclusion_pct": policy["already_built_exclusion_pct"],
+        "water_fraction_exclusion_threshold": policy["water_fraction_exclusion_threshold"],
+        "protected_area_status": policy["protected_area_status"],
+        "sources": {
+            "built_table": built_identity, "built_manifest": built_manifest_identity,
+            "feature_table": feature_identity, "feature_manifest": feature_manifest_identity,
+            "grid": grid_identity, "boundary": boundary_identity,
+            "dynamic_world": raster_sources},
+        "outputs": identities, "rows": len(table),
+        "unique_cells": int(table.grid_id.nunique()),
+        "exclusion_precedence": exclusion_columns,
+        "temporal_leakage_policy": "only start and end epoch evidence is used per transition"}
+    manifest_body = (json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    manifest_identity = {
+        "key": policy["outputs"]["manifest"], "bytes": len(manifest_body),
+        "sha256": hashlib.sha256(manifest_body).hexdigest()}
+    require_absent(client, bucket, list(policy["outputs"].values()))
+    published = {}
+    for name, body, content_type in (
+        ("table", table_body, "application/vnd.apache.parquet"),
+        ("summary", summary_body, "application/json"),
+        ("exclusions", exclusions_body, "text/csv"),
+        ("manifest", manifest_body, "application/json")):
+        identity = manifest_identity if name == "manifest" else identities[name]
+        response = client.put_object(
+            Bucket=bucket, Key=identity["key"], Body=body, ContentType=content_type,
+            Metadata={"sha256": identity["sha256"], "contract": policy["contract_version"]})
+        published[name] = {**identity, "version_id": response.get("VersionId")}
+    return {**summary, "outputs": published, "b2_writes": 4}
+
+
+@app.function(secrets=[b2_secret], timeout=900, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def review_phase5_growth_transition_labels() -> dict:
+    """Read-only exact-version scientific review for Phase 5.2."""
+    import hashlib
+    import io
+    import json
+    import os
+    import boto3
+    import pandas as pd
+    from src.labels.growth_labels import validate_transition_labels
+    from src.storage.archive_publish import exact_versions
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    label_config = load_config("label")
+    policy = {**label_config["part5_2"],
+              "already_built_exclusion_pct": label_config["already_built_exclusion_pct"]}
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"])
+    payloads, identities = {}, {}
+    for name, key in policy["outputs"].items():
+        versions = exact_versions(client, b2["bucket"], key)
+        if len(versions) != 1 or not versions[0].get("IsLatest"):
+            raise RuntimeError(f"{name}: output is not unique/current")
+        response = client.get_object(Bucket=b2["bucket"], Key=key,
+                                     VersionId=versions[0]["VersionId"])
+        body = response["Body"].read()
+        digest = hashlib.sha256(body).hexdigest()
+        if (len(body) != int(versions[0]["Size"])
+                or response.get("Metadata", {}).get("sha256") != digest):
+            raise RuntimeError(f"{name}: exact-version identity validation failed")
+        payloads[name] = body
+        identities[name] = {"key": key, "version_id": versions[0]["VersionId"],
+                            "bytes": len(body), "sha256": digest}
+    manifest = json.loads(payloads["manifest"])
+    summary = json.loads(payloads["summary"])
+    if (manifest.get("contract_version") != policy["contract_version"]
+            or summary.get("contract_version") != policy["contract_version"]
+            or any(manifest.get("outputs", {}).get(name, {}).get("sha256")
+                   != identities[name]["sha256"] for name in ("table", "summary", "exclusions"))):
+        raise RuntimeError("Phase 5.2 manifest does not pin all payloads")
+    table = pd.read_parquet(io.BytesIO(payloads["table"]))
+    validate_transition_labels(table, policy)
+    counts = {}
+    for (start, end), frame in table.groupby(["start_epoch", "end_epoch"]):
+        eligible = frame[frame.label_eligible]
+        labels = eligible.growth_label_candidate.astype(int)
+        counts[f"{start}-{end}"] = {
+            "eligible": len(eligible), "excluded": int((~frame.label_eligible).sum()),
+            "positive": int(labels.eq(1).sum()), "negative": int(labels.eq(0).sum()),
+            "negative_delta": int(frame.negative_delta_flag.sum())}
+    return {
+        "status": "phase5_part2_scientific_review_passed",
+        "contract_version": policy["contract_version"],
+        "rows": len(table), "unique_cells": int(table.grid_id.nunique()),
+        "transitions": counts, "outputs": identities,
+        "candidate_not_final_until_part5_3": True,
+        "protected_area_status": policy["protected_area_status"], "b2_writes": 0}
+
+
+@app.function(secrets=[b2_secret], timeout=900, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def build_phase5_threshold_sensitivity() -> dict:
+    """Build and publish the create-only Phase 5.3 sensitivity contract."""
+    import hashlib
+    import io
+    import json
+    import os
+    import boto3
+    import pandas as pd
+    from src.labels.growth_labels import manifest_output_identity
+    from src.labels.threshold_sensitivity import (
+        build_comparison, build_threshold_sensitivity, label_change_summary,
+        validate_threshold_sensitivity,
+    )
+    from src.preprocessing.index_products import require_absent
+    from src.storage.archive_publish import exact_versions
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    label_config = load_config("label")
+    source_policy, policy = label_config["part5_2"], label_config["part5_3"]
+    thresholds = [int(value) for value in label_config["sensitivity_thresholds_pct"]]
+    primary = int(label_config["primary_threshold_pct"])
+    if primary not in thresholds:
+        raise RuntimeError("configured primary threshold is absent from sensitivity thresholds")
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"])
+    require_absent(client, b2["bucket"], list(policy["outputs"].values()))
+
+    def unique_object(key: str) -> tuple[bytes, dict]:
+        versions = exact_versions(client, b2["bucket"], key)
+        if len(versions) != 1 or not versions[0].get("IsLatest"):
+            raise RuntimeError(f"source is not unique/current: {key}")
+        response = client.get_object(
+            Bucket=b2["bucket"], Key=key, VersionId=versions[0]["VersionId"])
+        body = response["Body"].read()
+        digest = hashlib.sha256(body).hexdigest()
+        if (len(body) != int(versions[0]["Size"])
+                or response.get("Metadata", {}).get("sha256") != digest):
+            raise RuntimeError(f"source exact-version identity mismatch: {key}")
+        return body, {"key": key, "version_id": versions[0]["VersionId"],
+                      "bytes": len(body), "sha256": digest}
+
+    source_body, source_identity = unique_object(source_policy["outputs"]["table"])
+    source_manifest_body, source_manifest_identity = unique_object(
+        source_policy["outputs"]["manifest"])
+    source_manifest = json.loads(source_manifest_body)
+    source_record = manifest_output_identity(
+        source_manifest, source_policy["outputs"]["table"])
+    if (source_manifest.get("contract_version") != source_policy["contract_version"]
+            or source_record["sha256"] != source_identity["sha256"]
+            or int(source_record["bytes"]) != source_identity["bytes"]):
+        raise RuntimeError("Phase 5.2 manifest does not pin the sensitivity source")
+    source = pd.read_parquet(io.BytesIO(source_body))
+    if (len(source) != int(policy["expected_source_rows"])
+            or source[["grid_id", "start_epoch", "end_epoch"]].duplicated().any()):
+        raise RuntimeError("Phase 5.2 source row contract changed")
+    table = build_threshold_sensitivity(source, thresholds)
+    validate_threshold_sensitivity(
+        table, expected_cells=int(policy["expected_cells"]),
+        expected_rows=int(policy["expected_rows"]),
+        expected_source_rows=int(policy["expected_source_rows"]),
+        thresholds_pct=thresholds, transitions=source_policy["transitions"])
+    comparison = build_comparison(table, float(policy["imbalance_warning_fraction"]))
+    expected_comparison_rows = len(thresholds) * len(source_policy["transitions"])
+    if len(comparison) != expected_comparison_rows:
+        raise RuntimeError("comparison table does not cover every threshold/transition")
+    changes = label_change_summary(table, thresholds)
+    primary_rows = comparison[comparison.threshold_pct == primary]
+    prevalence = {row.transition: float(row.positive_fraction)
+                  for row in primary_rows.itertuples()}
+    training_values = primary_rows.loc[
+        primary_rows.split == "training", "positive_fraction"].astype(float)
+    holdout_values = primary_rows.loc[
+        primary_rows.split == "temporal_holdout", "positive_fraction"].astype(float)
+    prevalence_shift = None
+    if len(training_values) and len(holdout_values):
+        prevalence_shift = float(holdout_values.iloc[0] - training_values.mean())
+    summary = {
+        "status": "phase5_part3_threshold_sensitivity_validated",
+        "contract_version": policy["contract_version"],
+        "rows": len(table), "unique_cells": int(table.grid_id.nunique()),
+        "thresholds_pct": sorted(thresholds),
+        "design_primary_threshold_pct": primary,
+        "recommendation": {
+            "threshold_pct": primary,
+            "basis": "project-design primary retained; measured sensitivity and imbalance disclosed",
+            "requires_user_phase_gate_confirmation": True,
+        },
+        "primary_positive_fraction_by_transition": prevalence,
+        "primary_holdout_minus_training_mean_positive_fraction": prevalence_shift,
+        "label_changes": changes,
+        "imbalance_warning_rows": int(comparison.imbalance_warning.sum()),
+        "protected_area_status": source_manifest.get("protected_area_status", "unavailable"),
+    }
+    table_stream = io.BytesIO()
+    table.to_parquet(table_stream, index=False, compression="zstd")
+    table_body = table_stream.getvalue()
+    comparison_body = comparison.to_csv(index=False).encode()
+    summary_body = (json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    payloads = {"table": table_body, "comparison": comparison_body, "summary": summary_body}
+    identities = {
+        name: {"key": policy["outputs"][name], "bytes": len(body),
+               "sha256": hashlib.sha256(body).hexdigest()}
+        for name, body in payloads.items()}
+    manifest = {
+        "contract_version": policy["contract_version"],
+        "source": {"table": source_identity, "manifest": source_manifest_identity},
+        "thresholds_pct": sorted(thresholds),
+        "design_primary_threshold_pct": primary,
+        "outputs": identities, "rows": len(table),
+        "unique_cells": int(table.grid_id.nunique()),
+        "label_evidence_policy": "reuse immutable Phase 5.2 delta and eligibility only",
+        "selection_policy": "do not optimize threshold against downstream model scores",
+    }
+    manifest_body = (json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    manifest_identity = {
+        "key": policy["outputs"]["manifest"], "bytes": len(manifest_body),
+        "sha256": hashlib.sha256(manifest_body).hexdigest()}
+    require_absent(client, b2["bucket"], list(policy["outputs"].values()))
+    published = {}
+    for name, body, content_type in (
+        ("table", table_body, "application/vnd.apache.parquet"),
+        ("comparison", comparison_body, "text/csv"),
+        ("summary", summary_body, "application/json"),
+        ("manifest", manifest_body, "application/json")):
+        identity = manifest_identity if name == "manifest" else identities[name]
+        response = client.put_object(
+            Bucket=b2["bucket"], Key=identity["key"], Body=body, ContentType=content_type,
+            Metadata={"sha256": identity["sha256"], "contract": policy["contract_version"]})
+        published[name] = {**identity, "version_id": response.get("VersionId")}
+    return {**summary, "outputs": published, "b2_writes": 4}
+
+
+@app.function(secrets=[b2_secret], timeout=900, cpu=2.0, memory=8192,
+              max_containers=1, retries=0)
+def review_phase5_threshold_sensitivity() -> dict:
+    """Read-only exact-version scientific review for Phase 5.3."""
+    import hashlib
+    import io
+    import json
+    import os
+    import boto3
+    import pandas as pd
+    from src.labels.threshold_sensitivity import (
+        build_comparison, label_change_summary, validate_threshold_sensitivity,
+    )
+    from src.storage.archive_publish import exact_versions
+    from src.utils.io import load_config
+
+    b2 = load_config("b2")
+    label_config = load_config("label")
+    source_policy, policy = label_config["part5_2"], label_config["part5_3"]
+    thresholds = [int(value) for value in label_config["sensitivity_thresholds_pct"]]
+    client = boto3.client(
+        "s3", endpoint_url=b2["endpoint_url"],
+        aws_access_key_id=os.environ["B2_KEY_ID"],
+        aws_secret_access_key=os.environ["B2_APPLICATION_KEY"])
+    payloads, identities = {}, {}
+    for name, key in policy["outputs"].items():
+        versions = exact_versions(client, b2["bucket"], key)
+        if len(versions) != 1 or not versions[0].get("IsLatest"):
+            raise RuntimeError(f"{name}: output is not unique/current")
+        response = client.get_object(
+            Bucket=b2["bucket"], Key=key, VersionId=versions[0]["VersionId"])
+        body = response["Body"].read()
+        digest = hashlib.sha256(body).hexdigest()
+        if (len(body) != int(versions[0]["Size"])
+                or response.get("Metadata", {}).get("sha256") != digest):
+            raise RuntimeError(f"{name}: exact-version identity validation failed")
+        payloads[name] = body
+        identities[name] = {"key": key, "version_id": versions[0]["VersionId"],
+                            "bytes": len(body), "sha256": digest}
+    manifest, summary = json.loads(payloads["manifest"]), json.loads(payloads["summary"])
+    if (manifest.get("contract_version") != policy["contract_version"]
+            or summary.get("contract_version") != policy["contract_version"]
+            or any(manifest.get("outputs", {}).get(name, {}).get("sha256")
+                   != identities[name]["sha256"]
+                   for name in ("table", "comparison", "summary"))):
+        raise RuntimeError("Phase 5.3 manifest does not pin every payload")
+    table = pd.read_parquet(io.BytesIO(payloads["table"]))
+    validate_threshold_sensitivity(
+        table, expected_cells=int(policy["expected_cells"]),
+        expected_rows=int(policy["expected_rows"]),
+        expected_source_rows=int(policy["expected_source_rows"]),
+        thresholds_pct=thresholds, transitions=source_policy["transitions"])
+    published_comparison = pd.read_csv(io.BytesIO(payloads["comparison"]))
+    recomputed = build_comparison(table, float(policy["imbalance_warning_fraction"]))
+    pd.testing.assert_frame_equal(published_comparison, recomputed, check_dtype=False)
+    changes = label_change_summary(table, thresholds)
+    if changes != summary.get("label_changes"):
+        raise RuntimeError("published label-change summary differs from recomputation")
+    return {
+        "status": "phase5_part3_scientific_review_passed",
+        "contract_version": policy["contract_version"],
+        "rows": len(table), "unique_cells": int(table.grid_id.nunique()),
+        "thresholds_pct": sorted(thresholds),
+        "design_primary_threshold_pct": int(label_config["primary_threshold_pct"]),
+        "comparison": published_comparison.to_dict(orient="records"),
+        "label_changes": changes, "outputs": identities,
+        "requires_user_phase_gate_confirmation": True, "b2_writes": 0}
+
+
+@app.function(secrets=[b2_secret], timeout=3600, cpu=4.0, memory=16384,
+              max_containers=1, retries=0)
 def publish_phase5_dynamic_world_spatial_review() -> dict:
     """Create deterministic Sentinel-2-backed review panels for the 2022 pilot."""
     import csv
@@ -6011,6 +6489,26 @@ def main(action: str = "verify") -> None:
         import json
         result = review_phase5_dynamic_world_cells.remote()
         print("PHASE5_DW_CELL_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-growth-label-build":
+        import json
+        result = build_phase5_growth_transition_labels.remote()
+        print("PHASE5_GROWTH_LABEL_BUILD="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-growth-label-review":
+        import json
+        result = review_phase5_growth_transition_labels.remote()
+        print("PHASE5_GROWTH_LABEL_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-threshold-sensitivity-build":
+        import json
+        result = build_phase5_threshold_sensitivity.remote()
+        print("PHASE5_THRESHOLD_SENSITIVITY_BUILD="+json.dumps(result, sort_keys=True), flush=True)
+        return
+    if action == "part5-threshold-sensitivity-review":
+        import json
+        result = review_phase5_threshold_sensitivity.remote()
+        print("PHASE5_THRESHOLD_SENSITIVITY_REVIEW="+json.dumps(result, sort_keys=True), flush=True)
         return
     if action == "part5-dw-spatial-review":
         import json

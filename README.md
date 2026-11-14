@@ -202,7 +202,7 @@ There is no production prediction CLI yet.
 | Cell-level satellite/terrain features | Part 4.2 complete; six outputs verified, 6,355 cells meet the approved support/terrain rule |
 | Cell-level population/infrastructure context | Part 4.3 complete; 25,484 validated cell-year rows under contract 4.3.1 |
 | Leakage-safe assembled feature table | Part 4.4 complete; 25,484 rows, 69 columns, 6,355 model-eligible cells under contract 4.4.0 |
-| Built-fraction change labels | Part 5.1 complete: four AOI-masked Dynamic World epochs and 25,484 validated cell-year evidence rows; Parts 5.2–5.3 remain |
+| Built-fraction change labels | Phase 5 complete and gate-approved; 5%/10%/20% sensitivity reviewed and 10 percentage points confirmed as the primary threshold |
 | Logistic and tree-based baselines | Planned |
 | Temporal holdout, spatial robustness and calibration | Planned |
 | Explanations and infrastructure-pressure scenarios | Planned |
@@ -221,8 +221,11 @@ Phase 5.1 rejected the original fixed spectral-rule classifier after it under-de
 to the approved buffered GVMC AOI: 15,353,996 valid 10 m pixels per epoch and zero valid pixels
 outside it. The final table contains 25,484 unique `(grid_id, epoch)` rows. It preserves all
 6,371 cells; 6,368 have raster evidence and three tiny boundary slivers are explicitly unsupported.
-Both classified built fraction and soft probability/uncertainty evidence are retained. No growth
-label or prediction model exists yet; Parts 5.2 and 5.3 remain.
+Both classified built fraction and soft probability/uncertainty evidence are retained. Phase 5.2
+adds 19,113 rows across the 2018–2020 and 2020–2022 training transitions and the fully separated
+2022–2024 temporal holdout. Phase 5.3 validated 57,339 threshold rows at 5%, 10% and 20%.
+The predeclared 10-percentage-point threshold was explicitly confirmed at the Phase 5 gate on
+14 November 2026. No prediction model exists yet.
 
 ## Documentation
 
@@ -232,6 +235,8 @@ label or prediction model exists yet; Parts 5.2 and 5.3 remain.
 - [Part 4.3 completion and provenance](docs/phase-4.3-context-completion.md)
 - [Part 4.4 completion, error correction and immutable outputs](docs/phase-4.4-completion.md)
 - [Phase 5.1 method history, Dynamic World pilot and current gate](docs/phase-5.1-preflight.md)
+- [Phase 5.2 transition-label completion and provenance](docs/phase-5.2-completion.md)
+- [Phase 5.3 threshold sensitivity and Phase 5 gate](docs/phase-5.3-completion.md)
 - [Reviewed academic report — PDF](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.pdf)
 - [Editable academic report — Word](results/project_report/Vizag_GeoAI_Project_Report_Reviewed.docx)
 - [Report scope and diagram notes](results/project_report/README.md)

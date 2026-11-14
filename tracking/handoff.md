@@ -29,13 +29,11 @@ recovered checkpoint to `origin/main` on 2026-11-09 and renewed that authorizati
 Verify the current commit and remote with Git;
 do not infer them from this historical note. Never force-push or include credentials or runtime data.
 
-Current checkpoint (2026-11-13): Phases 3 and 4 are technically complete. Phase 5.1 rejected
-fixed multi-index rules, then published and scientifically reviewed the create-only 2022 Dynamic
-World pilot under contract 5.1.0. The current gate is stratified spatial review of Dynamic World
-versus WorldCover disagreements using dated project imagery. Do not run the 2018/2020/2024 batch,
-derive cell built fractions, or start Parts 5.2/5.3 before that gate is approved. Full Modal
-regression **414 passed, one known synthetic all-NaN warning**. All 32 extraction pairs and four composite/count
-pairs remain intact.
+Current checkpoint (2026-11-14): Phases 3, 4 and 5 are complete. Corrected Dynamic World contract
+5.1.1, transition-label contract 5.2.0 and sensitivity contract 5.3.0 are populated and immutable.
+The user explicitly confirmed 10 percentage points as the primary growth threshold after reviewing
+5%/10%/20% sensitivity. Full Modal regression **436 passed, one known synthetic all-NaN warning**.
+Phase 6 dataset assembly and leakage validation is next. Do not rerun populated Phase 5 contracts.
 User approved Part 3.6 and the production run created 20 index COGs (1,309,726,569 bytes), independently
 downloaded/hashed and fully pixel-audited them, then published one exact-byte-verified 17,788-byte manifest.
 Read `results/phase3/indices_validation.md`, its machine-readable `.json`, and
@@ -94,12 +92,16 @@ created once and exact-version/read-back/hash verified. The persistent reservati
 `results/phase4/grid/contract-4.1.0/`. The user approved the preview on 2026-11-11.
 Part 4.2 is complete. Do not rerun its populated six-output contract.
 
-**Phase 5 Part 5.1 is complete; do not rerun populated contract 5.1.1 outputs.** The original
+**Phase 5 is complete and gate-approved; do not rerun populated contracts 5.1.1, 5.2.0 or 5.3.0.** The original
 contract 5.1.0 rectangle-wide pilot is preserved but scientifically superseded. Contract 5.1.1
 applies the exact buffered GVMC AOI and contains four epoch COG sets. Final cell aggregation produced
 25,484 unique rows under `vizag-geoai/v2/derived/labels/contract-5.1.1/`; 6,368 cells have evidence
 and three tiny edge slivers are explicitly unsupported. Final read-only review run
-`ap-UIhfWQiQ18QWOb2OEsEJa4` passed. Part 5.2 is next; do not treat WorldCover as training truth.
+`ap-UIhfWQiQ18QWOb2OEsEJa4` passed. Part 5.2 preserved 19,113 cell-transition rows and passed
+exact-version review. Part 5.3 validated 57,339 sensitivity rows; the user confirmed 10 percentage
+points as primary. Phase 6 is next; do not treat WorldCover as training truth or select the target
+using downstream model scores. Read `docs/phase-5.2-completion.md` and
+`docs/phase-5.3-completion.md` before proceeding.
 
 **Part 4.2a metadata-only preflight completed; do not mistake it for aggregation.** Run
 `ap-Aa5eCAKVU7wPh0pwIn3I4W` read 52,147 bytes from three pinned small objects, pinned all 20 index
